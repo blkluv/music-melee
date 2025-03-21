@@ -1,6 +1,7 @@
 // Music Melee - Main Entry Point
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
 import * as TONE from 'tone';
 import * as CANNON from 'cannon-es';
 
@@ -17,6 +18,8 @@ async function init() {
   camera.add(audioListener);
   const renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Optional: for a softer shadow look
   document.body.appendChild(renderer.domElement);
   
   // Initialize PointerLockControls for first-person navigation
@@ -35,12 +38,52 @@ async function init() {
   const groundMat = new THREE.MeshStandardMaterial({ color: 0x808080 });
   const groundMesh = new THREE.Mesh(groundGeo, groundMat);
   groundMesh.rotation.x = -Math.PI / 2;
+  groundMesh.receiveShadow = true;
   scene.add(groundMesh);
   
   // Hemisphere light for ambient sky illumination
   const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
   hemiLight.position.set(0, 200, 0);
   scene.add(hemiLight);
+  
+  // Arena dimensions
+  const arenaSize = 100; // width and depth
+
+  // Wall parameters
+  const wallThickness = 1;
+  const wallHeight = 20;
+  const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x999999 });
+  const halfArena = arenaSize / 2;
+
+  // Create a helper function to make a wall with matching physics body:
+  function createWall(width: number, height: number, depth: number, pos: THREE.Vector3) {
+    // Visual wall
+    const wallGeo = new THREE.BoxGeometry(width, height, depth);
+    const wallMesh = new THREE.Mesh(wallGeo, wallMaterial);
+    wallMesh.position.copy(pos);
+    wallMesh.castShadow = true;
+    wallMesh.receiveShadow = true;
+    scene.add(wallMesh);
+    
+    // Create corresponding physics body (mass 0 for static)
+    const halfExtents = new CANNON.Vec3(width/2, height/2, depth/2);
+    const wallShape = new CANNON.Box(halfExtents);
+    const wallBody = new CANNON.Body({ mass: 0 });
+    wallBody.addShape(wallShape);
+    wallBody.position.set(pos.x, pos.y, pos.z);
+    world.addBody(wallBody);
+  }
+
+  // Floor-level walls: center walls are raised so that their base sits on ground. Assume ground at y=0, so center wall at y = wallHeight/2
+
+  // North wall (z = -halfArena)
+  createWall(arenaSize, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight/2, -halfArena));
+  // South wall (z = halfArena)
+  createWall(arenaSize, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight/2, halfArena));
+  // East wall (x = halfArena)
+  createWall(wallThickness, wallHeight, arenaSize, new THREE.Vector3(halfArena, wallHeight/2, 0));
+  // West wall (x = -halfArena)
+  createWall(wallThickness, wallHeight, arenaSize, new THREE.Vector3(-halfArena, wallHeight/2, 0));
 
   // Directional light to simulate the sun (with stronger intensity)
   const sun = new THREE.DirectionalLight(0xffffff, 2.5);
@@ -144,6 +187,8 @@ async function init() {
     const boxMat = new THREE.MeshStandardMaterial({ color: synthColorMap[chosenType] });
     const boxMesh = new THREE.Mesh(boxGeo, boxMat);
     boxMesh.userData.originalColor = synthColorMap[chosenType];
+    boxMesh.castShadow = true;
+    boxMesh.receiveShadow = true;
     // Random placement: x and z between -20 and 20; y slightly above ground
     boxMesh.position.set((Math.random() - 0.5) * 40, boxSize / 2, (Math.random() - 0.5) * 40);
     scene.add(boxMesh);
@@ -263,6 +308,8 @@ async function init() {
     const boxMat = new THREE.MeshStandardMaterial({ color: synthColorMap[chosenType] });
     const boxMesh = new THREE.Mesh(boxGeo, boxMat);
     boxMesh.userData.originalColor = synthColorMap[chosenType];
+    boxMesh.castShadow = true;
+    boxMesh.receiveShadow = true;
     
     // Position at a random x/z and high above so it drops down
     boxMesh.position.set((Math.random() - 0.5) * 40, 50, (Math.random() - 0.5) * 40);
@@ -433,25 +480,13 @@ async function init() {
     }
   });
   
-  // Create and style an FPS counter element in the top-right corner
-  const fpsCounterElem = document.createElement("div");
-  fpsCounterElem.id = "fpsCounter";
-  fpsCounterElem.style.position = "absolute";
-  fpsCounterElem.style.top = "10px";
-  fpsCounterElem.style.right = "10px";
-  fpsCounterElem.style.color = "white";
-  fpsCounterElem.style.fontSize = "18px";
-  document.body.appendChild(fpsCounterElem);
-  
-  let lastFrameTime = performance.now();
+  // Add Stats.js for performance monitoring
+  const stats = Stats();
+  document.body.appendChild(stats.dom);
   
   // Animation loop
   function animate() {
-    const now = performance.now();
-    const delta = now - lastFrameTime;
-    const fps = 1000 / delta;
-    lastFrameTime = now;
-    fpsCounterElem.innerText = `FPS: ${fps.toFixed(1)}`;
+    stats.update();
     
     // Step the physics world (adjust timeStep as needed)
     world.step(1/60);
