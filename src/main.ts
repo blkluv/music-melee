@@ -419,6 +419,12 @@ async function init() {
 
   // Animation loop
   function animate() {
+    const now = performance.now();
+    const delta = now - lastFrameTime;
+    const fps = 1000 / delta;
+    lastFrameTime = now;
+    fpsCounterElem.innerText = `FPS: ${fps.toFixed(1)}`;
+    
     // Step the physics world (adjust timeStep as needed)
     world.step(1/60);
     requestAnimationFrame(animate);
@@ -491,6 +497,18 @@ async function init() {
     blockCounterElem.innerText = `Blocks: ${boxMeshArray.length}`;
   }
   updateBlockCounter();
+  
+  // Create and style an FPS counter element in the top-right corner
+  const fpsCounterElem = document.createElement("div");
+  fpsCounterElem.id = "fpsCounter";
+  fpsCounterElem.style.position = "absolute";
+  fpsCounterElem.style.top = "10px";
+  fpsCounterElem.style.right = "10px";
+  fpsCounterElem.style.color = "white";
+  fpsCounterElem.style.fontSize = "18px";
+  document.body.appendChild(fpsCounterElem);
+  
+  let lastFrameTime = performance.now();
   
   // Handle window resize
   window.addEventListener('resize', () => {
