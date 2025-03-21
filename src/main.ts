@@ -240,7 +240,7 @@ async function init() {
     const edges = new THREE.EdgesGeometry(boxGeo);
     const outline = new THREE.LineSegments(
       edges,
-      new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 5 })
+      new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 })
     );
     boxMesh.add(outline);
     // Random placement: x and z between -20 and 20; y slightly above ground
@@ -368,7 +368,7 @@ async function init() {
     const edges = new THREE.EdgesGeometry(boxGeo);
     const outline = new THREE.LineSegments(
       edges,
-      new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 5 })
+      new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 })
     );
     boxMesh.add(outline);
     
@@ -481,15 +481,15 @@ async function init() {
       
       // Use a threshold of (playerRadius + small epsilon) for grounding
       if (intersects.length > 0 && intersects[0].distance <= playerRadius + 0.2) {
-        // Trigger the jump
-        playerBody.velocity.y = 12;
+        // Trigger the jump with increased power
+        playerBody.velocity.y = 18;
         synth.triggerAttackRelease("C4", "8n");
 
-        // If jumping off a block (non-ground), apply a reaction impulse to it
+        // If jumping off a block (non-ground), apply a stronger reaction impulse to it
         if (intersects[0].object.userData.boxBody) {
           const blockBody = intersects[0].object.userData.boxBody;
           // Apply a downward impulse to simulate the push-off effect (adjust impulse magnitude as needed)
-          blockBody.applyImpulse(new CANNON.Vec3(0, -5, 0), blockBody.position);
+          blockBody.applyImpulse(new CANNON.Vec3(0, -7, 0), blockBody.position);
         }
       }
     }
@@ -516,9 +516,9 @@ async function init() {
       const hit = intersects[0];
       const hitBoxBody = hit.object.userData.boxBody;
       if (hitBoxBody) {
-        // Apply an impulse in the forward direction to the hit box
+        // Apply a stronger impulse in the forward direction for a snappier block response
         const forceDir = new CANNON.Vec3(forwardDir.x, forwardDir.y, forwardDir.z);
-        forceDir.scale(3, forceDir);
+        forceDir.scale(6, forceDir);
         hitBoxBody.applyImpulse(forceDir, hitBoxBody.position);
     
         // Flash effect: turn the block white briefly
@@ -589,7 +589,7 @@ async function init() {
     }
     
     // Basic WASD movement: calculate front and side speeds
-    const speed = 20; // increased speed for even faster movement
+    const speed = 40; // increased movement speed for faster responsiveness
     const forward = new THREE.Vector3();
     const right = new THREE.Vector3();
     camera.getWorldDirection(forward);
