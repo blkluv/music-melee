@@ -156,9 +156,10 @@ async function init() {
   blockCounterElem.id = "blockCounter";
   blockCounterElem.style.position = "absolute";
   blockCounterElem.style.top = "10px";
-  blockCounterElem.style.left = "10px";
+  blockCounterElem.style.right = "10px";  // Changed from left to right
   blockCounterElem.style.color = "white";
   blockCounterElem.style.fontSize = "18px";
+  blockCounterElem.style.fontFamily = "Roboto, sans-serif";  // New font-family
   document.body.appendChild(blockCounterElem);
 
   // Function to update the counter text
@@ -189,6 +190,13 @@ async function init() {
     boxMesh.userData.originalColor = synthColorMap[chosenType];
     boxMesh.castShadow = true;
     boxMesh.receiveShadow = true;
+    // Add black outline
+    const edges = new THREE.EdgesGeometry(boxGeo);
+    const outline = new THREE.LineSegments(
+      edges,
+      new THREE.LineBasicMaterial({ color: 0x000000 })
+    );
+    boxMesh.add(outline);
     // Random placement: x and z between -20 and 20; y slightly above ground
     boxMesh.position.set((Math.random() - 0.5) * 40, boxSize / 2, (Math.random() - 0.5) * 40);
     scene.add(boxMesh);
@@ -310,6 +318,13 @@ async function init() {
     boxMesh.userData.originalColor = synthColorMap[chosenType];
     boxMesh.castShadow = true;
     boxMesh.receiveShadow = true;
+    // Add black outline
+    const edges = new THREE.EdgesGeometry(boxGeo);
+    const outline = new THREE.LineSegments(
+      edges,
+      new THREE.LineBasicMaterial({ color: 0x000000 })
+    );
+    boxMesh.add(outline);
     
     // Position at a random x/z and high above so it drops down
     boxMesh.position.set((Math.random() - 0.5) * 40, 50, (Math.random() - 0.5) * 40);
