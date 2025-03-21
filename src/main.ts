@@ -26,6 +26,25 @@ async function init() {
     controls.lock();
   });
   
+  // Increase camera look sensitivity by overriding the mousemove event
+  const sensitivityMultiplier = 2.0; // adjust to taste
+
+  // Remove the default mousemove listener added by PointerLockControls
+  renderer.domElement.removeEventListener('mousemove', (controls as any).onMouseMove);
+
+  // Add your own mousemove handler that applies a higher sensitivity
+  renderer.domElement.addEventListener('mousemove', (event: MouseEvent) => {
+    if (!controls.isLocked) return;
+    const movementX = event.movementX || 0;
+    const movementY = event.movementY || 0;
+
+    // Manually update camera rotation (this overrides the default handling)
+    camera.rotation.y -= movementX * 0.002 * sensitivityMultiplier;
+    camera.rotation.x -= movementY * 0.002 * sensitivityMultiplier;
+    // Clamp the vertical rotation to avoid flipping
+    camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+  });
+  
   
   camera.position.z = 5;
   
@@ -77,7 +96,7 @@ async function init() {
   ];
 
   // Create many boxes scattered about for a more dynamic environment
-  const boxCount = 50; // increased number of boxes
+  const boxCount = 1000; // increased number of boxes for a denser environment
   for (let i = 0; i < boxCount; i++) {
     // Create the Three.js mesh for the box
     const boxSize = 1;
@@ -123,17 +142,19 @@ async function init() {
     // Initialize a cooldown timestamp (reduced to 150ms for more snappy response)
     (boxBody as any).lastToneTime = 0;
 
-    // When the box is hit by the player, play its tone.
-    // (Assuming the player's physics body is "playerBody")
+    // Play the box's tone on collision only if the impact is significant
     boxBody.addEventListener('collide', (e: any) => {
-      // e.body is the other body in collision.
-      if (e.body === playerBody) {
-        const now = performance.now();
-        if (now - (boxBody as any).lastToneTime > 150) { // reduced cooldown for snappier audio feedback
-          (boxBody as any).lastToneTime = now;
-          // Use the box-specific synth to trigger its assigned tone
-          (boxBody as any).assignedSynth.triggerAttackRelease((boxBody as any).assignedTone, "8n");
-        }
+      // e.contact is present for collision events in cannon-es.
+      const impactVelocity = e.contact && e.contact.getImpactVelocityAlongNormal 
+                               ? e.contact.getImpactVelocityAlongNormal() 
+                               : 0;
+      const threshold = 2; // Only trigger tone if impact velocity is above threshold
+      if (impactVelocity < threshold) return;
+      
+      const now = performance.now();
+      if (now - (boxBody as any).lastToneTime > 150) { // 150ms cooldown to prevent continuous triggering
+        (boxBody as any).lastToneTime = now;
+        (boxBody as any).assignedSynth.triggerAttackRelease((boxBody as any).assignedTone, "8n");
       }
     });
   }
@@ -158,7 +179,7 @@ async function init() {
   // Jump on click/tap if near ground (snappier jump)
   renderer.domElement.addEventListener('click', () => {
     if (playerBody.position.y <= 1.1) {
-      playerBody.velocity.y = 8; // higher jump velocity for DOOM 2016-like feel
+      playerBody.velocity.y = 6; // lower jump for a more grounded feel
       synth.triggerAttackRelease("C4", "8n");
     }
   });
@@ -175,7 +196,7 @@ async function init() {
     }
     
     // Basic WASD movement: calculate front and side speeds
-    const speed = 10; // increased speed for snappier, faster movement
+    const speed = 15; // increased speed for more DOOM-like responsiveness
     const forward = new THREE.Vector3();
     const right = new THREE.Vector3();
     camera.getWorldDirection(forward);
