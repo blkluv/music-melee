@@ -255,6 +255,7 @@ async function init() {
       new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 })
     );
     boxMesh.add(outline);
+    boxMesh.userData.outline = outline;
     // Random placement: x and z between -20 and 20; y slightly above ground
     boxMesh.position.set((Math.random() - 0.5) * 40, boxSize / 2, (Math.random() - 0.5) * 40);
     scene.add(boxMesh);
@@ -623,15 +624,42 @@ async function init() {
       }
     });
     
-    // Crosshair update based on a forward raycast
+    // Cast a ray from the camera forward for melee range
     const meleeRange = 5;
     const forwardDir = camera.getWorldDirection(new THREE.Vector3());
     const raycaster = new THREE.Raycaster(camera.position, forwardDir, 0, meleeRange);
     const intersects = raycaster.intersectObjects(boxMeshArray);
+
+    // Set crosshair color based on whether an object is hit
     if (intersects.length > 0) {
       crosshairElem.style.borderColor = "red";
+      
+      // Get the target block (first intersected)
+      const target = intersects[0].object;
+      
+      // Change its outline to white if it has one...
+      if (target.userData.outline) {
+        const outline = target.userData.outline as THREE.LineSegments;
+        (outline.material as THREE.LineBasicMaterial).color.set(0xffffff);
+      }
+      
+      // Revert outlines on all other blocks to black
+      boxMeshArray.forEach(mesh => {
+        if (mesh !== target && mesh.userData.outline) {
+          const othersOutline = mesh.userData.outline as THREE.LineSegments;
+          (othersOutline.material as THREE.LineBasicMaterial).color.set(0x000000);
+        }
+      });
     } else {
       crosshairElem.style.borderColor = "white";
+      
+      // Ensure all block outlines are reverted to black
+      boxMeshArray.forEach(mesh => {
+        if (mesh.userData.outline) {
+          const outline = mesh.userData.outline as THREE.LineSegments;
+          (outline.material as THREE.LineBasicMaterial).color.set(0x000000);
+        }
+      });
     }
     
     renderer.render(scene, camera);
