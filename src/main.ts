@@ -69,11 +69,15 @@ async function init() {
   groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
   world.addBody(groundBody);
   
-  // Define an array of possible tones to assign
-  const tones = ["C4", "D4", "E4", "F4", "G4", "A4", "B4"];
+  // Define an expanded array of possible tones (across multiple octaves)
+  const tones = [
+    "C3", "D3", "E3", "F3", "G3", "A3", "B3",
+    "C4", "D4", "E4", "F4", "G4", "A4", "B4",
+    "C5", "D5", "E5"
+  ];
 
-  // Create several boxes scattered about
-  const boxCount = 5; // adjust the number as needed
+  // Create many boxes scattered about for a more dynamic environment
+  const boxCount = 50; // increased number of boxes
   for (let i = 0; i < boxCount; i++) {
     // Create the Three.js mesh for the box
     const boxSize = 1;
@@ -86,10 +90,10 @@ async function init() {
     boxMesh.position.set((Math.random() - 0.5) * 40, boxSize / 2, (Math.random() - 0.5) * 40);
     scene.add(boxMesh);
 
-    // Create the Cannon-es physics body for the box
+    // Create the Cannon-es physics body for the box with enhanced mass
     const halfExtents = new CANNON.Vec3(boxSize / 2, boxSize / 2, boxSize / 2);
     const boxShape = new CANNON.Box(halfExtents);
-    const boxBody = new CANNON.Body({ mass: 0.5 });  // give it some mass so it can react slightly
+    const boxBody = new CANNON.Body({ mass: 1 }); // increased mass for more dynamic interactions
     boxBody.addShape(boxShape);
     boxBody.position.copy(new CANNON.Vec3(
       boxMesh.position.x,
@@ -99,22 +103,36 @@ async function init() {
     world.addBody(boxBody);
 
     // Store a reference from the physics body to the mesh for synchronization
-    // and assign a random tone for this box
     (boxBody as any).mesh = boxMesh;
+    // Assign a random tone from the expanded list
     (boxBody as any).assignedTone = tones[Math.floor(Math.random() * tones.length)];
-    // Initialize a simple cooldown timestamp to avoid spam triggering
+
+    // Assign a random synth type for variety (choose among Synth, MetalSynth, or PluckSynth)
+    const synthTypes = ['Synth', 'MetalSynth', 'PluckSynth'];
+    const chosenType = synthTypes[Math.floor(Math.random() * synthTypes.length)];
+    let boxSynth;
+    if (chosenType === 'Synth') {
+      boxSynth = new TONE.Synth({ oscillator: { type: "sine" } }).toDestination();
+    } else if (chosenType === 'MetalSynth') {
+      boxSynth = new TONE.MetalSynth().toDestination();
+    } else if (chosenType === 'PluckSynth') {
+      boxSynth = new TONE.PluckSynth().toDestination();
+    }
+    (boxBody as any).assignedSynth = boxSynth;
+
+    // Initialize a cooldown timestamp (reduced to 150ms for more snappy response)
     (boxBody as any).lastToneTime = 0;
 
     // When the box is hit by the player, play its tone.
     // (Assuming the player's physics body is "playerBody")
     boxBody.addEventListener('collide', (e: any) => {
       // e.body is the other body in collision.
-      if (e.body === playerBody) { 
+      if (e.body === playerBody) {
         const now = performance.now();
-        if (now - (boxBody as any).lastToneTime > 300) { // 300ms cooldown
+        if (now - (boxBody as any).lastToneTime > 150) { // reduced cooldown for snappier audio feedback
           (boxBody as any).lastToneTime = now;
-          // Trigger the assigned tone using Tone.js synth
-          synth.triggerAttackRelease((boxBody as any).assignedTone, "8n");
+          // Use the box-specific synth to trigger its assigned tone
+          (boxBody as any).assignedSynth.triggerAttackRelease((boxBody as any).assignedTone, "8n");
         }
       }
     });
@@ -137,10 +155,10 @@ async function init() {
     }
   });
   
-  // Jump on click/tap if near ground
+  // Jump on click/tap if near ground (snappier jump)
   renderer.domElement.addEventListener('click', () => {
     if (playerBody.position.y <= 1.1) {
-      playerBody.velocity.y = 5; // adjust jump speed as needed
+      playerBody.velocity.y = 8; // higher jump velocity for DOOM 2016-like feel
       synth.triggerAttackRelease("C4", "8n");
     }
   });
@@ -157,7 +175,7 @@ async function init() {
     }
     
     // Basic WASD movement: calculate front and side speeds
-    const speed = 5;
+    const speed = 10; // increased speed for snappier, faster movement
     const forward = new THREE.Vector3();
     const right = new THREE.Vector3();
     camera.getWorldDirection(forward);
