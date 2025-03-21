@@ -133,6 +133,50 @@ async function init() {
   groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
   world.addBody(groundBody);
   
+  playerBody.addEventListener('collide', (e: any) => {
+    const otherBody = e.body;
+    // Check if the collided body is a block (it has an assigned synth)
+    if (otherBody && otherBody.assignedSynth) {
+      // Get its associated mesh
+      const mesh = (otherBody as any).mesh;
+      if (!mesh) return;
+      // Flash the block white
+      const originalColor = mesh.userData.originalColor;
+      mesh.material.color.set(0xffffff);
+      setTimeout(() => {
+        mesh.material.color.setHex(originalColor);
+      }, 150);
+    
+      // Compute impact velocity (if available) and ignore very soft collisions
+      const impactVelocity =
+        e.contact && e.contact.getImpactVelocityAlongNormal
+          ? e.contact.getImpactVelocityAlongNormal()
+          : 0;
+      if (impactVelocity < 2) return;
+    
+      // Compute spatial audio parameters similar to the block's own collision effect:
+      const diff = new THREE.Vector3().subVectors(mesh.position, camera.position);
+      const distance = diff.length();
+      const maxDistance = 50;
+      const volumeFactor = Math.max(0, 1 - distance / maxDistance);
+      let computedVolume = -12 - ((1 - volumeFactor) * 20);
+      computedVolume = Math.min(computedVolume + impactVelocity * 2, 0);
+      const cameraRight = new THREE.Vector3();
+      cameraRight.crossVectors(camera.up, camera.getWorldDirection(new THREE.Vector3())).normalize();
+      const panValue = diff.dot(cameraRight) / distance;
+    
+      otherBody.assignedPanner.pan.value = panValue;
+      otherBody.assignedVolume.volume.value = computedVolume;
+    
+      // Use a simple cooldown check:
+      const now = performance.now();
+      if (!otherBody.lastToneTime || now - otherBody.lastToneTime > 150) {
+        otherBody.lastToneTime = now;
+        otherBody.assignedSynth.triggerAttackRelease(otherBody.assignedTone, "8n");
+      }
+    }
+  });
+  
   // Define an expanded array of possible tones (across multiple octaves)
   const tones = [
     "C3", "D3", "E3", "F3", "G3", "A3", "B3",
@@ -462,56 +506,47 @@ async function init() {
   renderer.domElement.addEventListener('mousedown', (event) => {
     if (!controls.isLocked) return;
     
-    // Set up a raycaster from the camera in its forward direction.
-    const raycaster = new THREE.Raycaster();
-    const origin = camera.position.clone();
-    const direction = new THREE.Vector3();
-    camera.getWorldDirection(direction);
-    raycaster.set(origin, direction);
+    const meleeRange = 5;
+    // Create a raycaster from the camera's position and its forward direction
+    const forwardDir = camera.getWorldDirection(new THREE.Vector3());
+    const raycaster = new THREE.Raycaster(camera.position, forwardDir, 0, meleeRange);
+    const intersects = raycaster.intersectObjects(boxMeshArray);
     
-    // Find intersections with our stored box meshes
-    const intersections = raycaster.intersectObjects(boxMeshArray);
-    if (intersections.length > 0) {
-      const hit = intersections[0];
-      // Only register a hit if the box is within a small threshold distance (e.g., 5 units)
-      if (hit.distance < 5) {
-        // Retrieve the corresponding physics body from hit mesh
-        const hitBoxBody = hit.object.userData.boxBody;
-        if (hitBoxBody) {
-          // Apply a weaker impulse force in the forward direction (multiplier 3 instead of 5)
-          const forceDirection = new CANNON.Vec3(direction.x, direction.y, direction.z);
-          forceDirection.scale(3, forceDirection);
-          hitBoxBody.applyImpulse(forceDirection, hitBoxBody.position);
-          
-          // Manually trigger the flash and sound effect for the hit box
-          const impactVelocity = 3; // a constant assumed for melee hit impact
-          // FLASH: make the block flash white
-          const mesh = hit.object;
-          const originalColor = mesh.userData.originalColor;
-          mesh.material.color.set(0xffffff);
-          setTimeout(() => {
-            mesh.material.color.setHex(originalColor);
-          }, 150);
-          
-          // Compute spatial audio parameters similar to collision event:
-          const diff = new THREE.Vector3().subVectors(mesh.position, camera.position);
-          const distance = diff.length();
-          const maxDistance = 50;
-          const volumeFactor = Math.max(0, 1 - distance / maxDistance);
-          let computedVolume = -12 - ((1 - volumeFactor) * 20);
-          computedVolume = Math.min(computedVolume + impactVelocity * 2, 0);
-          const cameraRight = new THREE.Vector3();
-          cameraRight.crossVectors(camera.up, camera.getWorldDirection(new THREE.Vector3())).normalize();
-          const panValue = diff.dot(cameraRight) / distance;
-          hitBoxBody.assignedPanner.pan.value = panValue;
-          hitBoxBody.assignedVolume.volume.value = computedVolume;
-          
-          // Trigger the box's synth for the melee hit
-          hitBoxBody.assignedSynth.triggerAttackRelease(hitBoxBody.assignedTone, "8n");
-          
-          // Play a kick drum sound
-          kickSynth.triggerAttackRelease("C2", "8n");
-        }
+    if (intersects.length > 0) {
+      const hit = intersects[0];
+      const hitBoxBody = hit.object.userData.boxBody;
+      if (hitBoxBody) {
+        // Apply an impulse in the forward direction to the hit box
+        const forceDir = new CANNON.Vec3(forwardDir.x, forwardDir.y, forwardDir.z);
+        forceDir.scale(3, forceDir);
+        hitBoxBody.applyImpulse(forceDir, hitBoxBody.position);
+    
+        // Flash effect: turn the block white briefly
+        const mesh = hit.object;
+        const originalColor = mesh.userData.originalColor;
+        mesh.material.color.set(0xffffff);
+        setTimeout(() => {
+          mesh.material.color.setHex(originalColor);
+        }, 150);
+    
+        // Compute spatial audio properties for the melee hit
+        const impactVelocity = 3; // constant assumed impact strength for melee
+        const diff = new THREE.Vector3().subVectors(mesh.position, camera.position);
+        const distance = diff.length();
+        const maxDistance = 50;
+        const volumeFactor = Math.max(0, 1 - distance / maxDistance);
+        let computedVolume = -12 - ((1 - volumeFactor) * 20);
+        computedVolume = Math.min(computedVolume + impactVelocity * 2, 0);
+        const cameraRight = new THREE.Vector3();
+        cameraRight.crossVectors(camera.up, camera.getWorldDirection(new THREE.Vector3())).normalize();
+        const panValue = diff.dot(cameraRight) / distance;
+    
+        hitBoxBody.assignedPanner.pan.value = panValue;
+        hitBoxBody.assignedVolume.volume.value = computedVolume;
+    
+        // Trigger the block's sound and play a kick drum for extra feedback
+        hitBoxBody.assignedSynth.triggerAttackRelease(hitBoxBody.assignedTone, "8n");
+        kickSynth.triggerAttackRelease("C2", "8n");
       }
     }
   });
@@ -583,15 +618,12 @@ async function init() {
       }
     });
     
-    // Update crosshair color based on raycast
-    const crosshairRaycaster = new THREE.Raycaster();
-    const rayOrigin = camera.position.clone();
-    const rayDirection = new THREE.Vector3();
-    camera.getWorldDirection(rayDirection);
-    crosshairRaycaster.set(rayOrigin, rayDirection);
-
-    const crosshairIntersections = crosshairRaycaster.intersectObjects(boxMeshArray);
-    if (crosshairIntersections.length > 0 && crosshairIntersections[0].distance < 5) {
+    // Crosshair update based on a forward raycast
+    const meleeRange = 5;
+    const forwardDir = camera.getWorldDirection(new THREE.Vector3());
+    const raycaster = new THREE.Raycaster(camera.position, forwardDir, 0, meleeRange);
+    const intersects = raycaster.intersectObjects(boxMeshArray);
+    if (intersects.length > 0) {
       crosshairElem.style.borderColor = "red";
     } else {
       crosshairElem.style.borderColor = "white";
