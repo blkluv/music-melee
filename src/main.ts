@@ -70,7 +70,7 @@ async function init() {
   
   // Create a simple player physics body (using a sphere shape)
   const playerShape = new CANNON.Sphere(1);
-  const playerBody = new CANNON.Body({ mass: 1 });
+  const playerBody = new CANNON.Body({ mass: 10 });
   playerBody.addShape(playerShape);
   playerBody.position.set(0, 2, 0); // start a bit above ground
   world.addBody(playerBody);
@@ -102,7 +102,7 @@ async function init() {
   const boxMeshArray: THREE.Mesh[] = [];
   
   // Create many boxes scattered about for a more dynamic environment
-  const boxCount = 200; // reduced number of boxes as per new requirements
+  const boxCount = 20; // reduced number of boxes as per new requirements
   for (let i = 0; i < boxCount; i++) {
     // Create the Three.js mesh for the box
     const boxSize = Math.random() * (2.0 - 0.5) + 0.5; // size between 0.5 and 2.0
@@ -418,7 +418,7 @@ async function init() {
     }
     
     // Basic WASD movement: calculate front and side speeds
-    const speed = 15; // increased speed for more DOOM-like responsiveness
+    const speed = 20; // increased speed for even faster movement
     const forward = new THREE.Vector3();
     const right = new THREE.Vector3();
     camera.getWorldDirection(forward);
