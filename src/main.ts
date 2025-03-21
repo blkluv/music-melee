@@ -37,14 +37,21 @@ async function init() {
   groundMesh.rotation.x = -Math.PI / 2;
   scene.add(groundMesh);
   
-  // Add ambient light
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-  scene.add(ambientLight);
+  // Hemisphere light for ambient sky illumination
+  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
+  hemiLight.position.set(0, 200, 0);
+  scene.add(hemiLight);
 
-  // Add directional light
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
-  dirLight.position.set(10, 10, 10);
-  scene.add(dirLight);
+  // Directional light to simulate the sun (with stronger intensity)
+  const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+  sun.position.set(100, 100, 0);
+  sun.castShadow = true;
+  // Optionally adjust shadow properties for more realism:
+  sun.shadow.camera.top = 50;
+  sun.shadow.camera.bottom = -50;
+  sun.shadow.camera.left = -50;
+  sun.shadow.camera.right = 50;
+  scene.add(sun);
   
   // Setup Tone.js – resume audio context on first user interaction
   document.body.addEventListener(
@@ -322,7 +329,7 @@ async function init() {
     updateBlockCounter();
   }
   
-  setInterval(spawnBlock, 5000);
+  setInterval(spawnBlock, 2000);
   
   // Movement variables
   const keys: Record<string, boolean> = { w: false, a: false, s: false, d: false };
@@ -335,7 +342,7 @@ async function init() {
     // Check for spacebar jump (use " " or "spacebar")
     if (event.code === 'Space') {
       if (playerBody.position.y <= 1.1) {  // simple ground check
-        playerBody.velocity.y = 6; // jump impulse (adjust as desired)
+        playerBody.velocity.y = 12; // jump impulse increased by 100%
         synth.triggerAttackRelease("C4", "8n");
       }
     }
