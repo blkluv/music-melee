@@ -297,21 +297,16 @@ async function init() {
     // Create spatial volume node
     const spatialVolume = new TONE.Volume(-12); // base volume reduction (-12 dB)
     
-    // Create a native PannerNode for 3D spatialization
-    const rawPanner = TONE.getContext().rawContext.createPanner();
-    rawPanner.panningModel = "HRTF";
-    rawPanner.distanceModel = "inverse";
-    rawPanner.refDistance = 1;
-    rawPanner.maxDistance = 50;
-    rawPanner.rolloffFactor = 1;
-    rawPanner.coneInnerAngle = 360;
-    rawPanner.coneOuterAngle = 0;
-    rawPanner.coneOuterGain = 0;
-
-    // Wrap the native node so it can be used in a Tone chain
-    const panner3D = new TONE.AudioNode({
-      input: rawPanner,
-      output: rawPanner
+    // Create a 3D panner using Tone.Panner3D for proper spatialization
+    const panner3D = new TONE.Panner3D({
+      panningModel: "HRTF",
+      distanceModel: "inverse",
+      refDistance: 1,
+      maxDistance: 50,
+      rolloffFactor: 1,
+      coneInnerAngle: 360,
+      coneOuterAngle: 0,
+      coneOuterGain: 0
     });
     
     // Chain the synth output through the bass filter, then 3D panner, then volume to destination
@@ -444,26 +439,21 @@ async function init() {
     const bassFilter = new TONE.Filter(400, "lowpass");
     const spatialVolume = new TONE.Volume(-12);
     
-    // Create a native PannerNode for 3D spatialization
-    const rawPanner = TONE.getContext().rawContext.createPanner();
-    rawPanner.panningModel = "HRTF";
-    rawPanner.distanceModel = "inverse";
-    rawPanner.refDistance = 1;
-    rawPanner.maxDistance = 50;
-    rawPanner.rolloffFactor = 1;
-    rawPanner.coneInnerAngle = 360;
-    rawPanner.coneOuterAngle = 0;
-    rawPanner.coneOuterGain = 0;
-
-    // Wrap the native node so it can be used in a Tone chain
-    const panner3D = new TONE.AudioNode({
-      input: rawPanner,
-      output: rawPanner
+    // Create a 3D panner using Tone.Panner3D for proper spatialization
+    const panner3D = new TONE.Panner3D({
+      panningModel: "HRTF",
+      distanceModel: "inverse",
+      refDistance: 1,
+      maxDistance: 50,
+      rolloffFactor: 1,
+      coneInnerAngle: 360,
+      coneOuterAngle: 0,
+      coneOuterGain: 0
     });
     
     boxSynth.chain(bassFilter, panner3D, spatialVolume, TONE.Destination);
     (boxBody as any).assignedSynth = boxSynth;
-    (boxBody as any).assignedPanner3D = rawPanner;
+    (boxBody as any).assignedPanner3D = panner3D;
     (boxBody as any).assignedVolume = spatialVolume;
     (boxBody as any).lastToneTime = 0;
 
@@ -661,8 +651,10 @@ async function init() {
         
         // Update the 3D panner position to match the body position
         if ((body as any).assignedPanner3D) {
-          const panner = (body as any).assignedPanner3D as PannerNode;
-          panner.setPosition(body.position.x, body.position.y, body.position.z);
+          const panner = (body as any).assignedPanner3D as TONE.Panner3D;
+          panner.positionX.value = body.position.x;
+          panner.positionY.value = body.position.y;
+          panner.positionZ.value = body.position.z;
         }
       }
     });
