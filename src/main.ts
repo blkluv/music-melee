@@ -568,12 +568,19 @@ async function init() {
   const stats = Stats();
   document.body.appendChild(stats.dom);
   
+  // Track time for physics updates
+  let lastTime = performance.now();
+  
   // Animation loop
   function animate() {
     stats.update();
     
-    // Step the physics world (adjust timeStep as needed)
-    world.step(1/60);
+    // Step the physics world with variable time step
+    const currentTime = performance.now();
+    const dt = (currentTime - lastTime) / 1000; // delta in seconds
+    lastTime = currentTime;
+    // Advance the physics with a fixed time step (1/60) using accumulated dt and allow for up to 3 substeps.
+    world.step(1/60, dt, 3);
     requestAnimationFrame(animate);
     
     // Update camera position to match the player's physics body
