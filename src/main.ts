@@ -17,7 +17,8 @@ async function init() {
   // Add an AudioListener to the camera for 3D audio
   const audioListener = new THREE.AudioListener();
   camera.add(audioListener);
-  const renderer = new THREE.WebGLRenderer();
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Optional: for a softer shadow look
@@ -195,7 +196,7 @@ async function init() {
     const edges = new THREE.EdgesGeometry(boxGeo);
     const outline = new THREE.LineSegments(
       edges,
-      new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 3 })
+      new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 5 })
     );
     boxMesh.add(outline);
     // Random placement: x and z between -20 and 20; y slightly above ground
@@ -323,7 +324,7 @@ async function init() {
     const edges = new THREE.EdgesGeometry(boxGeo);
     const outline = new THREE.LineSegments(
       edges,
-      new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 3 })
+      new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 5 })
     );
     boxMesh.add(outline);
     
@@ -496,6 +497,19 @@ async function init() {
     }
   });
   
+  // Create crosshair element
+  const crosshairElem = document.createElement('div');
+  crosshairElem.id = "crosshair";
+  crosshairElem.style.position = "absolute";
+  crosshairElem.style.top = "50%";
+  crosshairElem.style.left = "50%";
+  crosshairElem.style.transform = "translate(-50%, -50%)";
+  crosshairElem.style.width = "20px";
+  crosshairElem.style.height = "20px";
+  crosshairElem.style.border = "2px solid white";
+  crosshairElem.style.borderRadius = "50%";
+  document.body.appendChild(crosshairElem);
+  
   // Add Stats.js for performance monitoring
   const stats = Stats();
   document.body.appendChild(stats.dom);
@@ -549,6 +563,20 @@ async function init() {
         mesh.quaternion.copy(body.quaternion as unknown as THREE.Quaternion);
       }
     });
+    
+    // Update crosshair color based on raycast
+    const crosshairRaycaster = new THREE.Raycaster();
+    const rayOrigin = camera.position.clone();
+    const rayDirection = new THREE.Vector3();
+    camera.getWorldDirection(rayDirection);
+    crosshairRaycaster.set(rayOrigin, rayDirection);
+
+    const crosshairIntersections = crosshairRaycaster.intersectObjects(boxMeshArray);
+    if (crosshairIntersections.length > 0 && crosshairIntersections[0].distance < 5) {
+      crosshairElem.style.borderColor = "red";
+    } else {
+      crosshairElem.style.borderColor = "white";
+    }
     
     renderer.render(scene, camera);
   }
