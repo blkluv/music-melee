@@ -175,9 +175,7 @@ async function init() {
       computedVolume = Math.min(computedVolume + impactVelocity * 2, 0);
       const cameraRight = new THREE.Vector3();
       cameraRight.crossVectors(camera.up, camera.getWorldDirection(new THREE.Vector3())).normalize();
-      const panValue = diff.dot(cameraRight) / distance;
-    
-      otherBody.assignedPanner.pan.value = panValue;
+      // Note: The 3D panner position is updated in the animation loop, so no need to set pan manually.
       otherBody.assignedVolume.volume.value = computedVolume;
     
       // Use a simple cooldown check:
