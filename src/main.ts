@@ -120,7 +120,7 @@ async function init() {
   
   const snareSynth = new TONE.MembraneSynth({
     pitchDecay: 0.05,
-    oscillator: { type: "noise" },
+    oscillator: { type: "sine" },
     envelope: { attack: 0.001, decay: 0.2, sustain: 0 }
   }).toDestination();
 
