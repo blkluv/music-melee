@@ -514,26 +514,25 @@ async function init() {
   });
   
   // Melee hit on mousedown when pointer is locked
-  renderer.domElement.addEventListener('mousedown', (event) => {
+  renderer.domElement.addEventListener("mousedown", (event) => {
     if (!controls.isLocked) return;
 
     const meleeRange = 5;
-    // Create a raycaster from the camera's position and its forward direction
     const forwardDir = camera.getWorldDirection(new THREE.Vector3());
     const raycaster = new THREE.Raycaster(camera.position, forwardDir, 0, meleeRange);
     const intersects = raycaster.intersectObjects(boxMeshArray);
 
     if (intersects.length > 0) {
-      // Object is in striking distance: execute hit logic
+      // Hit an object within melee range.
       const hit = intersects[0];
-      const hitBoxBody = hit.object.userData.boxBody;
-      if (hitBoxBody) {
-        // Apply a stronger impulse in the forward direction for a snappier block response
-        const forceDir = new CANNON.Vec3(forwardDir.x, forwardDir.y, forwardDir.z);
-        forceDir.scale(6, forceDir);
-        hitBoxBody.applyImpulse(forceDir, hitBoxBody.position);
+      const targetBody = hit.object.userData.boxBody;
+      if (targetBody) {
+        // Apply a forward impulse for a snappy reaction.
+        const impulse = new CANNON.Vec3(forwardDir.x, forwardDir.y, forwardDir.z);
+        impulse.scale(6, impulse);
+        targetBody.applyImpulse(impulse, targetBody.position);
 
-        // Flash effect: turn the block white briefly
+        // Flash the hit block white briefly, then revert to its original color.
         const mesh = hit.object;
         const originalColor = mesh.userData.originalColor;
         mesh.material.color.set(0xffffff);
@@ -541,11 +540,11 @@ async function init() {
           mesh.material.color.setHex(originalColor);
         }, 150);
 
-        // Play snare sound for a successful hit
+        // Play the snare sound for a successful melee hit.
         snareSynth.triggerAttackRelease("C4", "8n");
       }
     } else {
-      // No object in range: play rimshot sound as feedback for an empty swing
+      // No object in range: play the rimshot sound for an empty melee swing.
       rimshotSynth.triggerAttackRelease("F#4", "8n");
     }
   });
