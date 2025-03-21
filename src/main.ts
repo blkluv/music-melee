@@ -26,24 +26,6 @@ async function init() {
     controls.lock();
   });
   
-  // Increase camera look sensitivity by overriding the mousemove event
-  const sensitivityMultiplier = 2.0; // adjust to taste
-
-  // Remove the default mousemove listener added by PointerLockControls
-  renderer.domElement.removeEventListener('mousemove', (controls as any).onMouseMove);
-
-  // Add your own mousemove handler that applies a higher sensitivity
-  renderer.domElement.addEventListener('mousemove', (event: MouseEvent) => {
-    if (!controls.isLocked) return;
-    const movementX = event.movementX || 0;
-    const movementY = event.movementY || 0;
-
-    // Manually update camera rotation (this overrides the default handling)
-    camera.rotation.y -= movementX * 0.002 * sensitivityMultiplier;
-    camera.rotation.x -= movementY * 0.002 * sensitivityMultiplier;
-    // Clamp the vertical rotation to avoid flipping
-    camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
-  });
   
   
   camera.position.z = 5;
@@ -64,9 +46,17 @@ async function init() {
   dirLight.position.set(10, 10, 10);
   scene.add(dirLight);
   
-  // Setup Tone.js
-  await TONE.start();
-  console.log('Audio context started');
+  // Setup Tone.js – resume audio context on first user interaction
+  document.body.addEventListener(
+    'click',
+    async () => {
+      if (TONE.getContext().state !== 'running') {
+        await TONE.start();
+        console.log('Tone.js audio context resumed');
+      }
+    },
+    { once: true }
+  );
   
   const synth = new TONE.PolySynth(TONE.Synth).toDestination();
   
