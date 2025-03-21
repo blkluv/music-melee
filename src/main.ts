@@ -49,7 +49,7 @@ async function init() {
   await TONE.start();
   console.log('Audio context started');
   
-  const synth = new TONE.Synth().toDestination();
+  const synth = new TONE.PolySynth(TONE.Synth).toDestination();
   
   // Setup physics
   const world = new CANNON.World({
@@ -167,10 +167,10 @@ async function init() {
 
     let moveX = 0;
     let moveZ = 0;
-    if (keys.w) moveZ -= 1;
-    if (keys.s) moveZ += 1;
-    if (keys.a) moveX -= 1;
-    if (keys.d) moveX += 1;
+    if (keys.w) moveZ += 1;  // W now moves forward
+    if (keys.s) moveZ -= 1;  // S now moves backward
+    if (keys.a) moveX += 1;  // A now strafes left (relative to camera)
+    if (keys.d) moveX -= 1;  // D now strafes right
 
     const velocity = new CANNON.Vec3();
     if (moveZ !== 0 || moveX !== 0) {
@@ -197,6 +197,12 @@ async function init() {
   }
   
   animate();
+  
+  // Remove loading text once the game is loaded
+  const loadingElem = document.getElementById('loading');
+  if (loadingElem) {
+    loadingElem.remove();
+  }
   
   // Handle window resize
   window.addEventListener('resize', () => {
