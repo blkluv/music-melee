@@ -22,6 +22,23 @@ async function init() {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Optional: for a softer shadow look
   document.body.appendChild(renderer.domElement);
   
+  // Setup Tone.js – resume audio context on first user interaction
+  document.body.addEventListener(
+    'click',
+    async () => {
+      if (TONE.getContext().state !== 'running') {
+        await TONE.start();
+        console.log('Tone.js audio context resumed');
+      }
+    },
+    { once: true }
+  );
+  
+  // Setup physics
+  const world = new CANNON.World({
+    gravity: new CANNON.Vec3(0, -20, 0)
+  });
+  
   // Initialize PointerLockControls for first-person navigation
   const controls = new PointerLockControls(camera, renderer.domElement);
   // Optionally, trigger pointer lock on a user gesture (e.g., a click)
@@ -96,27 +113,10 @@ async function init() {
   sun.shadow.camera.right = 50;
   scene.add(sun);
   
-  // Setup Tone.js – resume audio context on first user interaction
-  document.body.addEventListener(
-    'click',
-    async () => {
-      if (TONE.getContext().state !== 'running') {
-        await TONE.start();
-        console.log('Tone.js audio context resumed');
-      }
-    },
-    { once: true }
-  );
-  
   // Create a kick drum synth for melee hits
   const kickSynth = new TONE.MembraneSynth().toDestination();
   
   const synth = new TONE.PolySynth(TONE.Synth).toDestination();
-  
-  // Setup physics
-  const world = new CANNON.World({
-    gravity: new CANNON.Vec3(0, -20, 0)
-  });
   
   // Create a simple player physics body (using a sphere shape)
   const playerShape = new CANNON.Sphere(1);
