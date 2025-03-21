@@ -423,11 +423,30 @@ async function init() {
     if (key in keys) {
       keys[key] = true;
     }
-    // Check for spacebar jump (use " " or "spacebar")
+    // Check for spacebar jump (using a downward raycast to allow jumps off any surface)
     if (event.code === 'Space') {
-      if (playerBody.position.y <= 1.1) {  // simple ground check
-        playerBody.velocity.y = 12; // jump impulse increased by 100%
+      const playerRadius = 1; // using same value as the sphere shape for the player
+      const downRaycaster = new THREE.Raycaster();
+      const origin = playerBody.position.clone();
+      // Set ray downward (0, -1, 0)
+      downRaycaster.set(origin, new THREE.Vector3(0, -1, 0));
+
+      // Include the ground mesh and all block meshes in the raycast
+      const intersectObjects = [groundMesh, ...boxMeshArray];
+      const intersects = downRaycaster.intersectObjects(intersectObjects);
+      
+      // Use a threshold of (playerRadius + small epsilon) for grounding
+      if (intersects.length > 0 && intersects[0].distance <= playerRadius + 0.2) {
+        // Trigger the jump
+        playerBody.velocity.y = 12;
         synth.triggerAttackRelease("C4", "8n");
+
+        // If jumping off a block (non-ground), apply a reaction impulse to it
+        if (intersects[0].object.userData.boxBody) {
+          const blockBody = intersects[0].object.userData.boxBody;
+          // Apply a downward impulse to simulate the push-off effect (adjust impulse magnitude as needed)
+          blockBody.applyImpulse(new CANNON.Vec3(0, -5, 0), blockBody.position);
+        }
       }
     }
   });
