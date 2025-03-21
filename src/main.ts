@@ -58,6 +58,9 @@ async function init() {
     { once: true }
   );
   
+  // Create a kick drum synth for melee hits
+  const kickSynth = new TONE.MembraneSynth().toDestination();
+  
   const synth = new TONE.PolySynth(TONE.Synth).toDestination();
   
   // Setup physics
@@ -217,6 +220,110 @@ async function init() {
     });
   }
   
+  function spawnBlock() {
+    // Create a new block similar to the ones in the original loop
+    const boxSize = Math.random() * (2.0 - 0.5) + 0.5; // size between 0.5 and 2.0
+    
+    // Calculate tone based on box size
+    const sizeMin = 0.5, sizeMax = 2.0;
+    const normalized = (boxSize - sizeMin) / (sizeMax - sizeMin);
+    const inverted = 1 - normalized;
+    const toneIndex = Math.floor(inverted * (tones.length - 1));
+    const assignedTone = tones[toneIndex];
+    
+    const boxGeo = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
+    
+    // Choose a synth type and assign corresponding color
+    const chosenType = synthTypes[Math.floor(Math.random() * synthTypes.length)];
+    const boxMat = new THREE.MeshStandardMaterial({ color: synthColorMap[chosenType] });
+    const boxMesh = new THREE.Mesh(boxGeo, boxMat);
+    boxMesh.userData.originalColor = synthColorMap[chosenType];
+    
+    // Position at a random x/z and high above so it drops down
+    boxMesh.position.set((Math.random() - 0.5) * 40, 50, (Math.random() - 0.5) * 40);
+    scene.add(boxMesh);
+    boxMeshArray.push(boxMesh);
+
+    // Create the Cannon-es physics body for the block.
+    const halfExtents = new CANNON.Vec3(boxSize / 2, boxSize / 2, boxSize / 2);
+    const boxShape = new CANNON.Box(halfExtents);
+    const boxBody = new CANNON.Body({ mass: 1 });
+    boxBody.addShape(boxShape);
+    boxBody.position.copy(new CANNON.Vec3(
+      boxMesh.position.x,
+      boxMesh.position.y,
+      boxMesh.position.z
+    ));
+    world.addBody(boxBody);
+
+    // Store a reference from the physics body to the mesh for synchronization
+    (boxBody as any).mesh = boxMesh;
+    boxMesh.userData.boxBody = boxBody;
+    (boxBody as any).assignedTone = assignedTone;
+
+    // Create synth based on chosen type and route through spatial nodes
+    let boxSynth;
+    if (chosenType === 'Synth') {
+      boxSynth = new TONE.Synth({ oscillator: { type: "sine" } });
+    } else if (chosenType === 'MetalSynth') {
+      boxSynth = new TONE.MetalSynth();
+    } else if (chosenType === 'PluckSynth') {
+      boxSynth = new TONE.PluckSynth();
+    } else if (chosenType === 'FMSynth') {
+      boxSynth = new TONE.FMSynth();
+    } else if (chosenType === 'AMSynth') {
+      boxSynth = new TONE.AMSynth();
+    }
+    const spatialPanner = new TONE.Panner(0);
+    const spatialVolume = new TONE.Volume(-12);
+    boxSynth.chain(spatialPanner, spatialVolume, TONE.Destination);
+    (boxBody as any).assignedSynth = boxSynth;
+    (boxBody as any).assignedPanner = spatialPanner;
+    (boxBody as any).assignedVolume = spatialVolume;
+    (boxBody as any).lastToneTime = 0;
+
+    // Attach the collision listener (same as before)
+    boxBody.addEventListener('collide', (e: any) => {
+      const impactVelocity = e.contact && e.contact.getImpactVelocityAlongNormal
+        ? e.contact.getImpactVelocityAlongNormal()
+        : 0;
+      const threshold = 2;
+      if (impactVelocity < threshold) return;
+
+      const mesh = (boxBody as any).mesh;
+      const originalColor = mesh.userData.originalColor;
+      mesh.material.color.set(0xffffff);
+      setTimeout(() => {
+        mesh.material.color.setHex(originalColor);
+      }, 150);
+
+      const boxPos = mesh.position;
+      const camPos = camera.position;
+      const diff = new THREE.Vector3().subVectors(boxPos, camPos);
+      const distance = diff.length();
+      const maxDistance = 50;
+      const volumeFactor = Math.max(0, 1 - distance / maxDistance);
+      let computedVolume = -12 - ((1 - volumeFactor) * 20);
+      computedVolume = Math.min(computedVolume + impactVelocity * 2, 0);
+      const cameraRight = new THREE.Vector3();
+      cameraRight.crossVectors(camera.up, camera.getWorldDirection(new THREE.Vector3())).normalize();
+      const panValue = diff.dot(cameraRight) / distance;
+      (boxBody as any).assignedPanner.pan.value = panValue;
+      (boxBody as any).assignedVolume.volume.value = computedVolume;
+
+      const now = performance.now();
+      if (now - (boxBody as any).lastToneTime > 150) {
+        (boxBody as any).lastToneTime = now;
+        (boxBody as any).assignedSynth.triggerAttackRelease((boxBody as any).assignedTone, "8n");
+      }
+    });
+    
+    // Update our block counter element
+    updateBlockCounter();
+  }
+  
+  setInterval(spawnBlock, 5000);
+  
   // Movement variables
   const keys: Record<string, boolean> = { w: false, a: false, s: false, d: false };
 
@@ -291,6 +398,9 @@ async function init() {
           
           // Trigger the box's synth for the melee hit
           hitBoxBody.assignedSynth.triggerAttackRelease(hitBoxBody.assignedTone, "8n");
+          
+          // Play a kick drum sound
+          kickSynth.triggerAttackRelease("C2", "8n");
         }
       }
     }
@@ -354,6 +464,22 @@ async function init() {
   if (loadingElem) {
     loadingElem.remove();
   }
+  
+  // Create and style a block counter element
+  const blockCounterElem = document.createElement("div");
+  blockCounterElem.id = "blockCounter";
+  blockCounterElem.style.position = "absolute";
+  blockCounterElem.style.top = "10px";
+  blockCounterElem.style.left = "10px";
+  blockCounterElem.style.color = "white";
+  blockCounterElem.style.fontSize = "18px";
+  document.body.appendChild(blockCounterElem);
+
+  // Function to update the counter text
+  function updateBlockCounter() {
+    blockCounterElem.innerText = `Blocks: ${boxMeshArray.length}`;
+  }
+  updateBlockCounter();
   
   // Handle window resize
   window.addEventListener('resize', () => {
