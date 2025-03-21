@@ -43,8 +43,8 @@ async function init() {
   scene.add(hemiLight);
 
   // Directional light to simulate the sun (with stronger intensity)
-  const sun = new THREE.DirectionalLight(0xffffff, 1.5);
-  sun.position.set(100, 100, 0);
+  const sun = new THREE.DirectionalLight(0xffffff, 2.5);
+  sun.position.set(50, 30, -50);
   sun.castShadow = true;
   // Optionally adjust shadow properties for more realism:
   sun.shadow.camera.top = 50;
@@ -112,10 +112,10 @@ async function init() {
   const boxCount = 20; // reduced number of boxes as per new requirements
   for (let i = 0; i < boxCount; i++) {
     // Create the Three.js mesh for the box
-    const boxSize = Math.random() * (2.0 - 0.5) + 0.5; // size between 0.5 and 2.0
+    const boxSize = Math.random() * (3.0 - 0.3) + 0.3; // size between 0.3 and 3.0
     
     // Calculate tone based on box size
-    const sizeMin = 0.5, sizeMax = 2.0;
+    const sizeMin = 0.3, sizeMax = 3.0;
     const normalized = (boxSize - sizeMin) / (sizeMax - sizeMin); // 0 for smallest, 1 for largest
     const inverted = 1 - normalized; // invert so smaller size => higher value
     const toneIndex = Math.floor(inverted * (tones.length - 1));
@@ -164,11 +164,13 @@ async function init() {
     } else if (chosenType === 'AMSynth') {
       boxSynth = new TONE.AMSynth();
     }
+    // Create a lowpass filter to emphasize bass frequencies
+    const bassFilter = new TONE.Filter(400, "lowpass");
     // Create spatial processing nodes:
     const spatialPanner = new TONE.Panner(0); // horizontal panning (range -1 to 1)
     const spatialVolume = new TONE.Volume(-12); // base volume reduction (-12 dB)
-    // Chain the synth output through the panner then volume, then to destination
-    boxSynth.chain(spatialPanner, spatialVolume, TONE.Destination);
+    // Chain the synth output through the bass filter, then panner, then volume to destination
+    boxSynth.chain(bassFilter, spatialPanner, spatialVolume, TONE.Destination);
     // Store references so we can update them on collision:
     (boxBody as any).assignedSynth = boxSynth;
     (boxBody as any).assignedPanner = spatialPanner;
@@ -229,10 +231,10 @@ async function init() {
   
   function spawnBlock() {
     // Create a new block similar to the ones in the original loop
-    const boxSize = Math.random() * (2.0 - 0.5) + 0.5; // size between 0.5 and 2.0
+    const boxSize = Math.random() * (3.0 - 0.3) + 0.3; // size between 0.3 and 3.0
     
     // Calculate tone based on box size
-    const sizeMin = 0.5, sizeMax = 2.0;
+    const sizeMin = 0.3, sizeMax = 3.0;
     const normalized = (boxSize - sizeMin) / (sizeMax - sizeMin);
     const inverted = 1 - normalized;
     const toneIndex = Math.floor(inverted * (tones.length - 1));
@@ -281,9 +283,11 @@ async function init() {
     } else if (chosenType === 'AMSynth') {
       boxSynth = new TONE.AMSynth();
     }
+    // Create a lowpass filter to emphasize bass frequencies
+    const bassFilter = new TONE.Filter(400, "lowpass");
     const spatialPanner = new TONE.Panner(0);
     const spatialVolume = new TONE.Volume(-12);
-    boxSynth.chain(spatialPanner, spatialVolume, TONE.Destination);
+    boxSynth.chain(bassFilter, spatialPanner, spatialVolume, TONE.Destination);
     (boxBody as any).assignedSynth = boxSynth;
     (boxBody as any).assignedPanner = spatialPanner;
     (boxBody as any).assignedVolume = spatialVolume;
