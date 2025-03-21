@@ -62,7 +62,7 @@ async function init() {
   
   // Setup physics
   const world = new CANNON.World({
-    gravity: new CANNON.Vec3(0, -9.82, 0)
+    gravity: new CANNON.Vec3(0, -20, 0)
   });
   
   // Create a simple player physics body (using a sphere shape)
@@ -117,6 +117,7 @@ async function init() {
     const chosenType = synthTypes[Math.floor(Math.random() * synthTypes.length)];
     const boxMat = new THREE.MeshStandardMaterial({ color: synthColorMap[chosenType] });
     const boxMesh = new THREE.Mesh(boxGeo, boxMat);
+    boxMesh.userData.originalColor = synthColorMap[chosenType];
     // Random placement: x and z between -20 and 20; y slightly above ground
     boxMesh.position.set((Math.random() - 0.5) * 40, boxSize / 2, (Math.random() - 0.5) * 40);
     scene.add(boxMesh);
@@ -168,37 +169,46 @@ async function init() {
 
     // Play the box's tone on collision only if the impact is significant
     boxBody.addEventListener('collide', (e: any) => {
-      // Determine impact strength (drop-out if too soft)
-      const impactVelocity = e.contact && e.contact.getImpactVelocityAlongNormal 
-                               ? e.contact.getImpactVelocityAlongNormal() 
-                               : 0;
-      const threshold = 2; // Only trigger tone if impact velocity is above threshold
+      // Determine impact strength (drop out if too soft)
+      const impactVelocity = e.contact && e.contact.getImpactVelocityAlongNormal
+                             ? e.contact.getImpactVelocityAlongNormal()
+                             : 0;
+      const threshold = 2; // Only trigger effect if impact velocity is above threshold
       if (impactVelocity < threshold) return;
-
+      
+      // FLASH: Change the box color to white briefly  
+      const mesh = (boxBody as any).mesh;
+      const originalColor = mesh.userData.originalColor; // stored during creation
+      mesh.material.color.set(0xffffff);
+      setTimeout(() => {
+        mesh.material.color.setHex(originalColor);
+      }, 150);
+      
       // Compute distance and relative position of the box to the camera
-      const boxPos = (boxBody as any).mesh.position;
+      const boxPos = mesh.position;
       const camPos = camera.position;
       const diff = new THREE.Vector3().subVectors(boxPos, camPos);
       const distance = diff.length();
-      const maxDistance = 50; // distance at which sound is completely dropped off
+      const maxDistance = 50; // sound drop off range
       const volumeFactor = Math.max(0, 1 - distance / maxDistance);
-
-      // Calculate new volume in dB—here, if volumeFactor == 1, use -12 dB;
-      // linearly lower gain (e.g. to around -32 dB when far away)
-      const computedVolume = -12 - ((1 - volumeFactor) * 20);
-
+      
+      // Compute base volume from distance then add impact factor:
+      let computedVolume = -12 - ((1 - volumeFactor) * 20);
+      // Increase volume (i.e. reduce attenuation) proportional to impact velocity
+      computedVolume = Math.min(computedVolume + impactVelocity * 2, 0);
+      
       // Determine panning relative to camera's right vector.
       const cameraRight = new THREE.Vector3();
       cameraRight.crossVectors(camera.up, camera.getWorldDirection(new THREE.Vector3())).normalize();
-      const panValue = diff.dot(cameraRight) / distance; // range approximately -1 to 1
-
-      // Update the spatial nodes for this box's synth:
+      const panValue = diff.dot(cameraRight) / distance;
+      
+      // Update spatial nodes for this box's synth:
       const assignedPanner = (boxBody as any).assignedPanner;
       const assignedVolume = (boxBody as any).assignedVolume;
       assignedPanner.pan.value = panValue;
       assignedVolume.volume.value = computedVolume;
-
-      // Cooldown to prevent spam triggering:
+      
+      // Prevent spam triggering and play sound (if cooldown elapsed)
       const now = performance.now();
       if (now - (boxBody as any).lastToneTime > 150) {
         (boxBody as any).lastToneTime = now;
@@ -251,10 +261,36 @@ async function init() {
         // Retrieve the corresponding physics body from hit mesh
         const hitBoxBody = hit.object.userData.boxBody;
         if (hitBoxBody) {
-          // Calculate an impulse force in the forward direction; adjust magnitude as desired (e.g., 5)
+          // Apply a weaker impulse force in the forward direction (multiplier 3 instead of 5)
           const forceDirection = new CANNON.Vec3(direction.x, direction.y, direction.z);
-          forceDirection.scale(5, forceDirection);
+          forceDirection.scale(3, forceDirection);
           hitBoxBody.applyImpulse(forceDirection, hitBoxBody.position);
+          
+          // Manually trigger the flash and sound effect for the hit box
+          const impactVelocity = 3; // a constant assumed for melee hit impact
+          // FLASH: make the block flash white
+          const mesh = hit.object;
+          const originalColor = mesh.userData.originalColor;
+          mesh.material.color.set(0xffffff);
+          setTimeout(() => {
+            mesh.material.color.setHex(originalColor);
+          }, 150);
+          
+          // Compute spatial audio parameters similar to collision event:
+          const diff = new THREE.Vector3().subVectors(mesh.position, camera.position);
+          const distance = diff.length();
+          const maxDistance = 50;
+          const volumeFactor = Math.max(0, 1 - distance / maxDistance);
+          let computedVolume = -12 - ((1 - volumeFactor) * 20);
+          computedVolume = Math.min(computedVolume + impactVelocity * 2, 0);
+          const cameraRight = new THREE.Vector3();
+          cameraRight.crossVectors(camera.up, camera.getWorldDirection(new THREE.Vector3())).normalize();
+          const panValue = diff.dot(cameraRight) / distance;
+          hitBoxBody.assignedPanner.pan.value = panValue;
+          hitBoxBody.assignedVolume.volume.value = computedVolume;
+          
+          // Trigger the box's synth for the melee hit
+          hitBoxBody.assignedSynth.triggerAttackRelease(hitBoxBody.assignedTone, "8n");
         }
       }
     }
