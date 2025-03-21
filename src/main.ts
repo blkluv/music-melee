@@ -95,15 +95,34 @@ async function init() {
     "C5", "D5", "E5"
   ];
 
+  // Define synth types and their corresponding colors
+  const synthTypes = ['Synth', 'MetalSynth', 'PluckSynth', 'FMSynth', 'AMSynth'];
+  const synthColorMap: Record<string, number> = {
+    'Synth': 0xff0000,      // red
+    'MetalSynth': 0x00ff00, // green
+    'PluckSynth': 0x0000ff, // blue
+    'FMSynth': 0xffff00,    // yellow
+    'AMSynth': 0xff00ff     // magenta
+  };
+
   // Create many boxes scattered about for a more dynamic environment
-  const boxCount = 1000; // increased number of boxes for a denser environment
+  const boxCount = 200; // reduced number of boxes as per new requirements
   for (let i = 0; i < boxCount; i++) {
     // Create the Three.js mesh for the box
-    const boxSize = 1;
+    const boxSize = Math.random() * (2.0 - 0.5) + 0.5; // size between 0.5 and 2.0
+    
+    // Calculate tone based on box size
+    const sizeMin = 0.5, sizeMax = 2.0;
+    const normalized = (boxSize - sizeMin) / (sizeMax - sizeMin); // 0 for smallest, 1 for largest
+    const inverted = 1 - normalized; // invert so smaller size => higher value
+    const toneIndex = Math.floor(inverted * (tones.length - 1));
+    const assignedTone = tones[toneIndex];
+    
     const boxGeo = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
-    // Optionally assign a random color:
-    const boxColor = Math.random() * 0xffffff;
-    const boxMat = new THREE.MeshStandardMaterial({ color: boxColor });
+    
+    // Choose a synth type and assign corresponding color
+    const chosenType = synthTypes[Math.floor(Math.random() * synthTypes.length)];
+    const boxMat = new THREE.MeshStandardMaterial({ color: synthColorMap[chosenType] });
     const boxMesh = new THREE.Mesh(boxGeo, boxMat);
     // Random placement: x and z between -20 and 20; y slightly above ground
     boxMesh.position.set((Math.random() - 0.5) * 40, boxSize / 2, (Math.random() - 0.5) * 40);
@@ -123,12 +142,10 @@ async function init() {
 
     // Store a reference from the physics body to the mesh for synchronization
     (boxBody as any).mesh = boxMesh;
-    // Assign a random tone from the expanded list
-    (boxBody as any).assignedTone = tones[Math.floor(Math.random() * tones.length)];
+    // Assign the tone based on box size
+    (boxBody as any).assignedTone = assignedTone;
 
-    // Assign a random synth type for variety (choose among Synth, MetalSynth, or PluckSynth)
-    const synthTypes = ['Synth', 'MetalSynth', 'PluckSynth'];
-    const chosenType = synthTypes[Math.floor(Math.random() * synthTypes.length)];
+    // Create synth based on chosen type
     let boxSynth;
     if (chosenType === 'Synth') {
       boxSynth = new TONE.Synth({ oscillator: { type: "sine" } }).toDestination();
@@ -136,6 +153,10 @@ async function init() {
       boxSynth = new TONE.MetalSynth().toDestination();
     } else if (chosenType === 'PluckSynth') {
       boxSynth = new TONE.PluckSynth().toDestination();
+    } else if (chosenType === 'FMSynth') {
+      boxSynth = new TONE.FMSynth().toDestination();
+    } else if (chosenType === 'AMSynth') {
+      boxSynth = new TONE.AMSynth().toDestination();
     }
     (boxBody as any).assignedSynth = boxSynth;
 
