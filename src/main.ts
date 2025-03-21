@@ -26,24 +26,24 @@ async function init() {
     controls.lock();
   });
   
-  // Add a simple test cube
-  const geometry = new THREE.BoxGeometry();
-  const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-  const cube = new THREE.Mesh(geometry, material);
-  scene.add(cube);
-  
-  // Attach 3D audio to the cube for environmental sound
-  const positionalAudio = new THREE.PositionalAudio(audioListener);
-  const audioLoader = new THREE.AudioLoader();
-  audioLoader.load('path/to/your/sample.mp3', (buffer) => {
-    positionalAudio.setBuffer(buffer);
-    positionalAudio.setRefDistance(20);
-    positionalAudio.setLoop(true);
-    positionalAudio.play();
-  });
-  cube.add(positionalAudio);
   
   camera.position.z = 5;
+  
+  // Create a visual ground plane
+  const groundGeo = new THREE.PlaneGeometry(100, 100);
+  const groundMat = new THREE.MeshStandardMaterial({ color: 0x808080 });
+  const groundMesh = new THREE.Mesh(groundGeo, groundMat);
+  groundMesh.rotation.x = -Math.PI / 2;
+  scene.add(groundMesh);
+  
+  // Add ambient light
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+  scene.add(ambientLight);
+
+  // Add directional light
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  dirLight.position.set(10, 10, 10);
+  scene.add(dirLight);
   
   // Setup Tone.js
   await TONE.start();
@@ -68,6 +68,57 @@ async function init() {
   groundBody.addShape(new CANNON.Plane());
   groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
   world.addBody(groundBody);
+  
+  // Define an array of possible tones to assign
+  const tones = ["C4", "D4", "E4", "F4", "G4", "A4", "B4"];
+
+  // Create several boxes scattered about
+  const boxCount = 5; // adjust the number as needed
+  for (let i = 0; i < boxCount; i++) {
+    // Create the Three.js mesh for the box
+    const boxSize = 1;
+    const boxGeo = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
+    // Optionally assign a random color:
+    const boxColor = Math.random() * 0xffffff;
+    const boxMat = new THREE.MeshStandardMaterial({ color: boxColor });
+    const boxMesh = new THREE.Mesh(boxGeo, boxMat);
+    // Random placement: x and z between -20 and 20; y slightly above ground
+    boxMesh.position.set((Math.random() - 0.5) * 40, boxSize / 2, (Math.random() - 0.5) * 40);
+    scene.add(boxMesh);
+
+    // Create the Cannon-es physics body for the box
+    const halfExtents = new CANNON.Vec3(boxSize / 2, boxSize / 2, boxSize / 2);
+    const boxShape = new CANNON.Box(halfExtents);
+    const boxBody = new CANNON.Body({ mass: 0.5 });  // give it some mass so it can react slightly
+    boxBody.addShape(boxShape);
+    boxBody.position.copy(new CANNON.Vec3(
+      boxMesh.position.x,
+      boxMesh.position.y,
+      boxMesh.position.z
+    ));
+    world.addBody(boxBody);
+
+    // Store a reference from the physics body to the mesh for synchronization
+    // and assign a random tone for this box
+    (boxBody as any).mesh = boxMesh;
+    (boxBody as any).assignedTone = tones[Math.floor(Math.random() * tones.length)];
+    // Initialize a simple cooldown timestamp to avoid spam triggering
+    (boxBody as any).lastToneTime = 0;
+
+    // When the box is hit by the player, play its tone.
+    // (Assuming the player's physics body is "playerBody")
+    boxBody.addEventListener('collide', (e: any) => {
+      // e.body is the other body in collision.
+      if (e.body === playerBody) { 
+        const now = performance.now();
+        if (now - (boxBody as any).lastToneTime > 300) { // 300ms cooldown
+          (boxBody as any).lastToneTime = now;
+          // Trigger the assigned tone using Tone.js synth
+          synth.triggerAttackRelease((boxBody as any).assignedTone, "8n");
+        }
+      }
+    });
+  }
   
   // Movement variables
   const keys: Record<string, boolean> = { w: false, a: false, s: false, d: false };
@@ -99,10 +150,6 @@ async function init() {
     // Step the physics world (adjust timeStep as needed)
     world.step(1/60);
     requestAnimationFrame(animate);
-    
-    // Rotate cube
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
     
     // Update camera position to match the player's physics body
     if (controls.isLocked) {
@@ -136,6 +183,15 @@ async function init() {
     // Preserve Y-velocity (gravity/jump)
     playerBody.velocity.x = velocity.x;
     playerBody.velocity.z = velocity.z;
+    
+    // Update boxes' Three.js meshes from their Cannon bodies
+    world.bodies.forEach(body => {
+      if ((body as any).mesh) {
+        const mesh = (body as any).mesh as THREE.Mesh;
+        mesh.position.copy(body.position as unknown as THREE.Vector3);
+        mesh.quaternion.copy(body.quaternion as unknown as THREE.Quaternion);
+      }
+    });
     
     renderer.render(scene, camera);
   }
