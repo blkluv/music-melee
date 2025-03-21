@@ -384,6 +384,7 @@ async function init() {
       new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 })
     );
     boxMesh.add(outline);
+    boxMesh.userData.outline = outline;
     
     // Position at a random x/z and high above so it drops down
     boxMesh.position.set((Math.random() - 0.5) * 40, 50, (Math.random() - 0.5) * 40);
