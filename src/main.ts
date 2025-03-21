@@ -108,6 +108,22 @@ async function init() {
   // Create a global array to store box meshes
   const boxMeshArray: THREE.Mesh[] = [];
   
+  // Create and style a block counter element
+  const blockCounterElem = document.createElement("div");
+  blockCounterElem.id = "blockCounter";
+  blockCounterElem.style.position = "absolute";
+  blockCounterElem.style.top = "10px";
+  blockCounterElem.style.left = "10px";
+  blockCounterElem.style.color = "white";
+  blockCounterElem.style.fontSize = "18px";
+  document.body.appendChild(blockCounterElem);
+
+  // Function to update the counter text
+  function updateBlockCounter() {
+    blockCounterElem.innerText = `Blocks: ${boxMeshArray.length}`;
+  }
+  updateBlockCounter();
+  
   // Create many boxes scattered about for a more dynamic environment
   const boxCount = 20; // reduced number of boxes as per new requirements
   for (let i = 0; i < boxCount; i++) {
@@ -416,7 +432,19 @@ async function init() {
       }
     }
   });
-
+  
+  // Create and style an FPS counter element in the top-right corner
+  const fpsCounterElem = document.createElement("div");
+  fpsCounterElem.id = "fpsCounter";
+  fpsCounterElem.style.position = "absolute";
+  fpsCounterElem.style.top = "10px";
+  fpsCounterElem.style.right = "10px";
+  fpsCounterElem.style.color = "white";
+  fpsCounterElem.style.fontSize = "18px";
+  document.body.appendChild(fpsCounterElem);
+  
+  let lastFrameTime = performance.now();
+  
   // Animation loop
   function animate() {
     const now = performance.now();
@@ -481,34 +509,6 @@ async function init() {
   if (loadingElem) {
     loadingElem.remove();
   }
-  
-  // Create and style a block counter element
-  const blockCounterElem = document.createElement("div");
-  blockCounterElem.id = "blockCounter";
-  blockCounterElem.style.position = "absolute";
-  blockCounterElem.style.top = "10px";
-  blockCounterElem.style.left = "10px";
-  blockCounterElem.style.color = "white";
-  blockCounterElem.style.fontSize = "18px";
-  document.body.appendChild(blockCounterElem);
-
-  // Function to update the counter text
-  function updateBlockCounter() {
-    blockCounterElem.innerText = `Blocks: ${boxMeshArray.length}`;
-  }
-  updateBlockCounter();
-  
-  // Create and style an FPS counter element in the top-right corner
-  const fpsCounterElem = document.createElement("div");
-  fpsCounterElem.id = "fpsCounter";
-  fpsCounterElem.style.position = "absolute";
-  fpsCounterElem.style.top = "10px";
-  fpsCounterElem.style.right = "10px";
-  fpsCounterElem.style.color = "white";
-  fpsCounterElem.style.fontSize = "18px";
-  document.body.appendChild(fpsCounterElem);
-  
-  let lastFrameTime = performance.now();
   
   // Handle window resize
   window.addEventListener('resize', () => {
