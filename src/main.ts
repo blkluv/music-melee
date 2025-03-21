@@ -314,7 +314,7 @@ async function init() {
     
     // Store references so we can update them on collision:
     (boxBody as any).assignedSynth = boxSynth;
-    (boxBody as any).assignedPanner3D = rawPanner;
+    (boxBody as any).assignedPanner3D = panner3D;
     (boxBody as any).assignedVolume = spatialVolume;
 
     // Initialize a cooldown timestamp (reduced to 150ms for more snappy response)
