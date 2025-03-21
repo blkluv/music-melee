@@ -95,6 +95,9 @@ async function init() {
     'AMSynth': 0xff00ff     // magenta
   };
 
+  // Create a global array to store box meshes
+  const boxMeshArray: THREE.Mesh[] = [];
+  
   // Create many boxes scattered about for a more dynamic environment
   const boxCount = 200; // reduced number of boxes as per new requirements
   for (let i = 0; i < boxCount; i++) {
@@ -117,6 +120,7 @@ async function init() {
     // Random placement: x and z between -20 and 20; y slightly above ground
     boxMesh.position.set((Math.random() - 0.5) * 40, boxSize / 2, (Math.random() - 0.5) * 40);
     scene.add(boxMesh);
+    boxMeshArray.push(boxMesh);
 
     // Create the Cannon-es physics body for the box with enhanced mass
     const halfExtents = new CANNON.Vec3(boxSize / 2, boxSize / 2, boxSize / 2);
@@ -132,38 +136,71 @@ async function init() {
 
     // Store a reference from the physics body to the mesh for synchronization
     (boxBody as any).mesh = boxMesh;
+    boxMesh.userData.boxBody = boxBody;
     // Assign the tone based on box size
     (boxBody as any).assignedTone = assignedTone;
 
-    // Create synth based on chosen type
+    // Create synth based on chosen type and route through spatial nodes
     let boxSynth;
     if (chosenType === 'Synth') {
-      boxSynth = new TONE.Synth({ oscillator: { type: "sine" } }).toDestination();
+      boxSynth = new TONE.Synth({ oscillator: { type: "sine" } });
     } else if (chosenType === 'MetalSynth') {
-      boxSynth = new TONE.MetalSynth().toDestination();
+      boxSynth = new TONE.MetalSynth();
     } else if (chosenType === 'PluckSynth') {
-      boxSynth = new TONE.PluckSynth().toDestination();
+      boxSynth = new TONE.PluckSynth();
     } else if (chosenType === 'FMSynth') {
-      boxSynth = new TONE.FMSynth().toDestination();
+      boxSynth = new TONE.FMSynth();
     } else if (chosenType === 'AMSynth') {
-      boxSynth = new TONE.AMSynth().toDestination();
+      boxSynth = new TONE.AMSynth();
     }
+    // Create spatial processing nodes:
+    const spatialPanner = new TONE.Panner(0); // horizontal panning (range -1 to 1)
+    const spatialVolume = new TONE.Volume(-12); // base volume reduction (-12 dB)
+    // Chain the synth output through the panner then volume, then to destination
+    boxSynth.chain(spatialPanner, spatialVolume, TONE.Destination);
+    // Store references so we can update them on collision:
     (boxBody as any).assignedSynth = boxSynth;
+    (boxBody as any).assignedPanner = spatialPanner;
+    (boxBody as any).assignedVolume = spatialVolume;
 
     // Initialize a cooldown timestamp (reduced to 150ms for more snappy response)
     (boxBody as any).lastToneTime = 0;
 
     // Play the box's tone on collision only if the impact is significant
     boxBody.addEventListener('collide', (e: any) => {
-      // e.contact is present for collision events in cannon-es.
+      // Determine impact strength (drop-out if too soft)
       const impactVelocity = e.contact && e.contact.getImpactVelocityAlongNormal 
                                ? e.contact.getImpactVelocityAlongNormal() 
                                : 0;
       const threshold = 2; // Only trigger tone if impact velocity is above threshold
       if (impactVelocity < threshold) return;
-      
+
+      // Compute distance and relative position of the box to the camera
+      const boxPos = (boxBody as any).mesh.position;
+      const camPos = camera.position;
+      const diff = new THREE.Vector3().subVectors(boxPos, camPos);
+      const distance = diff.length();
+      const maxDistance = 50; // distance at which sound is completely dropped off
+      const volumeFactor = Math.max(0, 1 - distance / maxDistance);
+
+      // Calculate new volume in dB—here, if volumeFactor == 1, use -12 dB;
+      // linearly lower gain (e.g. to around -32 dB when far away)
+      const computedVolume = -12 - ((1 - volumeFactor) * 20);
+
+      // Determine panning relative to camera's right vector.
+      const cameraRight = new THREE.Vector3();
+      cameraRight.crossVectors(camera.up, camera.getWorldDirection(new THREE.Vector3())).normalize();
+      const panValue = diff.dot(cameraRight) / distance; // range approximately -1 to 1
+
+      // Update the spatial nodes for this box's synth:
+      const assignedPanner = (boxBody as any).assignedPanner;
+      const assignedVolume = (boxBody as any).assignedVolume;
+      assignedPanner.pan.value = panValue;
+      assignedVolume.volume.value = computedVolume;
+
+      // Cooldown to prevent spam triggering:
       const now = performance.now();
-      if (now - (boxBody as any).lastToneTime > 150) { // 150ms cooldown to prevent continuous triggering
+      if (now - (boxBody as any).lastToneTime > 150) {
         (boxBody as any).lastToneTime = now;
         (boxBody as any).assignedSynth.triggerAttackRelease((boxBody as any).assignedTone, "8n");
       }
@@ -178,6 +215,13 @@ async function init() {
     if (key in keys) {
       keys[key] = true;
     }
+    // Check for spacebar jump (use " " or "spacebar")
+    if (event.code === 'Space') {
+      if (playerBody.position.y <= 1.1) {  // simple ground check
+        playerBody.velocity.y = 6; // jump impulse (adjust as desired)
+        synth.triggerAttackRelease("C4", "8n");
+      }
+    }
   });
 
   window.addEventListener('keyup', (event) => {
@@ -187,11 +231,32 @@ async function init() {
     }
   });
   
-  // Jump on click/tap if near ground (snappier jump)
-  renderer.domElement.addEventListener('click', () => {
-    if (playerBody.position.y <= 1.1) {
-      playerBody.velocity.y = 6; // lower jump for a more grounded feel
-      synth.triggerAttackRelease("C4", "8n");
+  // Melee hit on mousedown when pointer is locked
+  renderer.domElement.addEventListener('mousedown', (event) => {
+    if (!controls.isLocked) return;
+    
+    // Set up a raycaster from the camera in its forward direction.
+    const raycaster = new THREE.Raycaster();
+    const origin = camera.position.clone();
+    const direction = new THREE.Vector3();
+    camera.getWorldDirection(direction);
+    raycaster.set(origin, direction);
+    
+    // Find intersections with our stored box meshes
+    const intersections = raycaster.intersectObjects(boxMeshArray);
+    if (intersections.length > 0) {
+      const hit = intersections[0];
+      // Only register a hit if the box is within a small threshold distance (e.g., 5 units)
+      if (hit.distance < 5) {
+        // Retrieve the corresponding physics body from hit mesh
+        const hitBoxBody = hit.object.userData.boxBody;
+        if (hitBoxBody) {
+          // Calculate an impulse force in the forward direction; adjust magnitude as desired (e.g., 5)
+          const forceDirection = new CANNON.Vec3(direction.x, direction.y, direction.z);
+          forceDirection.scale(5, forceDirection);
+          hitBoxBody.applyImpulse(forceDirection, hitBoxBody.position);
+        }
+      }
     }
   });
 
