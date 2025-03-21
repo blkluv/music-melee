@@ -118,6 +118,18 @@ async function init() {
   // Create a kick drum synth for melee hits
   const kickSynth = new TONE.MembraneSynth().toDestination();
   
+  const snareSynth = new TONE.MembraneSynth({
+    pitchDecay: 0.05,
+    oscillator: { type: "noise" },
+    envelope: { attack: 0.001, decay: 0.2, sustain: 0 }
+  }).toDestination();
+
+  const rimshotSynth = new TONE.MembraneSynth({
+    pitchDecay: 0.1,
+    oscillator: { type: "triangle" },
+    envelope: { attack: 0.001, decay: 0.15, sustain: 0 }
+  }).toDestination();
+  
   const synth = new TONE.PolySynth(TONE.Synth).toDestination();
   
   // Create a simple player physics body (using a sphere shape)
@@ -481,9 +493,8 @@ async function init() {
       
       // Use a threshold of (playerRadius + small epsilon) for grounding
       if (intersects.length > 0 && intersects[0].distance <= playerRadius + 0.2) {
-        // Trigger the jump with increased power
+        // Trigger the jump with increased power (sound removed)
         playerBody.velocity.y = 18;
-        synth.triggerAttackRelease("C4", "8n");
 
         // If jumping off a block (non-ground), apply a stronger reaction impulse to it
         if (intersects[0].object.userData.boxBody) {
@@ -505,14 +516,15 @@ async function init() {
   // Melee hit on mousedown when pointer is locked
   renderer.domElement.addEventListener('mousedown', (event) => {
     if (!controls.isLocked) return;
-    
+
     const meleeRange = 5;
     // Create a raycaster from the camera's position and its forward direction
     const forwardDir = camera.getWorldDirection(new THREE.Vector3());
     const raycaster = new THREE.Raycaster(camera.position, forwardDir, 0, meleeRange);
     const intersects = raycaster.intersectObjects(boxMeshArray);
-    
+
     if (intersects.length > 0) {
+      // Object is in striking distance: execute hit logic
       const hit = intersects[0];
       const hitBoxBody = hit.object.userData.boxBody;
       if (hitBoxBody) {
@@ -520,7 +532,7 @@ async function init() {
         const forceDir = new CANNON.Vec3(forwardDir.x, forwardDir.y, forwardDir.z);
         forceDir.scale(6, forceDir);
         hitBoxBody.applyImpulse(forceDir, hitBoxBody.position);
-    
+
         // Flash effect: turn the block white briefly
         const mesh = hit.object;
         const originalColor = mesh.userData.originalColor;
@@ -528,26 +540,13 @@ async function init() {
         setTimeout(() => {
           mesh.material.color.setHex(originalColor);
         }, 150);
-    
-        // Compute spatial audio properties for the melee hit
-        const impactVelocity = 3; // constant assumed impact strength for melee
-        const diff = new THREE.Vector3().subVectors(mesh.position, camera.position);
-        const distance = diff.length();
-        const maxDistance = 50;
-        const volumeFactor = Math.max(0, 1 - distance / maxDistance);
-        let computedVolume = -12 - ((1 - volumeFactor) * 20);
-        computedVolume = Math.min(computedVolume + impactVelocity * 2, 0);
-        const cameraRight = new THREE.Vector3();
-        cameraRight.crossVectors(camera.up, camera.getWorldDirection(new THREE.Vector3())).normalize();
-        const panValue = diff.dot(cameraRight) / distance;
-    
-        hitBoxBody.assignedPanner.pan.value = panValue;
-        hitBoxBody.assignedVolume.volume.value = computedVolume;
-    
-        // Trigger the block's sound and play a kick drum for extra feedback
-        hitBoxBody.assignedSynth.triggerAttackRelease(hitBoxBody.assignedTone, "8n");
-        kickSynth.triggerAttackRelease("C2", "8n");
+
+        // Play snare sound for a successful hit
+        snareSynth.triggerAttackRelease("C4", "8n");
       }
+    } else {
+      // No object in range: play rimshot sound as feedback for an empty swing
+      rimshotSynth.triggerAttackRelease("F#4", "8n");
     }
   });
   
