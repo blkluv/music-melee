@@ -294,14 +294,32 @@ async function init() {
     }
     // Create a lowpass filter to emphasize bass frequencies
     const bassFilter = new TONE.Filter(400, "lowpass");
-    // Create spatial processing nodes:
-    const spatialPanner = new TONE.Panner(0); // horizontal panning (range -1 to 1)
+    // Create spatial volume node
     const spatialVolume = new TONE.Volume(-12); // base volume reduction (-12 dB)
-    // Chain the synth output through the bass filter, then panner, then volume to destination
-    boxSynth.chain(bassFilter, spatialPanner, spatialVolume, TONE.Destination);
+    
+    // Create a native PannerNode for 3D spatialization
+    const rawPanner = TONE.getContext().rawContext.createPanner();
+    rawPanner.panningModel = "HRTF";
+    rawPanner.distanceModel = "inverse";
+    rawPanner.refDistance = 1;
+    rawPanner.maxDistance = 50;
+    rawPanner.rolloffFactor = 1;
+    rawPanner.coneInnerAngle = 360;
+    rawPanner.coneOuterAngle = 0;
+    rawPanner.coneOuterGain = 0;
+
+    // Wrap the native node so it can be used in a Tone chain
+    const panner3D = new TONE.AudioNode({
+      input: rawPanner,
+      output: rawPanner
+    });
+    
+    // Chain the synth output through the bass filter, then 3D panner, then volume to destination
+    boxSynth.chain(bassFilter, panner3D, spatialVolume, TONE.Destination);
+    
     // Store references so we can update them on collision:
     (boxBody as any).assignedSynth = boxSynth;
-    (boxBody as any).assignedPanner = spatialPanner;
+    (boxBody as any).assignedPanner3D = rawPanner;
     (boxBody as any).assignedVolume = spatialVolume;
 
     // Initialize a cooldown timestamp (reduced to 150ms for more snappy response)
@@ -342,11 +360,12 @@ async function init() {
       cameraRight.crossVectors(camera.up, camera.getWorldDirection(new THREE.Vector3())).normalize();
       const panValue = diff.dot(cameraRight) / distance;
       
-      // Update spatial nodes for this box's synth:
-      const assignedPanner = (boxBody as any).assignedPanner;
+      // Update volume for this box's synth:
       const assignedVolume = (boxBody as any).assignedVolume;
-      assignedPanner.pan.value = panValue;
       assignedVolume.volume.value = computedVolume;
+      
+      // Note: We don't need to manually set pan value anymore as the 3D panner
+      // automatically handles spatial positioning based on the object's position
       
       // Prevent spam triggering and play sound (if cooldown elapsed)
       const now = performance.now();
@@ -423,11 +442,28 @@ async function init() {
     }
     // Create a lowpass filter to emphasize bass frequencies
     const bassFilter = new TONE.Filter(400, "lowpass");
-    const spatialPanner = new TONE.Panner(0);
     const spatialVolume = new TONE.Volume(-12);
-    boxSynth.chain(bassFilter, spatialPanner, spatialVolume, TONE.Destination);
+    
+    // Create a native PannerNode for 3D spatialization
+    const rawPanner = TONE.getContext().rawContext.createPanner();
+    rawPanner.panningModel = "HRTF";
+    rawPanner.distanceModel = "inverse";
+    rawPanner.refDistance = 1;
+    rawPanner.maxDistance = 50;
+    rawPanner.rolloffFactor = 1;
+    rawPanner.coneInnerAngle = 360;
+    rawPanner.coneOuterAngle = 0;
+    rawPanner.coneOuterGain = 0;
+
+    // Wrap the native node so it can be used in a Tone chain
+    const panner3D = new TONE.AudioNode({
+      input: rawPanner,
+      output: rawPanner
+    });
+    
+    boxSynth.chain(bassFilter, panner3D, spatialVolume, TONE.Destination);
     (boxBody as any).assignedSynth = boxSynth;
-    (boxBody as any).assignedPanner = spatialPanner;
+    (boxBody as any).assignedPanner3D = rawPanner;
     (boxBody as any).assignedVolume = spatialVolume;
     (boxBody as any).lastToneTime = 0;
 
@@ -457,7 +493,7 @@ async function init() {
       const cameraRight = new THREE.Vector3();
       cameraRight.crossVectors(camera.up, camera.getWorldDirection(new THREE.Vector3())).normalize();
       const panValue = diff.dot(cameraRight) / distance;
-      (boxBody as any).assignedPanner.pan.value = panValue;
+      // Only update volume - position is handled by the 3D panner
       (boxBody as any).assignedVolume.volume.value = computedVolume;
 
       const now = performance.now();
@@ -622,6 +658,12 @@ async function init() {
         const mesh = (body as any).mesh as THREE.Mesh;
         mesh.position.copy(body.position as unknown as THREE.Vector3);
         mesh.quaternion.copy(body.quaternion as unknown as THREE.Quaternion);
+        
+        // Update the 3D panner position to match the body position
+        if ((body as any).assignedPanner3D) {
+          const panner = (body as any).assignedPanner3D as PannerNode;
+          panner.setPosition(body.position.x, body.position.y, body.position.z);
+        }
       }
     });
     
@@ -662,6 +704,11 @@ async function init() {
         }
       });
     }
+    
+    // Update Tone.js listener position to match the camera/player
+    TONE.getContext().listener.positionX.value = camera.position.x;
+    TONE.getContext().listener.positionY.value = camera.position.y;
+    TONE.getContext().listener.positionZ.value = camera.position.z;
     
     renderer.render(scene, camera);
   }
