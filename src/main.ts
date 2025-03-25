@@ -146,17 +146,6 @@ async function init() {
   // Create a kick drum synth for melee hits
   const kickSynth = new TONE.MembraneSynth().toDestination();
 
-  const snareSynth = new TONE.MembraneSynth({
-    pitchDecay: 0.05,
-    oscillator: { type: "sine" },
-    envelope: { attack: 0.001, decay: 0.2, sustain: 0 },
-  }).toDestination();
-
-  const rimshotSynth = new TONE.MembraneSynth({
-    pitchDecay: 0.1,
-    oscillator: { type: "triangle" },
-    envelope: { attack: 0.001, decay: 0.15, sustain: 0 },
-  }).toDestination();
 
   const synth = new TONE.PolySynth(TONE.Synth).toDestination();
 
@@ -637,50 +626,6 @@ async function init() {
     }
   });
 
-  // Melee hit on mousedown when pointer is locked
-  renderer.domElement.addEventListener("mousedown", (event) => {
-    if (!controls.isLocked) return;
-
-    const meleeRange = 5;
-    const forwardDir = camera.getWorldDirection(new THREE.Vector3());
-    const raycaster = new THREE.Raycaster(
-      camera.position,
-      forwardDir,
-      0,
-      meleeRange,
-    );
-    const intersects = raycaster.intersectObjects(boxMeshArray);
-
-    if (intersects.length > 0) {
-      // Hit an object within melee range.
-      const hit = intersects[0];
-      const targetBody = hit.object.userData.boxBody;
-      if (targetBody) {
-        // Apply a forward impulse for a snappy reaction.
-        const impulse = new CANNON.Vec3(
-          forwardDir.x,
-          forwardDir.y,
-          forwardDir.z,
-        );
-        impulse.scale(6, impulse);
-        targetBody.applyImpulse(impulse, targetBody.position);
-
-        // Flash the hit block white briefly, then revert to its original color.
-        const mesh = hit.object;
-        const originalColor = mesh.userData.originalColor;
-        mesh.material.color.set(0xffffff);
-        setTimeout(() => {
-          mesh.material.color.setHex(originalColor);
-        }, 150);
-
-        // Play the snare sound for a successful melee hit.
-        snareSynth.triggerAttackRelease("C4", "8n");
-      }
-    } else {
-      // No object in range: play the rimshot sound for an empty melee swing.
-      rimshotSynth.triggerAttackRelease("F#4", "8n");
-    }
-  });
 
   // Create crosshair element
   const crosshairElem = document.createElement("div");
@@ -766,50 +711,6 @@ async function init() {
       }
     });
 
-    // Cast a ray from the camera forward for melee range
-    const meleeRange = 5;
-    const forwardDir = camera.getWorldDirection(new THREE.Vector3());
-    const raycaster = new THREE.Raycaster(
-      camera.position,
-      forwardDir,
-      0,
-      meleeRange,
-    );
-    const intersects = raycaster.intersectObjects(boxMeshArray);
-
-    // Set crosshair color based on whether an object is hit
-    if (intersects.length > 0) {
-      crosshairElem.style.borderColor = "red";
-
-      // Get the target block (first intersected)
-      const target = intersects[0].object;
-
-      // Change its outline to white if it has one...
-      if (target.userData.outline) {
-        const outline = target.userData.outline as THREE.LineSegments;
-        (outline.material as THREE.LineBasicMaterial).color.set(0xffffff);
-      }
-
-      // Revert outlines on all other blocks to black
-      boxMeshArray.forEach((mesh) => {
-        if (mesh !== target && mesh.userData.outline) {
-          const othersOutline = mesh.userData.outline as THREE.LineSegments;
-          (othersOutline.material as THREE.LineBasicMaterial).color.set(
-            0x000000,
-          );
-        }
-      });
-    } else {
-      crosshairElem.style.borderColor = "white";
-
-      // Ensure all block outlines are reverted to black
-      boxMeshArray.forEach((mesh) => {
-        if (mesh.userData.outline) {
-          const outline = mesh.userData.outline as THREE.LineSegments;
-          (outline.material as THREE.LineBasicMaterial).color.set(0x000000);
-        }
-      });
-    }
 
     // Update Tone.js listener position to match the camera/player
     TONE.getContext().listener.positionX.value = camera.position.x;
