@@ -158,6 +158,13 @@ async function init() {
   sun.shadow.camera.right = 50;
   scene.add(sun);
 
+  // Create a visible sun sphere to simulate the sun
+  const sunSphereGeometry = new THREE.SphereGeometry(2, 32, 32); // small sphere (radius 2)
+  const sunSphereMaterial = new THREE.MeshBasicMaterial({ color: startColor });
+  const sunSphere = new THREE.Mesh(sunSphereGeometry, sunSphereMaterial);
+  sunSphere.position.copy(startPos);
+  scene.add(sunSphere);
+
   // Create a simple player physics body (using a sphere shape)
   const playerShape = new CANNON.Sphere(1);
   const playerBody = new CANNON.Body({ mass: 10 });
@@ -787,6 +794,10 @@ async function init() {
       sun.position.lerpVectors(midPos, endPos, factor);
       sun.color.copy(midColor.clone().lerp(endColor, factor));
     }
+
+    // Update the visible sun sphere position and color to match the directional light
+    sunSphere.position.copy(sun.position);
+    sunSphere.material.color.copy(sun.color);
 
     // Animate sky background: from redish to blue at noon and back to redish
     if (t <= 0.5) {
