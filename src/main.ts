@@ -926,17 +926,19 @@ async function init() {
 
   // Helper function to compute timing accuracy and update UI
   function updateRhythmUI(note: string) {
-    // Get the current BPM from the cached transport
+    // Get the current BPM from the cached transport.
     const currentBPM = transport.bpm.value;
-    // In 4/4 time, one measure's length in seconds:
-    const measureLength = (60 / currentBPM) * 4;
-    // Get current transport time in seconds:
+    // In 4/4 time, one measure's length = (60 / BPM) * 4.
+    // But we want the nearest eighth note boundary – an eighth note lasts (60 / BPM) / 2.
+    const eighthNoteLength = (60 / currentBPM) / 2; // seconds per 8th note
+    // Get current transport time in seconds.
     const currentTransportTime = transport.seconds;
-    // Compute remainder of current measure:
-    const mod = currentTransportTime % measureLength;
-    // Closest distance to a measure boundary:
-    const diff = Math.min(mod, measureLength - mod);
+    // Compute remainder of current eighth note period:
+    const mod = currentTransportTime % eighthNoteLength;
+    // The timing accuracy is the smallest difference (either mod or the remainder to the next boundary).
+    const diff = Math.min(mod, eighthNoteLength - mod);
     const diffMs = Math.round(diff * 1000);
+    
     timingAccuracyElem.innerText = `Timing Accuracy: ${diffMs} ms`;
     lastNoteElem.innerText = `Last Note: ${note}`;
   }
