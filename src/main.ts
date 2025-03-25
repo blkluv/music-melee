@@ -296,22 +296,26 @@ async function init() {
   ];
 
   // Define a mapping from each of the 12 colour indices to a note.
-  // We want red (index 0) to yield A and violet (index 11) to yield G.
-  // We'll assign letters from A through G in order, wrapping as needed.
-  // One possible mapping (12 elements) is:
+  // Using standard 12-tone chromatic scale starting on C
   const noteMapping: string[] = [
-    "A", // index 0
-    "A#",
-    "B",
-    "C",
+    "C",  // index 0
     "C#",
     "D",
     "D#",
     "E",
     "F",
     "F#",
-    "G", // index 11; ensures violet block is G as specified
+    "G",
+    "G#",
+    "A",
+    "A#",
+    "B",
   ];
+
+  // Defensive check to ensure we have exactly 12 colors and 12 notes
+  if (rainbowColors.length !== 12 || noteMapping.length !== 12) {
+    console.error("Expected 12 colors and 12 notes for chromatic scale. Check your configuration.");
+  }
 
   // Allowed block sizes (only 4 sizes); the size determines the octave.
   const allowedSizes: number[] = [1.0, 2.0, 3.0, 4.0];
@@ -448,6 +452,7 @@ async function init() {
         usedNodes.synths.Synth[synthIndex] = true;
         boxSynth = synthPool.Synth[synthIndex];
       } else {
+        console.warn("No available Synth in pool; instantiating a new one.");
         boxSynth = new TONE.Synth(synthConfigs.Synth);
       }
     } else if (chosenType === "MetalSynth") {
@@ -456,6 +461,7 @@ async function init() {
         usedNodes.synths.MetalSynth[synthIndex] = true;
         boxSynth = synthPool.MetalSynth[synthIndex];
       } else {
+        console.warn("No available MetalSynth in pool; instantiating a new one.");
         boxSynth = new TONE.MembraneSynth(synthConfigs.MetalSynth);
       }
     } else if (chosenType === "FMSynth") {
@@ -464,6 +470,7 @@ async function init() {
         usedNodes.synths.FMSynth[synthIndex] = true;
         boxSynth = synthPool.FMSynth[synthIndex];
       } else {
+        console.warn("No available FMSynth in pool; instantiating a new one.");
         boxSynth = new TONE.FMSynth(synthConfigs.FMSynth);
       }
     } else if (chosenType === "AMSynth") {
@@ -472,9 +479,11 @@ async function init() {
         usedNodes.synths.AMSynth[synthIndex] = true;
         boxSynth = synthPool.AMSynth[synthIndex];
       } else {
+        console.warn("No available AMSynth in pool; instantiating a new one.");
         boxSynth = new TONE.AMSynth(synthConfigs.AMSynth);
       }
     } else if (chosenType === "PluckSynth") {
+      console.warn("PluckSynth not in pool; instantiating a new one.");
       boxSynth = new TONE.PluckSynth(synthConfigs.PluckSynth);
     }
 
