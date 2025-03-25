@@ -271,14 +271,6 @@ async function init() {
     "E5",
   ];
 
-  // ---- New Block Configuration Setup ----
-  type BlockConfig = {
-    color: number;
-    synth: string;
-    size: number;
-    tone: string;
-  };
-
   // New block configuration: 12 colours from a rainbow spectrum; each maps to a note (A–G) as described.
   type BlockConfig = {
     color: number;
@@ -309,21 +301,20 @@ async function init() {
   // One possible mapping (12 elements) is:
   const noteMapping: string[] = [
     "A", // index 0
-    "B", // index 1
-    "C", // index 2
-    "D", // index 3
-    "E", // index 4
-    "F", // index 5
-    "A", // index 6
-    "B", // index 7
-    "C", // index 8
-    "D", // index 9
-    "E", // index 10
+    "A#",
+    "B",
+    "C",
+    "C#",
+    "D",
+    "D#",
+    "E",
+    "F",
+    "F#",
     "G", // index 11; ensures violet block is G as specified
   ];
 
   // Allowed block sizes (only 4 sizes); the size determines the octave.
-  const allowedSizes: number[] = [1.0, 2.0, 3.0, 4.0]; 
+  const allowedSizes: number[] = [1.0, 2.0, 3.0, 4.0];
 
   // Map from block size to octave: 1.0 => octave 5, 2.0 => octave 4, 3.0 => octave 3, 4.0 => octave 2.
   const sizeToOctave: Record<number, number> = {
@@ -367,13 +358,6 @@ async function init() {
     },
     MetalSynth: {
       // For example, use MembraneSynth defaults with faster attack:
-      envelope: { attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.5 },
-    },
-    FMSynth: {
-      envelope: { attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.5 },
-      modulation: { type: "square" },
-    },
-    AMSynth: {
       envelope: { attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.5 },
     },
   };
