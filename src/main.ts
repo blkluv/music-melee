@@ -542,10 +542,10 @@ async function init() {
   const metronomeSynth = new TONE.MembraneSynth({
     volume: 6, // increase volume substantially (adjust as needed)
     envelope: {
-      attack: 0.001,
-      decay: 0.005, // even shorter decay for a sharper click
-      sustain: 0,
-      release: 0.02, // shorter release time
+      attack: 0.1,
+      decay: 0.5, // even shorter decay for a sharper click
+      sustain: 0.1,
+      release: 0.05, // shorter release time
     },
   });
   TONE.Transport.scheduleRepeat(() => {
