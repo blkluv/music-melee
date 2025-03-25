@@ -270,6 +270,54 @@ async function init() {
     AMSynth: 0xff00ff, // magenta
   };
 
+  // ---- New Block Configuration Setup ----
+  type BlockConfig = { color: number; synth: string; size: number; tone: string };
+
+  // Define 4 block type options with fixed colors and synth types.
+  const blockTypeOptions: BlockConfig[] = [
+    { color: 0xffff00, synth: "Synth", size: 0, tone: "" },      // Yellow
+    { color: 0x00ff00, synth: "MetalSynth", size: 0, tone: "" },   // Green
+    { color: 0xff69b4, synth: "PluckSynth", size: 0, tone: "" },    // Pink
+    { color: 0xffffff, synth: "FMSynth", size: 0, tone: "" },       // White
+  ];
+
+  // Define the 8 discrete sizes (smallest = 0.5, biggest = 5)
+  // Choose sensible intermediate values.
+  const sizes = [0.5, 1.0, 1.5, 2.0, 3.0, 3.5, 4.0, 5.0];
+
+  // Map sizes to tones according to C Lydian (biggest → lowest tone)
+  // Biggest (5.0) gets "C2", then next → "D2", "E2", "F#2", "G2", "A2", "B2", smallest (0.5) gets "C3"
+  const sizeToTone: Record<number, string> = {
+    5.0: "C2",
+    4.0: "D2",
+    3.5: "E2",
+    3.0: "F#2",
+    2.0: "G2",
+    1.5: "A2",
+    1.0: "B2",
+    0.5: "C3",
+  };
+
+  // Generate a randomized sequence of 150 block configurations
+  const blockSequence: BlockConfig[] = [];
+  for (let i = 0; i < 150; i++) {
+    // Randomly pick one of the 4 block types
+    const typeOption =
+      blockTypeOptions[Math.floor(Math.random() * blockTypeOptions.length)];
+    // Randomly pick one of the 8 discrete sizes
+    const chosenSize = sizes[Math.floor(Math.random() * sizes.length)];
+    // Look up the corresponding tone
+    const chosenTone = sizeToTone[chosenSize];
+    blockSequence.push({
+      color: typeOption.color,
+      synth: typeOption.synth,
+      size: chosenSize,
+      tone: chosenTone,
+    });
+  }
+  // Global pointer for sequentially drawing from blockSequence
+  let blockSeqIndex = 0;
+
   // Helper function to create the audio chain for a given synth type.
   function buildSynthChain(chosenType: string): {
     synth:
@@ -349,32 +397,26 @@ async function init() {
   }
 
   // Helper to create a block with its mesh, physics body, audio chain and collision handling.
-  function createBlock(position: THREE.Vector3): {
-    mesh: THREE.Mesh;
-    body: CANNON.Body;
-  } {
-    const sizeMin = 0.3,
-      sizeMax = 3.0;
-    const boxSize = Math.random() * (sizeMax - sizeMin) + sizeMin;
-    const normalized = (boxSize - sizeMin) / (sizeMax - sizeMin);
-    const inverted = 1 - normalized;
-    const toneIndex = Math.floor(inverted * (tones.length - 1));
-    const assignedTone = tones[toneIndex];
-
+  function createBlock(
+    position: THREE.Vector3,
+    config: BlockConfig
+  ): { mesh: THREE.Mesh; body: CANNON.Body } {
+    const boxSize = config.size; // Use the discrete size from config
+    const assignedTone = config.tone; // Use the corresponding tone
+    // Create box geometry using the provided size
     const boxGeo = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
-    const chosenType =
-      synthTypes[Math.floor(Math.random() * synthTypes.length)];
-    const boxMat = new THREE.MeshStandardMaterial({
-      color: synthColorMap[chosenType],
-    });
+    // Use the synth type from config
+    const chosenType = config.synth;
+    // Use the color from config for the material
+    const boxMat = new THREE.MeshStandardMaterial({ color: config.color });
     const boxMesh = new THREE.Mesh(boxGeo, boxMat);
-    boxMesh.userData.originalColor = synthColorMap[chosenType];
+    boxMesh.userData.originalColor = config.color;
     boxMesh.castShadow = true;
     boxMesh.receiveShadow = true;
     const edges = new THREE.EdgesGeometry(boxGeo);
     const outline = new THREE.LineSegments(
       edges,
-      new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 }),
+      new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 })
     );
     boxMesh.add(outline);
     boxMesh.userData.outline = outline;
@@ -390,6 +432,7 @@ async function init() {
     boxMesh.userData.boxBody = boxBody;
     (boxBody as any).assignedTone = assignedTone;
 
+    // Use the provided synth type when building the audio chain.
     const { synth, panner3D, spatialVolume } = buildSynthChain(chosenType);
     (boxBody as any).assignedSynth = synth;
     (boxBody as any).assignedPanner3D = panner3D;
@@ -444,21 +487,24 @@ async function init() {
   roundTimerElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(roundTimerElem);
 
-  // Spawn the initial boxes using the consolidated spawnBlock helper
-  for (let i = 0; i < 20; i++) {
+  // Seed the arena with 30 blocks at the start of the round
+  for (let i = 0; i < 30; i++) {
     spawnBlock();
   }
 
-  // Schedule block spawning every 2 measures (4/4 time) via Tone.Transport
-  TONE.getTransport().scheduleRepeat(spawnBlock, "2m");
+  // Schedule block spawning: add one block every bar (1 measure) until the round ends
+  TONE.getTransport().scheduleRepeat(spawnBlock, "1m");
 
   function spawnBlock() {
     const pos = new THREE.Vector3(
       (Math.random() - 0.5) * 40,
       50,
-      (Math.random() - 0.5) * 40,
+      (Math.random() - 0.5) * 40
     );
-    const { mesh, body } = createBlock(pos);
+    // Pull the next block configuration from blockSequence
+    const config = blockSequence[blockSeqIndex];
+    blockSeqIndex = (blockSeqIndex + 1) % blockSequence.length;
+    const { mesh, body } = createBlock(pos, config);
     scene.add(mesh);
     world.addBody(body);
     boxMeshArray.push(mesh);
