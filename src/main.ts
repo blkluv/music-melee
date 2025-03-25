@@ -1033,9 +1033,9 @@ async function init() {
             const octave = noteMatch[2];
             // Compute the impulse vector from the player to the block.
             const impulseDir = new CANNON.Vec3(
-              mesh.position.x - playerBody.position.x,
-              mesh.position.y - playerBody.position.y,
-              mesh.position.z - playerBody.position.z,
+              targetMesh.position.x - playerBody.position.x,
+              targetMesh.position.y - playerBody.position.y,
+              targetMesh.position.z - playerBody.position.z,
             );
             impulseDir.normalize();
 
@@ -1049,9 +1049,9 @@ async function init() {
 
               // Change the block's colour.
               const newColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
-              mesh.material.color.setHex(newColor);
-              mesh.material.emissive.setHex(newColor);
-              mesh.userData.originalColor = newColor;
+              targetMesh.material.color.setHex(newColor);
+              targetMesh.material.emissive.setHex(newColor);
+              targetMesh.userData.originalColor = newColor;
 
               // Apply a strong push away from the player.
               const strongForce = 20; // Large force
