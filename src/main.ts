@@ -379,6 +379,9 @@ async function init() {
   // Helper for collision handling; ensures the block flashes and triggers its sound.
   function attachCollisionHandler(boxBody: CANNON.Body, mesh: THREE.Mesh) {
     boxBody.addEventListener("collide", (e: any) => {
+      // Only proceed if the block collided with the player body
+      if (e.body !== playerBody) return;
+      
       const impactVelocity =
         e.contact && e.contact.getImpactVelocityAlongNormal
           ? e.contact.getImpactVelocityAlongNormal()
@@ -402,7 +405,7 @@ async function init() {
         (boxBody as any).lastToneTime = now;
         const note = (boxBody as any).assignedTone;
         (boxBody as any).assignedSynth.triggerAttackRelease(note, "8n");
-        updateRhythmUI(note);
+        updateRhythmUI(note);  // Only updated if the collision involves the player
       }
     });
   }
