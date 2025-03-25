@@ -266,18 +266,18 @@ async function init() {
 
   // Define the 8 discrete sizes (smallest = 0.5, biggest = 5)
   // Choose sensible intermediate values.
-  const sizes = [0.5, 1.0, 1.5, 2.0, 3.0, 3.5, 4.0, 5.0];
+  const sizes = [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0];
 
   // Map sizes to tones according to C Lydian (biggest → lowest tone)
   const sizeToTone: Record<number, string> = {
-    5.0: "C3",
-    4.0: "D3",
+    5.0: "C2",
+    4.0: "D2",
     3.5: "E3",
     3.0: "F#3",
-    2.0: "G3",
-    1.5: "A3",
-    1.0: "B3",
-    0.5: "C4",
+    2.5: "G3",
+    2.0: "A3",
+    1.5: "B3",
+    1.0: "C4",
   };
 
   // Generate a randomized sequence of 150 block configurations
