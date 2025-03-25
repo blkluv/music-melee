@@ -761,7 +761,7 @@ async function init() {
   document.body.appendChild(roundTimerElem);
 
   // Create a new score display element in the bottom center.
-  let score = 0;  // Global score variable
+  let score = 0; // Global score variable
   const scoreElem = document.createElement("div");
   scoreElem.id = "scoreDisplay";
   scoreElem.style.position = "absolute";
@@ -1043,12 +1043,14 @@ async function init() {
               // In-key: Award a point.
               score++;
               // Choose a new random note (keeping the same octave).
-              const newNoteLetter = lydianNotes[Math.floor(Math.random() * lydianNotes.length)];
+              const newNoteLetter =
+                lydianNotes[Math.floor(Math.random() * lydianNotes.length)];
               const newNote = newNoteLetter + octave;
               (blockBody as any).assignedTone = newNote;
 
               // Change the block's colour.
-              const newColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
+              const newColor =
+                rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
               targetMesh.material.color.setHex(newColor);
               targetMesh.material.emissive.setHex(newColor);
               targetMesh.userData.originalColor = newColor;
@@ -1057,8 +1059,10 @@ async function init() {
               const strongForce = 20; // Large force
               impulseDir.scale(strongForce, impulseDir);
               blockBody.applyImpulse(impulseDir, blockBody.position);
-              
-              console.log(`Block was in-key. Changed tone to ${newNote} and color updated.`);
+
+              console.log(
+                `Block was in-key. Changed tone to ${newNote} and color updated.`,
+              );
             } else {
               // Off-key: Subtract a point.
               score--;
@@ -1066,8 +1070,10 @@ async function init() {
               const mildForce = 5; // Small force
               impulseDir.scale(mildForce, impulseDir);
               blockBody.applyImpulse(impulseDir, blockBody.position);
-              
-              console.log("Block was off-key. Applied mild push; tone and color unchanged.");
+
+              console.log(
+                "Block was off-key. Applied mild push; tone and color unchanged.",
+              );
             }
             scoreElem.innerText = `Score: ${score}`;
           } else {
@@ -1142,7 +1148,6 @@ async function init() {
     timingAccuracyElem.innerText = `Timing: ${diffMs} ms (${accuracyText})`;
     lastNoteElem.innerText = `Last Note: ${note}`;
   }
-
 
   // Track time for physics updates
   let lastTime = performance.now();
@@ -1286,7 +1291,7 @@ async function init() {
 
     // Schedule block spawning: add one block every bar (1 measure) until the round ends
     transport.scheduleRepeat(spawnBlock, "1m");
-    
+
     // Debug transport ticking
     transport.scheduleRepeat((time) => {
       console.log("Transport tick. Transport.seconds =", transport.seconds);
