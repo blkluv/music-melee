@@ -388,6 +388,17 @@ async function init() {
   blockCounterElem.style.fontFamily = "Roboto, sans-serif"; // New font-family
   document.body.appendChild(blockCounterElem);
 
+  // Create BPM display element below the block counter
+  const bpmElem = document.createElement("div");
+  bpmElem.id = "bpmDisplay";
+  bpmElem.style.position = "absolute";
+  bpmElem.style.top = "40px";
+  bpmElem.style.right = "10px";
+  bpmElem.style.color = "white";
+  bpmElem.style.fontSize = "18px";
+  bpmElem.style.fontFamily = "Roboto, sans-serif";
+  document.body.appendChild(bpmElem);
+
   // Function to update the counter text
   function updateBlockCounter() {
     blockCounterElem.innerText = `Blocks: ${boxMeshArray.length}`;
@@ -529,6 +540,20 @@ async function init() {
       console.log("Round ended.");
     }
   }, 100);
+
+  // Create an audible metronome that triggers every quarter note
+  const metronomeSynth = new TONE.MembraneSynth({
+    envelope: {
+      attack: 0.001,
+      decay: 0.05,
+      sustain: 0,
+      release: 0.05,
+    },
+  });
+  TONE.Transport.scheduleRepeat(() => {
+    // Trigger a low C (C2) for a click-like beat
+    metronomeSynth.triggerAttackRelease("C2", "8n");
+  }, "4n");
   // --- End of round timer and tempo track setup ---
 
   // Movement variables
@@ -726,6 +751,9 @@ async function init() {
     TONE.getContext().listener.upX.value = up.x;
     TONE.getContext().listener.upY.value = up.y;
     TONE.getContext().listener.upZ.value = up.z;
+
+    // Update BPM display
+    bpmElem.innerText = `BPM: ${TONE.Transport.bpm.value.toFixed(0)}`;
 
     renderer.render(scene, camera);
   }
