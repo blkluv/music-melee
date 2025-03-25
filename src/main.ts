@@ -10,7 +10,6 @@ async function init() {
   console.log("Music Melee initializing...");
 
   // Declare variables at the top level of init() function
-  let bassLine: TONE.Sequence<string, string>;
   let roundStartTime: number = 0;
   let roundDuration: number = 120; // in seconds (2 minutes)
 
@@ -1059,43 +1058,37 @@ async function init() {
     lastNoteElem.innerText = `Last Note: ${note}`;
   }
 
-  // --- Add groovy synth bassline ---
-  const bassSynth = new TONE.MonoSynth({
+  // --- New Groovy Synth Bassline Setup ---
+  // Create a MonoSynth bass that will be used for the bassline.
+  // We use a simple square oscillator with a lowpass filter.
+  const newBassSynth = new TONE.MonoSynth({
     oscillator: { type: "square" },
-    filter: { Q: 1, type: "lowpass", rolloff: -24 },
+    filter: { type: "lowpass", frequency: 200, Q: 1 },
     envelope: { attack: 0.05, decay: 0.2, sustain: 0.5, release: 0.3 },
-    filterEnvelope: {
-      attack: 0.03,
-      decay: 0.2,
-      sustain: 0.5,
-      release: 0.2,
-      baseFrequency: 200,
-      octaves: 2,
-    },
   });
+
   // Route the bass synth through the global limiter (which is already connected to destination)
-  bassSynth.chain(globalLimiter);
-  // Set volume to 0 dB so it's audible
-  bassSynth.volume.value = 0;
+  newBassSynth.chain(globalLimiter);
+  
+  // Ensure the synth is audible by setting the volume to 0 dB.
+  newBassSynth.volume.value = 0;
 
   // Define a 2-bar bassline riff in C Lydian.
-  // Using quarter-note subdivisions ("4n") gives us 8 steps over 2 bars (2m).
-  const bassLinePattern = ["C2", "D2", "E2", "F#2", "G2", "A2", "B2", "C3"];
+  // We use quarter-note subdivisions ("4n"), which gives an 8–step pattern over 2 bars.
+  const newBassPattern = ["C2", "D2", "E2", "F#2", "G2", "A2", "B2", "C3"];
 
-  bassLine = new TONE.Sequence(
+  // Create a Tone.Sequence to play the bassline pattern.
+  const newBassLine = new TONE.Sequence(
     (time, note) => {
-      bassSynth.triggerAttackRelease(note, "8n", time);
+      newBassSynth.triggerAttackRelease(note, "8n", time);
     },
-    bassLinePattern,
+    newBassPattern,
     "4n"
   );
-  bassLine.loop = true;
-  bassLine.loopEnd = "2m";
-  bassLine.debug = true;
-  
-  // Log for debugging
-  console.log("Bassline initialized, looping a 2-bar riff in C Lydian.", bassLine);
-  // --- End groovy synth bassline setup ---
+  newBassLine.loop = true;
+  newBassLine.loopEnd = "2m";
+  console.log("New bassline initialized, looping a 2-bar riff in C Lydian.", newBassLine);
+  // --- End of New Groovy Synth Bassline Setup ---
 
   // Track time for physics updates
   let lastTime = performance.now();
@@ -1235,8 +1228,8 @@ async function init() {
 
     // Start the Tone.Transport (which drives scheduled events and BPM changes)
     transport.start();
-    bassLine.start(0);
-    console.log("Bassline started.");
+    newBassLine.start(0);
+    console.log("New bassline started.");
 
     // Schedule block spawning: add one block every bar (1 measure) until the round ends
     transport.scheduleRepeat(spawnBlock, "1m");
