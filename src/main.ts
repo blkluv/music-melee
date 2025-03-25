@@ -321,6 +321,9 @@ async function init() {
     },
   };
 
+  const globalLimiter = new TONE.Limiter(-12);
+  globalLimiter.toDestination();
+
   // Helper function to create the audio chain for a given synth type.
   function buildSynthChain(chosenType: string): {
     synth:
@@ -357,7 +360,7 @@ async function init() {
       coneOuterAngle: 0,
       coneOuterGain: 0,
     });
-    boxSynth.chain(bassFilter, panner3D, spatialVolume, TONE.Destination);
+    boxSynth.chain(bassFilter, panner3D, spatialVolume, globalLimiter);
     return { synth: boxSynth, bassFilter, spatialVolume, panner3D };
   }
 
@@ -561,7 +564,7 @@ async function init() {
       tickerFilter,
       tickerPanner,
       tickerVolume,
-      TONE.Destination,
+      globalLimiter,
     );
     // Save the ticker synth and panner with the physics body if needed later
     (boxBody as any).assignedSynth = tickerSynth;
@@ -624,8 +627,8 @@ async function init() {
     },
   });
 
-  // Connect the metronome to the output destination
-  metronomeSynth.toDestination();
+  // Connect the metronome to the global limiter
+  metronomeSynth.chain(globalLimiter);
 
   TONE.getTransport().scheduleRepeat(() => {
     // Trigger a higher-pitched click (C4) for improved audibility
@@ -869,6 +872,11 @@ async function init() {
       const factor = (t - 0.5) / 0.5;
       scene.background = noonSkyColor.clone().lerp(dawnSkyColor, factor);
     }
+
+    // Ramp metronome volume: quiet/peaceful at round start, louder/more aggressive at the end.
+    const metStartVol = -30; // very quiet at start (in dB)
+    const metEndVol = -6;    // much louder at round end
+    metronomeSynth.volume.value = metStartVol + (metEndVol - metStartVol) * t;
 
     renderer.render(scene, camera);
   }
