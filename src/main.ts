@@ -262,7 +262,12 @@ async function init() {
 
   // Helper function to create the audio chain for a given synth type.
   function buildSynthChain(chosenType: string): {
-    synth: TONE.Synth | TONE.MetalSynth | TONE.PluckSynth | TONE.FMSynth | TONE.AMSynth;
+    synth:
+      | TONE.Synth
+      | TONE.MetalSynth
+      | TONE.PluckSynth
+      | TONE.FMSynth
+      | TONE.AMSynth;
     bassFilter: TONE.Filter;
     spatialVolume: TONE.Volume;
     panner3D: TONE.Panner3D;
@@ -298,26 +303,30 @@ async function init() {
   // Helper for collision handling; ensures the block flashes and triggers its sound.
   function attachCollisionHandler(boxBody: CANNON.Body, mesh: THREE.Mesh) {
     boxBody.addEventListener("collide", (e: any) => {
-      const impactVelocity = e.contact && e.contact.getImpactVelocityAlongNormal
-        ? e.contact.getImpactVelocityAlongNormal()
-        : 0;
+      const impactVelocity =
+        e.contact && e.contact.getImpactVelocityAlongNormal
+          ? e.contact.getImpactVelocityAlongNormal()
+          : 0;
       if (impactVelocity < 2) return;
-      
+
       const originalColor = mesh.userData.originalColor;
       mesh.material.color.set(0xffffff);
       setTimeout(() => {
         mesh.material.color.setHex(originalColor);
       }, 150);
-      
-      const diff = new THREE.Vector3().subVectors(mesh.position, camera.position);
+
+      const diff = new THREE.Vector3().subVectors(
+        mesh.position,
+        camera.position,
+      );
       const distance = diff.length();
       const maxDistance = 50;
       const volumeFactor = Math.max(0, 1 - distance / maxDistance);
       let computedVolume = -12 - (1 - volumeFactor) * 20;
       computedVolume = Math.min(computedVolume + impactVelocity * 2, 0);
-      
+
       (boxBody as any).assignedVolume.volume.value = computedVolume;
-      
+
       const now = performance.now();
       if (now - (boxBody as any).lastToneTime > 150) {
         (boxBody as any).lastToneTime = now;
@@ -330,8 +339,12 @@ async function init() {
   }
 
   // Helper to create a block with its mesh, physics body, audio chain and collision handling.
-  function createBlock(position: THREE.Vector3): { mesh: THREE.Mesh; body: CANNON.Body } {
-    const sizeMin = 0.3, sizeMax = 3.0;
+  function createBlock(position: THREE.Vector3): {
+    mesh: THREE.Mesh;
+    body: CANNON.Body;
+  } {
+    const sizeMin = 0.3,
+      sizeMax = 3.0;
     const boxSize = Math.random() * (sizeMax - sizeMin) + sizeMin;
     const normalized = (boxSize - sizeMin) / (sizeMax - sizeMin);
     const inverted = 1 - normalized;
@@ -339,14 +352,20 @@ async function init() {
     const assignedTone = tones[toneIndex];
 
     const boxGeo = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
-    const chosenType = synthTypes[Math.floor(Math.random() * synthTypes.length)];
-    const boxMat = new THREE.MeshStandardMaterial({ color: synthColorMap[chosenType] });
+    const chosenType =
+      synthTypes[Math.floor(Math.random() * synthTypes.length)];
+    const boxMat = new THREE.MeshStandardMaterial({
+      color: synthColorMap[chosenType],
+    });
     const boxMesh = new THREE.Mesh(boxGeo, boxMat);
     boxMesh.userData.originalColor = synthColorMap[chosenType];
     boxMesh.castShadow = true;
     boxMesh.receiveShadow = true;
     const edges = new THREE.EdgesGeometry(boxGeo);
-    const outline = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 }));
+    const outline = new THREE.LineSegments(
+      edges,
+      new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 }),
+    );
     boxMesh.add(outline);
     boxMesh.userData.outline = outline;
     boxMesh.position.copy(position);
@@ -360,15 +379,15 @@ async function init() {
     (boxBody as any).mesh = boxMesh;
     boxMesh.userData.boxBody = boxBody;
     (boxBody as any).assignedTone = assignedTone;
-    
+
     const { synth, panner3D, spatialVolume } = buildSynthChain(chosenType);
     (boxBody as any).assignedSynth = synth;
     (boxBody as any).assignedPanner3D = panner3D;
     (boxBody as any).assignedVolume = spatialVolume;
     (boxBody as any).lastToneTime = 0;
-    
+
     attachCollisionHandler(boxBody, boxMesh);
-    
+
     return { mesh: boxMesh, body: boxBody };
   }
 
@@ -557,7 +576,7 @@ async function init() {
     const pos = new THREE.Vector3(
       (Math.random() - 0.5) * 40,
       50,
-      (Math.random() - 0.5) * 40
+      (Math.random() - 0.5) * 40,
     );
     const { mesh, body } = createBlock(pos);
     scene.add(mesh);
