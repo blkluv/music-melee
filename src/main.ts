@@ -259,7 +259,7 @@ async function init() {
     if (chosenType === "Synth") {
       boxSynth = new TONE.Synth({ oscillator: { type: "sine" } });
     } else if (chosenType === "MetalSynth") {
-      boxSynth = new TONE.MetalSynth();
+      boxSynth = new TONE.MembraneSynth();
     } else if (chosenType === "PluckSynth") {
       boxSynth = new TONE.PluckSynth();
     } else if (chosenType === "FMSynth") {
