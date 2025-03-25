@@ -202,9 +202,17 @@ async function init() {
       if (!mesh) return;
       // Flash the block white
       const originalColor = mesh.userData.originalColor;
+      // Store the original emissive intensity.
+      const originalEmissiveIntensity = mesh.material.emissiveIntensity;
+      // Flash: Override color and emissive properties to white and boost flash intensity.
       mesh.material.color.set(0xffffff);
+      mesh.material.emissive.set(0xffffff);
+      mesh.material.emissiveIntensity = 2;
       setTimeout(() => {
+        // Restore original color and a subtler emissive glow.
         mesh.material.color.setHex(originalColor);
+        mesh.material.emissive.setHex(originalColor);
+        mesh.material.emissiveIntensity = 0.4;
       }, 150);
 
       // Compute impact velocity (if available) and ignore very soft collisions
@@ -888,9 +896,17 @@ async function init() {
 
         // Flash the block white (store original color first).
         const originalColor = targetMesh.userData.originalColor;
+        // Store the original emissive intensity.
+        const originalEmissiveIntensity = targetMesh.material.emissiveIntensity;
+        // Flash: Override color and emissive properties to white.
         targetMesh.material.color.set(0xffffff);
+        targetMesh.material.emissive.set(0xffffff);
+        targetMesh.material.emissiveIntensity = 2;
         setTimeout(() => {
+          // Restore the original color and glow settings.
           targetMesh.material.color.setHex(originalColor);
+          targetMesh.material.emissive.setHex(originalColor);
+          targetMesh.material.emissiveIntensity = 0.4;
         }, 150);
 
         // Play the block sound with a "big impact" (simulate high impact velocity).
