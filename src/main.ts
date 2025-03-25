@@ -457,7 +457,12 @@ async function init() {
       coneOuterAngle: 0,
       coneOuterGain: 0,
     });
-    tickerSynth.chain(tickerFilter, tickerPanner, tickerVolume, TONE.Destination);
+    tickerSynth.chain(
+      tickerFilter,
+      tickerPanner,
+      tickerVolume,
+      TONE.Destination,
+    );
     // Save the ticker synth and panner with the physics body if needed later
     (boxBody as any).assignedSynth = tickerSynth;
     (boxBody as any).assignedPanner3D = tickerPanner;
@@ -472,7 +477,11 @@ async function init() {
       // Play the click sound (using C4; adjust pitch if desired)
       tickerSynth.triggerAttackRelease("C4", "8n");
       // Debug log for the ticker block
-      console.log("Ticker block triggered at position:", blockMesh.position, "sound: C4 click");
+      console.log(
+        "Ticker block triggered at position:",
+        blockMesh.position,
+        "sound: C4 click",
+      );
     }, 2000);
 
     return { mesh: blockMesh, body: boxBody };
@@ -585,7 +594,10 @@ async function init() {
 
         // Play the block sound with a "big impact" (simulate high impact velocity).
         // Use a high volume version by overriding the computed volume if desired.
-        (blockBody as any).assignedSynth.triggerAttackRelease((blockBody as any).assignedTone, "8n");
+        (blockBody as any).assignedSynth.triggerAttackRelease(
+          (blockBody as any).assignedTone,
+          "8n",
+        );
       }
     }
   });
@@ -661,7 +673,7 @@ async function init() {
     TONE.getContext().listener.positionX.value = camera.position.x;
     TONE.getContext().listener.positionY.value = camera.position.y;
     TONE.getContext().listener.positionZ.value = camera.position.z;
-    
+
     // Update listener orientation based on the camera's direction
     const listenerForward = new THREE.Vector3();
     camera.getWorldDirection(listenerForward);
