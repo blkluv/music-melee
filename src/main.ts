@@ -356,7 +356,6 @@ async function init() {
       tone: fullTone,
     });
   }
-  let blockSeqIndex = 0;
   // Global pointer for sequentially drawing from blockSequence
   let blockSeqIndex = 0;
 
