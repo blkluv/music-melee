@@ -279,47 +279,84 @@ async function init() {
     tone: string;
   };
 
-  // Define 4 block type options with fixed colors and synth types.
-  const blockTypeOptions: BlockConfig[] = [
-    { color: 0xffff00, synth: "MetalSynth", size: 0, tone: "" }, // Yellow
-    { color: 0x00ff00, synth: "MetalSynth", size: 0, tone: "" }, // Green
-    { color: 0xff69b4, synth: "MetalSynth", size: 0, tone: "" }, // Pink
-    { color: 0xffaa00, synth: "MetalSynth", size: 0, tone: "" }, // Orange
-  ];
-
-  // Define the 8 discrete sizes (smallest = 0.5, biggest = 5)
-  // Choose sensible intermediate values.
-  const sizes = [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0];
-
-  // Map sizes to tones according to C Lydian (biggest → lowest tone)
-  const sizeToTone: Record<number, string> = {
-    5.0: "C2",
-    4.0: "D2",
-    3.5: "E3",
-    3.0: "F#3",
-    2.5: "G3",
-    2.0: "A3",
-    1.5: "B3",
-    1.0: "C4",
+  // New block configuration: 12 colours from a rainbow spectrum; each maps to a note (A–G) as described.
+  type BlockConfig = {
+    color: number;
+    synth: string;
+    size: number;
+    tone: string;
   };
 
-  // Generate a randomized sequence of 150 block configurations
+  // Define a rainbow palette of 12 colours (using a full circle in hue)
+  const rainbowColors: number[] = [
+    0xff0000, // red  (index 0)
+    0xff7f00, // orange (index 1)
+    0xffff00, // yellow (index 2)
+    0x7fff00, // chartreuse (index 3)
+    0x00ff00, // green (index 4)
+    0x00ff7f, // spring green (index 5)
+    0x00ffff, // cyan (index 6)
+    0x007fff, // azure (index 7)
+    0x0000ff, // blue (index 8)
+    0x4b0082, // indigo (index 9)
+    0x8a2be2, // blue-violet (index 10)
+    0x8b00ff, // violet (index 11) -> will map to note G per spec
+  ];
+
+  // Define a mapping from each of the 12 colour indices to a note.
+  // We want red (index 0) to yield A and violet (index 11) to yield G.
+  // We'll assign letters from A through G in order, wrapping as needed.
+  // One possible mapping (12 elements) is:
+  const noteMapping: string[] = [
+    "A", // index 0
+    "B", // index 1
+    "C", // index 2
+    "D", // index 3
+    "E", // index 4
+    "F", // index 5
+    "A", // index 6
+    "B", // index 7
+    "C", // index 8
+    "D", // index 9
+    "E", // index 10
+    "G", // index 11; ensures violet block is G as specified
+  ];
+
+  // Allowed block sizes (only 4 sizes); the size determines the octave.
+  const allowedSizes: number[] = [1.0, 2.0, 3.0, 4.0]; 
+
+  // Map from block size to octave: 1.0 => octave 5, 2.0 => octave 4, 3.0 => octave 3, 4.0 => octave 2.
+  const sizeToOctave: Record<number, number> = {
+    1.0: 5,
+    2.0: 4,
+    3.0: 3,
+    4.0: 2,
+  };
+
+  // Generate a randomized sequence of 150 block configurations.
   const blockSequence: BlockConfig[] = [];
   for (let i = 0; i < 150; i++) {
-    // Randomly pick one of the 4 block types
-    const typeOption =
-      blockTypeOptions[Math.floor(Math.random() * blockTypeOptions.length)];
-    // Randomly pick one of the 8 discrete sizes
-    const chosenSize = sizes[Math.floor(Math.random() * sizes.length)];
-    // Look up the corresponding tone
-    const chosenTone = sizeToTone[chosenSize];
+    // Randomly choose a colour index between 0 and 11.
+    const colorIndex = Math.floor(Math.random() * rainbowColors.length);
+    const chosenColor = rainbowColors[colorIndex];
+    const noteLetter = noteMapping[colorIndex];
+
+    // Randomly pick one of the allowed sizes.
+    const chosenSize =
+      allowedSizes[Math.floor(Math.random() * allowedSizes.length)];
+    // Determine octave from size.
+    const octave = sizeToOctave[chosenSize];
+    // Full tone is the note letter concatenated with the octave.
+    const fullTone = noteLetter + octave.toString();
+
     blockSequence.push({
-      color: typeOption.color,
-      synth: typeOption.synth,
+      color: chosenColor,
+      synth: "MetalSynth", // All blocks use MetalSynth
       size: chosenSize,
-      tone: chosenTone,
+      tone: fullTone,
     });
   }
+  let blockSeqIndex = 0;
   // Global pointer for sequentially drawing from blockSequence
   let blockSeqIndex = 0;
 
