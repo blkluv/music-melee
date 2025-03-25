@@ -219,10 +219,9 @@ async function init() {
       const now = performance.now();
       if (!otherBody.lastToneTime || now - otherBody.lastToneTime > 150) {
         otherBody.lastToneTime = now;
-        otherBody.assignedSynth.triggerAttackRelease(
-          otherBody.assignedTone,
-          "8n",
-        );
+        const note = otherBody.assignedTone;
+        otherBody.assignedSynth.triggerAttackRelease(note, "8n");
+        updateRhythmUI(note);  // Update UI for player-driven collision actions
       }
     }
   });
