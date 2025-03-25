@@ -459,7 +459,10 @@ async function init() {
     // Connect the chain
     boxSynth.disconnect();
     boxSynth.chain(bassFilter, panner3D, spatialVolume, globalLimiter);
-    
+  
+    // Reset volume from -Infinity (dormant state) to 0 for audible output
+    boxSynth.volume.value = 0;
+  
     return { synth: boxSynth, bassFilter, spatialVolume, panner3D };
   }
 
