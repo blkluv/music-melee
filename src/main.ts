@@ -254,20 +254,6 @@ async function init() {
     "E5",
   ];
 
-  // Define synth types and their corresponding colors
-  const synthTypes = [
-    "Synth",
-    "MetalSynth",
-    "PluckSynth",
-    "FMSynth",
-    "AMSynth",
-  ];
-  const synthColorMap: Record<string, number> = {
-    Synth: 0xff0000, // red
-    MetalSynth: 0x00ff00, // green
-    PluckSynth: 0x0000ff, // blue
-    FMSynth: 0xffff00, // yellow
-  };
 
   // ---- New Block Configuration Setup ----
   type BlockConfig = { color: number; synth: string; size: number; tone: string };
@@ -276,8 +262,8 @@ async function init() {
   const blockTypeOptions: BlockConfig[] = [
     { color: 0xffff00, synth: "Synth", size: 0, tone: "" },      // Yellow
     { color: 0x00ff00, synth: "MetalSynth", size: 0, tone: "" },   // Green
-    { color: 0xff69b4, synth: "PluckSynth", size: 0, tone: "" },    // Pink
-    { color: 0xffffff, synth: "FMSynth", size: 0, tone: "" },       // White
+    { color: 0xff69b4, synth: "AMSynth", size: 0, tone: "" },    // Pink
+    { color: 0xffaa00, synth: "FMSynth", size: 0, tone: "" },       // Orange
   ];
 
   // Define the 8 discrete sizes (smallest = 0.5, biggest = 5)
@@ -324,19 +310,14 @@ async function init() {
     },
     MetalSynth: {
       // For example, use MembraneSynth defaults – adjust envelope as needed:
-      envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 },
-    },
-    PluckSynth: {
-      // PluckSynth uses its own parameters (these are examples):
-      dampening: 400,
-      resonance: 0.3,
+      envelope: { attack: 0.05, decay: 0.2, sustain: 0.5, release: 1 },
     },
     FMSynth: {
-      envelope: { attack: 0.01, decay: 0.2, sustain: 0.3, release: 0.2 },
+      envelope: { attack: 0.05, decay: 0.2, sustain: 0.5, release: 1 },
       modulation: { type: "square" },
     },
     AMSynth: {
-      envelope: { attack: 0.1, decay: 0.3, sustain: 0.2, release: 0.2 },
+      envelope: { attack: 0.5, decay: 0.2, sustain: 0.5, release: 1 },
     },
   };
 
