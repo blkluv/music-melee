@@ -142,10 +142,16 @@ async function init() {
   const midColor = new THREE.Color(0xffffff);   // white
   const endColor = new THREE.Color(0xff0000);     // sunset red
 
+  // Define sky colors: start (dawn/dusk redish) and noon (blue)
+  const dawnSkyColor = new THREE.Color(0xff4500); // redish
+  const noonSkyColor = new THREE.Color(0x87ceeb);   // blue
+
   // Create the sun with its initial parameters
   const sun = new THREE.DirectionalLight(startColor, 2.5);
   sun.position.copy(startPos);
   sun.castShadow = true;
+  sun.shadow.mapSize.width = 2048;
+  sun.shadow.mapSize.height = 2048;
   sun.shadow.camera.top = 50;
   sun.shadow.camera.bottom = -50;
   sun.shadow.camera.left = -50;
@@ -780,6 +786,15 @@ async function init() {
       const factor = (t - 0.5) / 0.5;
       sun.position.lerpVectors(midPos, endPos, factor);
       sun.color.copy(midColor.clone().lerp(endColor, factor));
+    }
+
+    // Animate sky background: from redish to blue at noon and back to redish
+    if (t <= 0.5) {
+      const factor = t / 0.5;
+      scene.background = dawnSkyColor.clone().lerp(noonSkyColor, factor);
+    } else {
+      const factor = (t - 0.5) / 0.5;
+      scene.background = noonSkyColor.clone().lerp(dawnSkyColor, factor);
     }
 
     renderer.render(scene, camera);
