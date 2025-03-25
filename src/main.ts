@@ -260,6 +260,118 @@ async function init() {
     AMSynth: 0xff00ff, // magenta
   };
 
+  // Helper function to create the audio chain for a given synth type.
+  function buildSynthChain(chosenType: string): {
+    synth: TONE.Synth | TONE.MetalSynth | TONE.PluckSynth | TONE.FMSynth | TONE.AMSynth;
+    bassFilter: TONE.Filter;
+    spatialVolume: TONE.Volume;
+    panner3D: TONE.Panner3D;
+  } {
+    let boxSynth;
+    if (chosenType === "Synth") {
+      boxSynth = new TONE.Synth({ oscillator: { type: "sine" } });
+    } else if (chosenType === "MetalSynth") {
+      boxSynth = new TONE.MetalSynth();
+    } else if (chosenType === "PluckSynth") {
+      boxSynth = new TONE.PluckSynth();
+    } else if (chosenType === "FMSynth") {
+      boxSynth = new TONE.FMSynth();
+    } else if (chosenType === "AMSynth") {
+      boxSynth = new TONE.AMSynth();
+    }
+    const bassFilter = new TONE.Filter(400, "lowpass");
+    const spatialVolume = new TONE.Volume(-12);
+    const panner3D = new TONE.Panner3D({
+      panningModel: "HRTF",
+      distanceModel: "inverse",
+      refDistance: 1,
+      maxDistance: 50,
+      rolloffFactor: 1,
+      coneInnerAngle: 360,
+      coneOuterAngle: 0,
+      coneOuterGain: 0,
+    });
+    boxSynth.chain(bassFilter, panner3D, spatialVolume, TONE.Destination);
+    return { synth: boxSynth, bassFilter, spatialVolume, panner3D };
+  }
+
+  // Helper for collision handling; ensures the block flashes and triggers its sound.
+  function attachCollisionHandler(boxBody: CANNON.Body, mesh: THREE.Mesh) {
+    boxBody.addEventListener("collide", (e: any) => {
+      const impactVelocity = e.contact && e.contact.getImpactVelocityAlongNormal
+        ? e.contact.getImpactVelocityAlongNormal()
+        : 0;
+      if (impactVelocity < 2) return;
+      
+      const originalColor = mesh.userData.originalColor;
+      mesh.material.color.set(0xffffff);
+      setTimeout(() => {
+        mesh.material.color.setHex(originalColor);
+      }, 150);
+      
+      const diff = new THREE.Vector3().subVectors(mesh.position, camera.position);
+      const distance = diff.length();
+      const maxDistance = 50;
+      const volumeFactor = Math.max(0, 1 - distance / maxDistance);
+      let computedVolume = -12 - (1 - volumeFactor) * 20;
+      computedVolume = Math.min(computedVolume + impactVelocity * 2, 0);
+      
+      (boxBody as any).assignedVolume.volume.value = computedVolume;
+      
+      const now = performance.now();
+      if (now - (boxBody as any).lastToneTime > 150) {
+        (boxBody as any).lastToneTime = now;
+        (boxBody as any).assignedSynth.triggerAttackRelease(
+          (boxBody as any).assignedTone,
+          "8n",
+        );
+      }
+    });
+  }
+
+  // Helper to create a block with its mesh, physics body, audio chain and collision handling.
+  function createBlock(position: THREE.Vector3): { mesh: THREE.Mesh; body: CANNON.Body } {
+    const sizeMin = 0.3, sizeMax = 3.0;
+    const boxSize = Math.random() * (sizeMax - sizeMin) + sizeMin;
+    const normalized = (boxSize - sizeMin) / (sizeMax - sizeMin);
+    const inverted = 1 - normalized;
+    const toneIndex = Math.floor(inverted * (tones.length - 1));
+    const assignedTone = tones[toneIndex];
+
+    const boxGeo = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
+    const chosenType = synthTypes[Math.floor(Math.random() * synthTypes.length)];
+    const boxMat = new THREE.MeshStandardMaterial({ color: synthColorMap[chosenType] });
+    const boxMesh = new THREE.Mesh(boxGeo, boxMat);
+    boxMesh.userData.originalColor = synthColorMap[chosenType];
+    boxMesh.castShadow = true;
+    boxMesh.receiveShadow = true;
+    const edges = new THREE.EdgesGeometry(boxGeo);
+    const outline = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 }));
+    boxMesh.add(outline);
+    boxMesh.userData.outline = outline;
+    boxMesh.position.copy(position);
+
+    const halfExtents = new CANNON.Vec3(boxSize / 2, boxSize / 2, boxSize / 2);
+    const boxShape = new CANNON.Box(halfExtents);
+    const boxBody = new CANNON.Body({ mass: 1 });
+    boxBody.addShape(boxShape);
+    boxBody.position.copy(new CANNON.Vec3(position.x, position.y, position.z));
+
+    (boxBody as any).mesh = boxMesh;
+    boxMesh.userData.boxBody = boxBody;
+    (boxBody as any).assignedTone = assignedTone;
+    
+    const { synth, panner3D, spatialVolume } = buildSynthChain(chosenType);
+    (boxBody as any).assignedSynth = synth;
+    (boxBody as any).assignedPanner3D = panner3D;
+    (boxBody as any).assignedVolume = spatialVolume;
+    (boxBody as any).lastToneTime = 0;
+    
+    attachCollisionHandler(boxBody, boxMesh);
+    
+    return { mesh: boxMesh, body: boxBody };
+  }
+
   // Create a global array to store box meshes
   const boxMeshArray: THREE.Mesh[] = [];
 
@@ -442,144 +554,15 @@ async function init() {
   }
 
   function spawnBlock() {
-    // Create a new block similar to the ones in the original loop
-    const boxSize = Math.random() * (3.0 - 0.3) + 0.3; // size between 0.3 and 3.0
-
-    // Calculate tone based on box size
-    const sizeMin = 0.3,
-      sizeMax = 3.0;
-    const normalized = (boxSize - sizeMin) / (sizeMax - sizeMin);
-    const inverted = 1 - normalized;
-    const toneIndex = Math.floor(inverted * (tones.length - 1));
-    const assignedTone = tones[toneIndex];
-
-    const boxGeo = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
-
-    // Choose a synth type and assign corresponding color
-    const chosenType =
-      synthTypes[Math.floor(Math.random() * synthTypes.length)];
-    const boxMat = new THREE.MeshStandardMaterial({
-      color: synthColorMap[chosenType],
-    });
-    const boxMesh = new THREE.Mesh(boxGeo, boxMat);
-    boxMesh.userData.originalColor = synthColorMap[chosenType];
-    boxMesh.castShadow = true;
-    boxMesh.receiveShadow = true;
-    // Add black outline
-    const edges = new THREE.EdgesGeometry(boxGeo);
-    const outline = new THREE.LineSegments(
-      edges,
-      new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 }),
-    );
-    boxMesh.add(outline);
-    boxMesh.userData.outline = outline;
-
-    // Position at a random x/z and high above so it drops down
-    boxMesh.position.set(
+    const pos = new THREE.Vector3(
       (Math.random() - 0.5) * 40,
       50,
-      (Math.random() - 0.5) * 40,
+      (Math.random() - 0.5) * 40
     );
-    scene.add(boxMesh);
-    boxMeshArray.push(boxMesh);
-
-    // Create the Cannon-es physics body for the block.
-    const halfExtents = new CANNON.Vec3(boxSize / 2, boxSize / 2, boxSize / 2);
-    const boxShape = new CANNON.Box(halfExtents);
-    const boxBody = new CANNON.Body({ mass: 1 });
-    boxBody.addShape(boxShape);
-    boxBody.position.copy(
-      new CANNON.Vec3(
-        boxMesh.position.x,
-        boxMesh.position.y,
-        boxMesh.position.z,
-      ),
-    );
-    world.addBody(boxBody);
-
-    // Store a reference from the physics body to the mesh for synchronization
-    (boxBody as any).mesh = boxMesh;
-    boxMesh.userData.boxBody = boxBody;
-    (boxBody as any).assignedTone = assignedTone;
-
-    // Create synth based on chosen type and route through spatial nodes
-    let boxSynth;
-    if (chosenType === "Synth") {
-      boxSynth = new TONE.Synth({ oscillator: { type: "sine" } });
-    } else if (chosenType === "MetalSynth") {
-      boxSynth = new TONE.MetalSynth();
-    } else if (chosenType === "PluckSynth") {
-      boxSynth = new TONE.PluckSynth();
-    } else if (chosenType === "FMSynth") {
-      boxSynth = new TONE.FMSynth();
-    } else if (chosenType === "AMSynth") {
-      boxSynth = new TONE.AMSynth();
-    }
-    // Create a lowpass filter to emphasize bass frequencies
-    const bassFilter = new TONE.Filter(400, "lowpass");
-    const spatialVolume = new TONE.Volume(-12);
-
-    // Create a 3D panner using Tone.Panner3D for proper spatialization
-    const panner3D = new TONE.Panner3D({
-      panningModel: "HRTF",
-      distanceModel: "inverse",
-      refDistance: 1,
-      maxDistance: 50,
-      rolloffFactor: 1,
-      coneInnerAngle: 360,
-      coneOuterAngle: 0,
-      coneOuterGain: 0,
-    });
-
-    boxSynth.chain(bassFilter, panner3D, spatialVolume, TONE.Destination);
-    (boxBody as any).assignedSynth = boxSynth;
-    (boxBody as any).assignedPanner3D = panner3D;
-    (boxBody as any).assignedVolume = spatialVolume;
-    (boxBody as any).lastToneTime = 0;
-
-    // Attach the collision listener (same as before)
-    boxBody.addEventListener("collide", (e: any) => {
-      const impactVelocity =
-        e.contact && e.contact.getImpactVelocityAlongNormal
-          ? e.contact.getImpactVelocityAlongNormal()
-          : 0;
-      const threshold = 2;
-      if (impactVelocity < threshold) return;
-
-      const mesh = (boxBody as any).mesh;
-      const originalColor = mesh.userData.originalColor;
-      mesh.material.color.set(0xffffff);
-      setTimeout(() => {
-        mesh.material.color.setHex(originalColor);
-      }, 150);
-
-      const boxPos = mesh.position;
-      const camPos = camera.position;
-      const diff = new THREE.Vector3().subVectors(boxPos, camPos);
-      const distance = diff.length();
-      const maxDistance = 50;
-      const volumeFactor = Math.max(0, 1 - distance / maxDistance);
-      let computedVolume = -12 - (1 - volumeFactor) * 20;
-      computedVolume = Math.min(computedVolume + impactVelocity * 2, 0);
-      const cameraRight = new THREE.Vector3();
-      cameraRight
-        .crossVectors(camera.up, camera.getWorldDirection(new THREE.Vector3()))
-        .normalize();
-      const panValue = diff.dot(cameraRight) / distance;
-      // Only update volume - position is handled by the 3D panner
-      (boxBody as any).assignedVolume.volume.value = computedVolume;
-
-      const now = performance.now();
-      if (now - (boxBody as any).lastToneTime > 150) {
-        (boxBody as any).lastToneTime = now;
-        (boxBody as any).assignedSynth.triggerAttackRelease(
-          (boxBody as any).assignedTone,
-          "8n",
-        );
-      }
-    });
-
-    // Update our block counter element
+    const { mesh, body } = createBlock(pos);
+    scene.add(mesh);
+    world.addBody(body);
+    boxMeshArray.push(mesh);
     updateBlockCounter();
   }
 
