@@ -423,7 +423,7 @@ async function init() {
   }
 
   // Schedule block spawning every 2 measures (4/4 time) via Tone.Transport
-  TONE.Transport.scheduleRepeat(spawnBlock, "2m");
+  TONE.getTransport().scheduleRepeat(spawnBlock, "2m");
 
   function spawnBlock() {
     const pos = new THREE.Vector3(
@@ -493,7 +493,7 @@ async function init() {
     (boxBody as any).assignedPanner3D = tickerPanner;
 
     // Schedule ticker block flashing and click sound every 2 measures (2 bars in 4/4 time)
-    TONE.Transport.scheduleRepeat(() => {
+    TONE.getTransport().scheduleRepeat(() => {
       blockMesh.material.color.set(0xffffff);
       setTimeout(() => {
         blockMesh.material.color.setHex(tickerColor);
@@ -517,11 +517,11 @@ async function init() {
   const roundStartTime = performance.now();
 
   // Set initial tempo and ramp BPM to 180 over the round duration
-  TONE.Transport.bpm.value = 100;
-  TONE.Transport.bpm.rampTo(180, roundDuration);
+  TONE.getTransport().bpm.value = 100;
+  TONE.getTransport().bpm.rampTo(180, roundDuration);
 
   // Start the Tone.Transport (which drives scheduled events and BPM changes)
-  TONE.Transport.start();
+  TONE.getTransport().start();
 
   // Update the round timer element every 100ms
   const roundTimerInterval = setInterval(() => {
@@ -533,7 +533,7 @@ async function init() {
     if (remaining <= 0) {
       clearInterval(roundTimerInterval);
       // Optionally, stop the round or perform cleanup here:
-      TONE.Transport.stop();
+      TONE.getTransport().stop();
       console.log("Round ended.");
     }
   }, 100);
@@ -548,7 +548,7 @@ async function init() {
       release: 0.05, // shorter release time
     },
   });
-  TONE.Transport.scheduleRepeat(() => {
+  TONE.getTransport().scheduleRepeat(() => {
     // Trigger a higher-pitched click (C4) for improved audibility
     metronomeSynth.triggerAttackRelease("C4", "16n");
   }, "4n");
@@ -751,7 +751,7 @@ async function init() {
     TONE.getContext().listener.upZ.value = up.z;
 
     // Update BPM display
-    bpmElem.innerText = `BPM: ${TONE.Transport.bpm.value.toFixed(0)}`;
+    bpmElem.innerText = `BPM: ${TONE.getTransport().bpm.value.toFixed(0)}`;
 
     renderer.render(scene, camera);
   }
