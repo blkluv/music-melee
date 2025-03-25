@@ -1103,41 +1103,6 @@ async function init() {
     lastNoteElem.innerText = `Last Note: ${note}`;
   }
 
-  // --- New Groovy Synth Bassline Setup (Rewritten from Scratch) ---
-
-  // Build a C Lydian note pool over two octaves.
-  const lydianScale = ["C", "D", "E", "F#", "G", "A", "B"];
-  const bassNotes: string[] = [];
-  [2, 3].forEach(octave => {
-    lydianScale.forEach(n => bassNotes.push(n + octave));
-  });
-
-  // Create a punchy, "slap" bass synth using a MonoSynth.
-  const bassSynth = new TONE.MonoSynth({
-    oscillator: { type: "square" },
-    filter: { type: "lowpass", frequency: 400, Q: 1 },
-    envelope: { attack: 0.001, decay: 0.2, sustain: 0.1, release: 0.2 },
-  });
-  bassSynth.toDestination();
-  // bassSynth.chain(globalLimiter);
-  bassSynth.volume.value = 3;  // Ensure it's loud enough
-  console.log("BassSynth initialized. Volume:", bassSynth.volume.value);
-
-  // Create a new arpeggiator sequence that randomly selects notes from the bassNotes array.
-  const bassSequence = new TONE.Sequence(
-    (time, _step) => {
-      const note = bassNotes[Math.floor(Math.random() * bassNotes.length)];
-      console.log("BassSequence callback fired. Scheduled note:", note, "at time:", time);
-      bassSynth.triggerAttackRelease(note, "8n", time);
-      console.log("Triggered note:", note, "with duration 8n");
-    },
-    new Array(16).fill(null), // 16-step sequence
-    "16n"
-  );
-  bassSequence.loop = true;
-
-  // When starting the round, ensure bassSequence.start(0); is called before transport.start()
-  // --- End of New Groovy Synth Bassline Setup ---
 
   // Track time for physics updates
   let lastTime = performance.now();
@@ -1275,10 +1240,9 @@ async function init() {
     transport.bpm.value = 100;
     transport.bpm.rampTo(180, roundDuration);
 
-    // Start the Transport and bassline sequence with a slight offset
-    bassSequence.start("+0.1");
+    // Start the Transport with a slight offset
     transport.start("+0.1");
-    console.log("BassSequence started, then transport started with offset +0.1");
+    console.log("Transport started with offset +0.1");
 
     // Schedule block spawning: add one block every bar (1 measure) until the round ends
     transport.scheduleRepeat(spawnBlock, "1m");
