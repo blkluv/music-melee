@@ -400,10 +400,9 @@ async function init() {
       const now = performance.now();
       if (now - (boxBody as any).lastToneTime > 150) {
         (boxBody as any).lastToneTime = now;
-        (boxBody as any).assignedSynth.triggerAttackRelease(
-          (boxBody as any).assignedTone,
-          "8n",
-        );
+        const note = (boxBody as any).assignedTone;
+        (boxBody as any).assignedSynth.triggerAttackRelease(note, "8n");
+        updateRhythmUI(note);
       }
     });
   }
@@ -480,6 +479,28 @@ async function init() {
   bpmElem.style.fontSize = "18px";
   bpmElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(bpmElem);
+
+  // Create new UI element for timing accuracy (difference to nearest measure in ms)
+  const timingAccuracyElem = document.createElement("div");
+  timingAccuracyElem.id = "timingAccuracy";
+  timingAccuracyElem.style.position = "absolute";
+  timingAccuracyElem.style.top = "70px";
+  timingAccuracyElem.style.right = "10px";
+  timingAccuracyElem.style.color = "white";
+  timingAccuracyElem.style.fontSize = "18px";
+  timingAccuracyElem.style.fontFamily = "Roboto, sans-serif";
+  document.body.appendChild(timingAccuracyElem);
+
+  // Create new UI element for last triggered note
+  const lastNoteElem = document.createElement("div");
+  lastNoteElem.id = "lastNote";
+  lastNoteElem.style.position = "absolute";
+  lastNoteElem.style.top = "100px";
+  lastNoteElem.style.right = "10px";
+  lastNoteElem.style.color = "white";
+  lastNoteElem.style.fontSize = "18px";
+  lastNoteElem.style.fontFamily = "Roboto, sans-serif";
+  document.body.appendChild(lastNoteElem);
 
   // Function to update the counter text
   function updateBlockCounter() {
@@ -741,10 +762,9 @@ async function init() {
 
         // Play the block sound with a "big impact" (simulate high impact velocity).
         // Use a high volume version by overriding the computed volume if desired.
-        (blockBody as any).assignedSynth.triggerAttackRelease(
-          (blockBody as any).assignedTone,
-          "8n",
-        );
+        const note = (blockBody as any).assignedTone;
+        (blockBody as any).assignedSynth.triggerAttackRelease(note, "8n");
+        updateRhythmUI(note);
       }
     }
   });
@@ -765,6 +785,23 @@ async function init() {
     context.listener.upX.value = up.x;
     context.listener.upY.value = up.y;
     context.listener.upZ.value = up.z;
+  }
+
+  // Helper function to compute timing accuracy and update UI
+  function updateRhythmUI(note: string) {
+    // Get the current BPM from the cached transport
+    const currentBPM = transport.bpm.value;
+    // In 4/4 time, one measure's length in seconds:
+    const measureLength = (60 / currentBPM) * 4;
+    // Get current transport time in seconds:
+    const currentTransportTime = transport.seconds;
+    // Compute remainder of current measure:
+    const mod = currentTransportTime % measureLength;
+    // Closest distance to a measure boundary:
+    const diff = Math.min(mod, measureLength - mod);
+    const diffMs = Math.round(diff * 1000);
+    timingAccuracyElem.innerText = `Timing Accuracy: ${diffMs} ms`;
+    lastNoteElem.innerText = `Last Note: ${note}`;
   }
 
   // Track time for physics updates
