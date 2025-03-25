@@ -316,6 +316,30 @@ async function init() {
   // Global pointer for sequentially drawing from blockSequence
   let blockSeqIndex = 0;
 
+  // Define global synth configuration object
+  const synthConfigs: Record<string, any> = {
+    Synth: {
+      oscillator: { type: "sine" },
+      envelope: { attack: 0.05, decay: 0.2, sustain: 0.5, release: 1 },
+    },
+    MetalSynth: {
+      // For example, use MembraneSynth defaults – adjust envelope as needed:
+      envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 },
+    },
+    PluckSynth: {
+      // PluckSynth uses its own parameters (these are examples):
+      dampening: 400,
+      resonance: 0.3,
+    },
+    FMSynth: {
+      envelope: { attack: 0.01, decay: 0.2, sustain: 0.3, release: 0.2 },
+      modulation: { type: "square" },
+    },
+    AMSynth: {
+      envelope: { attack: 0.1, decay: 0.3, sustain: 0.2, release: 0.2 },
+    },
+  };
+
   // Helper function to create the audio chain for a given synth type.
   function buildSynthChain(chosenType: string): {
     synth:
@@ -330,15 +354,15 @@ async function init() {
   } {
     let boxSynth;
     if (chosenType === "Synth") {
-      boxSynth = new TONE.Synth({ oscillator: { type: "sine" } });
+      boxSynth = new TONE.Synth(synthConfigs.Synth);
     } else if (chosenType === "MetalSynth") {
-      boxSynth = new TONE.MembraneSynth();
+      boxSynth = new TONE.MembraneSynth(synthConfigs.MetalSynth);
     } else if (chosenType === "PluckSynth") {
-      boxSynth = new TONE.PluckSynth();
+      boxSynth = new TONE.PluckSynth(synthConfigs.PluckSynth);
     } else if (chosenType === "FMSynth") {
-      boxSynth = new TONE.FMSynth();
+      boxSynth = new TONE.FMSynth(synthConfigs.FMSynth);
     } else if (chosenType === "AMSynth") {
-      boxSynth = new TONE.AMSynth();
+      boxSynth = new TONE.AMSynth(synthConfigs.AMSynth);
     }
     const bassFilter = new TONE.Filter(400, "lowpass");
     const spatialVolume = new TONE.Volume(-12);
