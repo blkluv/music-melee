@@ -1118,15 +1118,19 @@ async function init() {
     filter: { type: "lowpass", frequency: 400, Q: 1 },
     envelope: { attack: 0.001, decay: 0.2, sustain: 0.1, release: 0.2 },
   });
+  // Optionally test without the limiter to see if that's muting the sound:
+  // bassSynth.toDestination();
   bassSynth.chain(globalLimiter);
   bassSynth.volume.value = 3;  // Ensure it's loud enough
+  console.log("BassSynth initialized. Volume:", bassSynth.volume.value);
 
   // Create a new arpeggiator sequence that randomly selects notes from the bassNotes array.
   const bassSequence = new TONE.Sequence(
     (time, _step) => {
       const note = bassNotes[Math.floor(Math.random() * bassNotes.length)];
-      bassSynth.triggerAttackRelease(note, "16n", time);
-      console.log("Bassline triggered note:", note, "at time", time);
+      console.log("BassSequence callback fired. Scheduled note:", note, "at time:", time);
+      bassSynth.triggerAttackRelease(note, "8n", time);
+      console.log("Triggered note:", note, "with duration 8n");
     },
     new Array(16).fill(null), // 16-step sequence
     "16n"
@@ -1272,11 +1276,10 @@ async function init() {
     transport.bpm.value = 100;
     transport.bpm.rampTo(180, roundDuration);
 
-    // Start the bassline sequence before starting the Transport
-    bassSequence.start(0);
-    // Start the Tone.Transport (which drives scheduled events and BPM changes)
-    transport.start();
-    console.log("New bassline started.");
+    // Start the Transport and bassline sequence with a slight offset
+    transport.start("+0.1");
+    bassSequence.start("+0.1");
+    console.log("Transport and bassSequence started with offset +0.1");
 
     // Schedule block spawning: add one block every bar (1 measure) until the round ends
     transport.scheduleRepeat(spawnBlock, "1m");
