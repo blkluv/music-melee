@@ -274,7 +274,7 @@ async function init() {
       distanceModel: "inverse",
       refDistance: 1,
       maxDistance: 50,
-      rolloffFactor: 1,
+      rolloffFactor: 0.3, // reduced falloff intensity
       coneInnerAngle: 360,
       coneOuterAngle: 0,
       coneOuterGain: 0,
@@ -452,7 +452,7 @@ async function init() {
       distanceModel: "inverse",
       refDistance: 1,
       maxDistance: 50,
-      rolloffFactor: 1,
+      rolloffFactor: 0.3, // reduced falloff intensity for the ticker block
       coneInnerAngle: 360,
       coneOuterAngle: 0,
       coneOuterGain: 0,
