@@ -51,11 +51,11 @@ async function init() {
         TONE.getContext().lookAhead = 0.01; // 10ms lookahead
         console.log("Tone.js audio context resumed with low latency settings");
       }
-      
+
       // Remove the overlay once the user interacts
       const overlay = document.getElementById("startOverlay");
       if (overlay) overlay.remove();
-      
+
       // Spawn the starting blocks now (if not already spawned)
       for (let i = 0; i < 30; i++) {
         spawnBlock();
@@ -316,7 +316,7 @@ async function init() {
   // Define a mapping from each of the 12 colour indices to a note.
   // Using standard 12-tone chromatic scale starting on C
   const noteMapping: string[] = [
-    "C",  // index 0
+    "C", // index 0
     "C#",
     "D",
     "D#",
@@ -332,7 +332,9 @@ async function init() {
 
   // Defensive check to ensure we have exactly 12 colors and 12 notes
   if (rainbowColors.length !== 12 || noteMapping.length !== 12) {
-    console.error("Expected 12 colors and 12 notes for chromatic scale. Check your configuration.");
+    console.error(
+      "Expected 12 colors and 12 notes for chromatic scale. Check your configuration.",
+    );
   }
 
   // Allowed block sizes (only 4 sizes); the size determines the octave.
@@ -480,7 +482,9 @@ async function init() {
         boxSynth = synthPool.MetalSynth[synthIndex];
         (boxSynth as any).poolIndex = synthIndex;
       } else {
-        console.warn("No available MetalSynth in pool; instantiating a new one.");
+        console.warn(
+          "No available MetalSynth in pool; instantiating a new one.",
+        );
         boxSynth = new TONE.MembraneSynth(synthConfigs.MetalSynth);
         (boxSynth as any).poolIndex = -1;
       }
@@ -845,8 +849,6 @@ async function init() {
   // Add ticker block at the center of the arena for debugging
   const tickerBlock = createTickerBlock();
 
-
-
   // Pre-allocate metronome synth with optimized settings for low latency
   const metronomeSynth = new TONE.MembraneSynth({
     volume: 0,
@@ -866,7 +868,6 @@ async function init() {
     metronomeSynth.triggerAttackRelease("C4", "16n", time);
   }, "4n");
   // --- End of round timer and tempo track setup ---
-
 
   // Movement variables
   const keys: Record<string, boolean> = {
@@ -1069,7 +1070,7 @@ async function init() {
 
   // Route the bass synth through the global limiter (which is already connected to destination)
   newBassSynth.chain(globalLimiter);
-  
+
   // Ensure the synth is audible
   newBassSynth.volume.value = -20;
 
@@ -1083,11 +1084,14 @@ async function init() {
       newBassSynth.triggerAttackRelease(note, "16n", time);
     },
     newBassPattern,
-    "8n"
+    "8n",
   );
   newBassLine.loop = true;
   // newBassLine.loopEnd = "";
-  console.log("New bassline initialized, looping a 2-bar riff in C Lydian.", newBassLine);
+  console.log(
+    "New bassline initialized, looping a 2-bar riff in C Lydian.",
+    newBassLine,
+  );
   // --- End of New Groovy Synth Bassline Setup ---
 
   // Track time for physics updates
