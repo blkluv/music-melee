@@ -132,10 +132,10 @@ async function init() {
     new THREE.Vector3(-halfArena, wallHeight / 2, 0),
   );
 
-  // Define sun positions for the round animation.
-  const startPos = new THREE.Vector3(-halfArena, 15, 0);
-  const midPos = new THREE.Vector3(0, 35, 0);
-  const endPos = new THREE.Vector3(halfArena, 15, 0);
+  // Define sun positions for the round animation (adjusted for greater height and distance)
+  const startPos = new THREE.Vector3(-halfArena * 1.5, 80, -halfArena * 1.5);
+  const midPos = new THREE.Vector3(0, 120, 0);
+  const endPos = new THREE.Vector3(halfArena * 1.5, 80, halfArena * 1.5);
 
   // Define sun colors: warm reddish at start, white at noon, sunset red at end.
   const startColor = new THREE.Color(0xff4500); // warm reddish
@@ -159,7 +159,7 @@ async function init() {
   scene.add(sun);
 
   // Create a visible sun sphere to simulate the sun
-  const sunSphereGeometry = new THREE.SphereGeometry(2, 32, 32); // small sphere (radius 2)
+  const sunSphereGeometry = new THREE.SphereGeometry(6, 32, 32); // larger sphere (radius 6)
   const sunSphereMaterial = new THREE.MeshBasicMaterial({ color: startColor });
   const sunSphere = new THREE.Mesh(sunSphereGeometry, sunSphereMaterial);
   sunSphere.position.copy(startPos);
