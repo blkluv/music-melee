@@ -260,10 +260,10 @@ async function init() {
 
   // Define 4 block type options with fixed colors and synth types.
   const blockTypeOptions: BlockConfig[] = [
-    { color: 0xffff00, synth: "Synth", size: 0, tone: "" },      // Yellow
-    { color: 0x00ff00, synth: "MetalSynth", size: 0, tone: "" },   // Green
-    { color: 0xff69b4, synth: "AMSynth", size: 0, tone: "" },    // Pink
-    { color: 0xffaa00, synth: "FMSynth", size: 0, tone: "" },       // Orange
+    { color: 0xffff00, synth: "MetalSynth", size: 0, tone: "" },  // Yellow
+    { color: 0x00ff00, synth: "MetalSynth", size: 0, tone: "" },  // Green
+    { color: 0xff69b4, synth: "MetalSynth", size: 0, tone: "" },  // Pink
+    { color: 0xffaa00, synth: "MetalSynth", size: 0, tone: "" },  // Orange
   ];
 
   // Define the 8 discrete sizes (smallest = 0.5, biggest = 5)
