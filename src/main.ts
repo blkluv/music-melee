@@ -234,10 +234,8 @@ async function init() {
         // Measure actual audio start time for latency calculation
         lastAudioStartTime = performance.now();
         measuredLatency = lastAudioStartTime - lastCollisionTime;
-        totalLatency = measuredLatency + baseLatency;
         
         latencyElem.innerText = `JS Latency: ${measuredLatency.toFixed(2)} ms`;
-        totalLatencyElem.innerText = `Total Latency: ${totalLatency.toFixed(2)} ms`;
         
         updateRhythmUI(note);  // Update UI for player-driven collision actions
       }
@@ -725,12 +723,12 @@ async function init() {
     (boxBody as any).assignedPanner3D = tickerPanner;
 
     // Schedule ticker block flashing and click sound every 2 measures (2 bars in 4/4 time)
-    transport.scheduleRepeat(() => {
+    transport.scheduleRepeat((time) => {
       blockMesh.material.color.set(0xffffff);
       setTimeout(() => {
         blockMesh.material.color.setHex(tickerColor);
       }, 100);
-      tickerSynth.triggerAttackRelease("C4", "8n");
+      tickerSynth.triggerAttackRelease("C4", "8n", time);
       console.log(
         "Ticker block triggered at position:",
         blockMesh.position,
@@ -784,9 +782,9 @@ async function init() {
   // Connect the metronome to the global limiter
   metronomeSynth.chain(globalLimiter);
 
-  transport.scheduleRepeat(() => {
+  transport.scheduleRepeat((time) => {
     // Trigger a higher-pitched click (C4) for improved audibility
-    metronomeSynth.triggerAttackRelease("C4", "16n");
+    metronomeSynth.triggerAttackRelease("C4", "16n", time);
   }, "4n");
   // --- End of round timer and tempo track setup ---
 
