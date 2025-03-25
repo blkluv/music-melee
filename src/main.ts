@@ -22,10 +22,10 @@ async function init() {
   // Add an AudioListener to the camera for 3D audio
   const audioListener = new THREE.AudioListener();
   camera.add(audioListener);
-  
+
   // Cache Tone.js transport for scheduling events
   const transport = TONE.getTransport();
-  
+
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -209,7 +209,11 @@ async function init() {
       if (impactVelocity < 2) return;
 
       // Use our helper function to compute volume based on distance and impact
-      otherBody.assignedVolume.volume.value = computeCollisionVolume(mesh, camera, impactVelocity);
+      otherBody.assignedVolume.volume.value = computeCollisionVolume(
+        mesh,
+        camera,
+        impactVelocity,
+      );
 
       // Use a simple cooldown check:
       const now = performance.now();
@@ -244,16 +248,20 @@ async function init() {
     "E5",
   ];
 
-
   // ---- New Block Configuration Setup ----
-  type BlockConfig = { color: number; synth: string; size: number; tone: string };
+  type BlockConfig = {
+    color: number;
+    synth: string;
+    size: number;
+    tone: string;
+  };
 
   // Define 4 block type options with fixed colors and synth types.
   const blockTypeOptions: BlockConfig[] = [
-    { color: 0xffff00, synth: "MetalSynth", size: 0, tone: "" },  // Yellow
-    { color: 0x00ff00, synth: "MetalSynth", size: 0, tone: "" },  // Green
-    { color: 0xff69b4, synth: "MetalSynth", size: 0, tone: "" },  // Pink
-    { color: 0xffaa00, synth: "MetalSynth", size: 0, tone: "" },  // Orange
+    { color: 0xffff00, synth: "MetalSynth", size: 0, tone: "" }, // Yellow
+    { color: 0x00ff00, synth: "MetalSynth", size: 0, tone: "" }, // Green
+    { color: 0xff69b4, synth: "MetalSynth", size: 0, tone: "" }, // Pink
+    { color: 0xffaa00, synth: "MetalSynth", size: 0, tone: "" }, // Orange
   ];
 
   // Define the 8 discrete sizes (smallest = 0.5, biggest = 5)
@@ -358,7 +366,7 @@ async function init() {
   function computeCollisionVolume(
     mesh: THREE.Mesh,
     camera: THREE.Camera,
-    impactVelocity: number
+    impactVelocity: number,
   ): number {
     const diff = new THREE.Vector3().subVectors(mesh.position, camera.position);
     const distance = diff.length();
@@ -383,7 +391,11 @@ async function init() {
         mesh.material.color.setHex(originalColor);
       }, 150);
 
-      (boxBody as any).assignedVolume.volume.value = computeCollisionVolume(mesh, camera, impactVelocity);
+      (boxBody as any).assignedVolume.volume.value = computeCollisionVolume(
+        mesh,
+        camera,
+        impactVelocity,
+      );
 
       const now = performance.now();
       if (now - (boxBody as any).lastToneTime > 150) {
@@ -399,7 +411,7 @@ async function init() {
   // Helper to create a block with its mesh, physics body, audio chain and collision handling.
   function createBlock(
     position: THREE.Vector3,
-    config: BlockConfig
+    config: BlockConfig,
   ): { mesh: THREE.Mesh; body: CANNON.Body } {
     const boxSize = config.size; // Use the discrete size from config
     const assignedTone = config.tone; // Use the corresponding tone
@@ -416,7 +428,7 @@ async function init() {
     const edges = new THREE.EdgesGeometry(boxGeo);
     const outline = new THREE.LineSegments(
       edges,
-      new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 })
+      new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 }),
     );
     boxMesh.add(outline);
     boxMesh.userData.outline = outline;
@@ -499,7 +511,7 @@ async function init() {
     const pos = new THREE.Vector3(
       (Math.random() - 0.5) * 40,
       50,
-      (Math.random() - 0.5) * 40
+      (Math.random() - 0.5) * 40,
     );
     // Pull the next block configuration from blockSequence
     const config = blockSequence[blockSeqIndex];
@@ -554,12 +566,7 @@ async function init() {
       coneOuterAngle: 0,
       coneOuterGain: 0,
     });
-    tickerSynth.chain(
-      tickerFilter,
-      tickerPanner,
-      tickerVolume,
-      globalLimiter,
-    );
+    tickerSynth.chain(tickerFilter, tickerPanner, tickerVolume, globalLimiter);
     // Save the ticker synth and panner with the physics body if needed later
     (boxBody as any).assignedSynth = tickerSynth;
     (boxBody as any).assignedPanner3D = tickerPanner;
@@ -591,7 +598,7 @@ async function init() {
   // Set initial tempo and ramp BPM to 180 over the round duration
   transport.bpm.value = 100;
   transport.bpm.rampTo(180, roundDuration);
-  
+
   // Start the Tone.Transport (which drives scheduled events and BPM changes)
   transport.start();
 
@@ -748,7 +755,7 @@ async function init() {
     context.listener.positionX.value = camera.position.x;
     context.listener.positionY.value = camera.position.y;
     context.listener.positionZ.value = camera.position.z;
-    
+
     const listenerForward = new THREE.Vector3();
     camera.getWorldDirection(listenerForward).normalize();
     const up = camera.up;
@@ -787,7 +794,9 @@ async function init() {
     // Compute horizontal forward by zeroing the Y component
     const horizForward = camDir.clone().setY(0).normalize();
     // Compute right vector: cross(up, forward) yields the right direction
-    const right = new THREE.Vector3().crossVectors(camera.up, horizForward).normalize();
+    const right = new THREE.Vector3()
+      .crossVectors(camera.up, horizForward)
+      .normalize();
 
     let moveX = 0;
     let moveZ = 0;
@@ -873,7 +882,7 @@ async function init() {
 
     // Ramp metronome volume: quiet/peaceful at round start, louder/more aggressive at the end.
     const metStartVol = -30; // very quiet at start (in dB)
-    const metEndVol = -6;    // much louder at round end
+    const metEndVol = -6; // much louder at round end
     metronomeSynth.volume.value = metStartVol + (metEndVol - metStartVol) * t;
 
     renderer.render(scene, camera);
