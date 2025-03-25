@@ -1064,13 +1064,23 @@ async function init() {
       sun.intensity = intensity;
     }
 
-    // Animate sky background: from redish to blue at noon and back to redish
-    if (t <= 0.5) {
-      const factor = t / 0.5;
-      scene.background = dawnSkyColor.clone().lerp(noonSkyColor, factor);
+    // Update sky background:
+    if (elapsedRound < 20 || elapsedRound > (roundDuration - 20)) {
+      // Before sunrise or after sunset: force sky to black.
+      scene.background.set(0x000000);
     } else {
-      const factor = (t - 0.5) / 0.5;
-      scene.background = noonSkyColor.clone().lerp(dawnSkyColor, factor);
+      // During the daytime portion, create a normalized time (0 to 1)
+      // where 0 corresponds to 20s and 1 corresponds to roundDuration-20 (i.e. 100s if roundDuration = 120s)
+      const tDay = (elapsedRound - 20) / (roundDuration - 40);
+      if (tDay <= 0.5) {
+        // First half of the day: interpolate from dawn/dusk color to noon color.
+        const factor = tDay / 0.5;
+        scene.background = dawnSkyColor.clone().lerp(noonSkyColor, factor);
+      } else {
+        // Second half of the day: interpolate from noon back to dawn/dusk.
+        const factor = (tDay - 0.5) / 0.5;
+        scene.background = noonSkyColor.clone().lerp(dawnSkyColor, factor);
+      }
     }
 
     // Ramp metronome volume: quiet/peaceful at round start, louder/more aggressive at the end.
