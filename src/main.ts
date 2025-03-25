@@ -867,6 +867,40 @@ async function init() {
   }, "4n");
   // --- End of round timer and tempo track setup ---
 
+  // --- Add groovy synth bassline ---
+  const bassSynth = new TONE.MonoSynth({
+    oscillator: { type: "square" },
+    filter: { Q: 1, type: "lowpass", rolloff: -24 },
+    envelope: { attack: 0.05, decay: 0.2, sustain: 0.5, release: 0.3 },
+    filterEnvelope: {
+      attack: 0.03,
+      decay: 0.2,
+      sustain: 0.5,
+      release: 0.2,
+      baseFrequency: 200,
+      octaves: 2,
+    },
+  }).toDestination();
+
+  // Define a 2-bar bassline riff in C Lydian.
+  // Using quarter-note subdivisions ("4n") gives us 8 steps over 2 bars (2m).
+  const bassLinePattern = ["C2", "D2", "E2", "F#2", "G2", "A2", "B2", "C3"];
+
+  const bassLine = new TONE.Sequence(
+    (time, note) => {
+      bassSynth.triggerAttackRelease(note, "8n", time);
+    },
+    bassLinePattern,
+    "4n"
+  );
+  bassLine.loop = true;
+  bassLine.loopEnd = "2m";
+  bassLine.start(0);
+
+  // Log for debugging
+  console.log("Bassline initialized, looping a 2-bar riff in C Lydian.");
+  // --- End groovy synth bassline setup ---
+
   // Movement variables
   const keys: Record<string, boolean> = {
     w: false,
