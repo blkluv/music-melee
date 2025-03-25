@@ -50,6 +50,16 @@ async function init() {
         TONE.getContext().lookAhead = 0.01; // 10ms lookahead
         console.log("Tone.js audio context resumed with low latency settings");
       }
+      
+      // Spawn the starting blocks now (if not already spawned)
+      for (let i = 0; i < 30; i++) {
+        spawnBlock();
+      }
+
+      // Wait 5 seconds, then begin the round
+      setTimeout(() => {
+        startRound();
+      }, 5000);
     },
     { once: true },
   );
@@ -738,13 +748,9 @@ async function init() {
   latencyElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(latencyElem);
 
-  // Seed the arena with 30 blocks at the start of the round
-  for (let i = 0; i < 30; i++) {
-    spawnBlock();
-  }
+  // Blocks will be spawned after user interaction
 
-  // Schedule block spawning: add one block every bar (1 measure) until the round ends
-  transport.scheduleRepeat(spawnBlock, "1m");
+  // Block spawning will be scheduled when the round starts
 
   function spawnBlock() {
     const pos = new THREE.Vector3(
@@ -835,33 +841,6 @@ async function init() {
   const tickerBlock = createTickerBlock();
 
 
-  // --- Start of round timer and tempo track setup ---
-  const roundDuration = 120; // in seconds (2 minutes)
-  const roundStartTime = performance.now();
-
-  // Set initial tempo and ramp BPM to 180 over the round duration
-  transport.bpm.value = 100;
-  transport.bpm.rampTo(180, roundDuration);
-
-  // Start the Tone.Transport (which drives scheduled events and BPM changes)
-  transport.start();
-  bassLine.start("+0.1");
-  console.log("Bassline started.");
-
-  // Update the round timer element every 100ms
-  const roundTimerInterval = setInterval(() => {
-    const elapsed = (performance.now() - roundStartTime) / 1000;
-    const remaining = Math.max(0, roundDuration - elapsed);
-    const minutes = Math.floor(remaining / 60);
-    const seconds = Math.floor(remaining % 60);
-    roundTimerElem.innerText = `${minutes}:${seconds.toString().padStart(2, "0")}`;
-    if (remaining <= 0) {
-      clearInterval(roundTimerInterval);
-      // Optionally, stop the round or perform cleanup here:
-      TONE.getTransport().stop();
-      console.log("Round ended.");
-    }
-  }, 100);
 
   // Pre-allocate metronome synth with optimized settings for low latency
   const metronomeSynth = new TONE.MembraneSynth({
@@ -1237,6 +1216,40 @@ async function init() {
   }
 
   animate();
+
+  // Function to start the round with sound and scheduling
+  function startRound() {
+    // --- Start of round timer and tempo track setup ---
+    const roundDuration = 120; // in seconds (2 minutes)
+    const roundStartTime = performance.now();
+
+    // Set initial tempo and ramp BPM to 180 over the round duration
+    transport.bpm.value = 100;
+    transport.bpm.rampTo(180, roundDuration);
+
+    // Start the Tone.Transport (which drives scheduled events and BPM changes)
+    transport.start();
+    bassLine.start("+0.1");
+    console.log("Bassline started.");
+
+    // Schedule block spawning: add one block every bar (1 measure) until the round ends
+    transport.scheduleRepeat(spawnBlock, "1m");
+
+    // Update the round timer element every 100ms
+    const roundTimerInterval = setInterval(() => {
+      const elapsed = (performance.now() - roundStartTime) / 1000;
+      const remaining = Math.max(0, roundDuration - elapsed);
+      const minutes = Math.floor(remaining / 60);
+      const seconds = Math.floor(remaining % 60);
+      roundTimerElem.innerText = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+      if (remaining <= 0) {
+        clearInterval(roundTimerInterval);
+        // Optionally, stop the round or perform cleanup here:
+        TONE.getTransport().stop();
+        console.log("Round ended.");
+      }
+    }, 100);
+  }
 
   // Remove loading text once the game is loaded
   const loadingElem = document.getElementById("loading");
