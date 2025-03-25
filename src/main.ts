@@ -49,6 +49,14 @@ async function init() {
         // Reduce the lookAhead window for lower latency
         TONE.getContext().lookAhead = 0.01; // 10ms lookahead
         console.log("Tone.js audio context resumed with low latency settings");
+        
+        // Start the bassline here once the context is running
+        if (bassLine) {
+          bassLine.start();
+          console.log("Bassline started.");
+        } else {
+          console.warn("Bassline is not defined at this point.");
+        }
       }
     },
     { once: true },
@@ -844,9 +852,6 @@ async function init() {
 
   // Start the Tone.Transport (which drives scheduled events and BPM changes)
   transport.start();
-  
-  // Start the bassline now that transport is running
-  bassLine.start();
 
   // Update the round timer element every 100ms
   const roundTimerInterval = setInterval(() => {
