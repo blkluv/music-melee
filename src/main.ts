@@ -8,6 +8,10 @@ import * as CANNON from "cannon-es";
 // Initialize the game
 async function init() {
   console.log("Music Melee initializing...");
+  
+  // Set up low-latency audio context configuration
+  const audioContext = new AudioContext({ latencyHint: "interactive" });
+  TONE.setContext(audioContext);
 
   // Setup Three.js scene
   const scene = new THREE.Scene();
@@ -39,7 +43,9 @@ async function init() {
     async () => {
       if (TONE.getContext().state !== "running") {
         await TONE.start();
-        console.log("Tone.js audio context resumed");
+        // Reduce the lookAhead window for lower latency
+        TONE.getContext().lookAhead = 0.01; // 10ms lookahead
+        console.log("Tone.js audio context resumed with low latency settings");
       }
     },
     { once: true },
@@ -219,8 +225,17 @@ async function init() {
       const now = performance.now();
       if (!otherBody.lastToneTime || now - otherBody.lastToneTime > 150) {
         otherBody.lastToneTime = now;
+        lastCollisionTime = now;
         const note = otherBody.assignedTone;
-        otherBody.assignedSynth.triggerAttackRelease(note, "8n");
+        
+        // Immediate triggering with no scheduling delay
+        otherBody.assignedSynth.triggerAttackRelease(note, "8n", undefined, 1);
+        
+        // Measure actual audio start time for latency calculation
+        lastAudioStartTime = performance.now();
+        measuredLatency = lastAudioStartTime - lastCollisionTime;
+        latencyElem.innerText = `Audio Latency: ${measuredLatency.toFixed(2)} ms`;
+        
         updateRhythmUI(note);  // Update UI for player-driven collision actions
       }
     }
@@ -299,27 +314,69 @@ async function init() {
   // Global pointer for sequentially drawing from blockSequence
   let blockSeqIndex = 0;
 
-  // Define global synth configuration object
+  // Define global synth configuration object with optimized envelopes for low latency
   const synthConfigs: Record<string, any> = {
     Synth: {
       oscillator: { type: "sine" },
-      envelope: { attack: 0.05, decay: 0.2, sustain: 0.5, release: 1 },
+      envelope: { attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.5 }, // Faster attack
     },
     MetalSynth: {
-      // For example, use MembraneSynth defaults – adjust envelope as needed:
-      envelope: { attack: 0.05, decay: 0.2, sustain: 0.5, release: 1 },
+      // For example, use MembraneSynth defaults with faster attack:
+      envelope: { attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.5 },
     },
     FMSynth: {
-      envelope: { attack: 0.05, decay: 0.2, sustain: 0.5, release: 1 },
+      envelope: { attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.5 },
       modulation: { type: "square" },
     },
     AMSynth: {
-      envelope: { attack: 0.5, decay: 0.2, sustain: 0.5, release: 1 },
+      envelope: { attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.5 },
     },
   };
 
+  // Pre-allocate all audio processing nodes to avoid instantiation during gameplay
   const globalLimiter = new TONE.Limiter(-12);
   globalLimiter.toDestination();
+  
+  // Pre-allocate a pool of synths for immediate use
+  const synthPool = {
+    Synth: Array(10).fill(0).map(() => new TONE.Synth(synthConfigs.Synth)),
+    MetalSynth: Array(10).fill(0).map(() => new TONE.MembraneSynth(synthConfigs.MetalSynth)),
+    FMSynth: Array(5).fill(0).map(() => new TONE.FMSynth(synthConfigs.FMSynth)),
+    AMSynth: Array(5).fill(0).map(() => new TONE.AMSynth(synthConfigs.AMSynth))
+  };
+  
+  // Connect all synths to the limiter but keep them silent until needed
+  Object.values(synthPool).flat().forEach(synth => {
+    synth.connect(globalLimiter);
+    synth.volume.value = -Infinity; // Silent until used
+  });
+
+  // Pre-allocate audio processing nodes for reuse
+  const filterPool = Array(30).fill(0).map(() => new TONE.Filter(400, "lowpass"));
+  const pannerPool = Array(30).fill(0).map(() => new TONE.Panner3D({
+    panningModel: "HRTF",
+    distanceModel: "inverse",
+    refDistance: 1,
+    maxDistance: 50,
+    rolloffFactor: 0.3,
+    coneInnerAngle: 360,
+    coneOuterAngle: 0,
+    coneOuterGain: 0,
+  }));
+  const volumePool = Array(30).fill(0).map(() => new TONE.Volume(-12));
+  
+  // Track which nodes are in use
+  const usedNodes = {
+    filters: Array(30).fill(false),
+    panners: Array(30).fill(false),
+    volumes: Array(30).fill(false),
+    synths: {
+      Synth: Array(10).fill(false),
+      MetalSynth: Array(10).fill(false),
+      FMSynth: Array(5).fill(false),
+      AMSynth: Array(5).fill(false)
+    }
+  };
 
   // Helper function to create the audio chain for a given synth type.
   function buildSynthChain(chosenType: string): {
@@ -333,31 +390,75 @@ async function init() {
     spatialVolume: TONE.Volume;
     panner3D: TONE.Panner3D;
   } {
+    // Get available synth from pool
     let boxSynth;
+    let synthIndex = -1;
+    
     if (chosenType === "Synth") {
-      boxSynth = new TONE.Synth(synthConfigs.Synth);
+      synthIndex = usedNodes.synths.Synth.findIndex(used => !used);
+      if (synthIndex >= 0) {
+        usedNodes.synths.Synth[synthIndex] = true;
+        boxSynth = synthPool.Synth[synthIndex];
+      } else {
+        boxSynth = new TONE.Synth(synthConfigs.Synth);
+      }
     } else if (chosenType === "MetalSynth") {
-      boxSynth = new TONE.MembraneSynth(synthConfigs.MetalSynth);
+      synthIndex = usedNodes.synths.MetalSynth.findIndex(used => !used);
+      if (synthIndex >= 0) {
+        usedNodes.synths.MetalSynth[synthIndex] = true;
+        boxSynth = synthPool.MetalSynth[synthIndex];
+      } else {
+        boxSynth = new TONE.MembraneSynth(synthConfigs.MetalSynth);
+      }
+    } else if (chosenType === "FMSynth") {
+      synthIndex = usedNodes.synths.FMSynth.findIndex(used => !used);
+      if (synthIndex >= 0) {
+        usedNodes.synths.FMSynth[synthIndex] = true;
+        boxSynth = synthPool.FMSynth[synthIndex];
+      } else {
+        boxSynth = new TONE.FMSynth(synthConfigs.FMSynth);
+      }
+    } else if (chosenType === "AMSynth") {
+      synthIndex = usedNodes.synths.AMSynth.findIndex(used => !used);
+      if (synthIndex >= 0) {
+        usedNodes.synths.AMSynth[synthIndex] = true;
+        boxSynth = synthPool.AMSynth[synthIndex];
+      } else {
+        boxSynth = new TONE.AMSynth(synthConfigs.AMSynth);
+      }
     } else if (chosenType === "PluckSynth") {
       boxSynth = new TONE.PluckSynth(synthConfigs.PluckSynth);
-    } else if (chosenType === "FMSynth") {
-      boxSynth = new TONE.FMSynth(synthConfigs.FMSynth);
-    } else if (chosenType === "AMSynth") {
-      boxSynth = new TONE.AMSynth(synthConfigs.AMSynth);
     }
-    const bassFilter = new TONE.Filter(400, "lowpass");
-    const spatialVolume = new TONE.Volume(-12);
-    const panner3D = new TONE.Panner3D({
+    
+    // Get available filter, panner, and volume from pools
+    const filterIndex = usedNodes.filters.findIndex(used => !used);
+    const pannerIndex = usedNodes.panners.findIndex(used => !used);
+    const volumeIndex = usedNodes.volumes.findIndex(used => !used);
+    
+    const bassFilter = filterIndex >= 0 ? filterPool[filterIndex] : new TONE.Filter(400, "lowpass");
+    const panner3D = pannerIndex >= 0 ? pannerPool[pannerIndex] : new TONE.Panner3D({
       panningModel: "HRTF",
       distanceModel: "inverse",
       refDistance: 1,
       maxDistance: 50,
-      rolloffFactor: 0.3, // reduced falloff intensity
+      rolloffFactor: 0.3,
       coneInnerAngle: 360,
       coneOuterAngle: 0,
       coneOuterGain: 0,
     });
+    const spatialVolume = volumeIndex >= 0 ? volumePool[volumeIndex] : new TONE.Volume(-12);
+    
+    if (filterIndex >= 0) usedNodes.filters[filterIndex] = true;
+    if (pannerIndex >= 0) usedNodes.panners[pannerIndex] = true;
+    if (volumeIndex >= 0) usedNodes.volumes[volumeIndex] = true;
+    
+    // Reset volume to default
+    spatialVolume.volume.value = -12;
+    
+    // Connect the chain
+    boxSynth.disconnect();
     boxSynth.chain(bassFilter, panner3D, spatialVolume, globalLimiter);
+    
     return { synth: boxSynth, bassFilter, spatialVolume, panner3D };
   }
 
@@ -374,6 +475,11 @@ async function init() {
     let computedVolume = -12 - (1 - volumeFactor) * 20;
     return Math.min(computedVolume + impactVelocity * 2, 0);
   }
+  
+  // Track audio latency for debugging
+  let lastCollisionTime = 0;
+  let lastAudioStartTime = 0;
+  let measuredLatency = 0;
 
   // Helper for collision handling; ensures the block flashes and triggers its sound.
   function attachCollisionHandler(boxBody: CANNON.Body, mesh: THREE.Mesh) {
@@ -402,8 +508,17 @@ async function init() {
       const now = performance.now();
       if (now - (boxBody as any).lastToneTime > 150) {
         (boxBody as any).lastToneTime = now;
+        lastCollisionTime = now;
         const note = (boxBody as any).assignedTone;
-        (boxBody as any).assignedSynth.triggerAttackRelease(note, "8n");
+        
+        // Immediate triggering with no scheduling delay
+        (boxBody as any).assignedSynth.triggerAttackRelease(note, "8n", undefined, 1);
+        
+        // Measure actual audio start time for latency calculation
+        lastAudioStartTime = performance.now();
+        measuredLatency = lastAudioStartTime - lastCollisionTime;
+        latencyElem.innerText = `Audio Latency: ${measuredLatency.toFixed(2)} ms`;
+        
         updateRhythmUI(note);  // Only updated if the collision involves the player
       }
     });
@@ -521,6 +636,17 @@ async function init() {
   roundTimerElem.style.fontSize = "24px";
   roundTimerElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(roundTimerElem);
+  
+  // Create latency display element for debugging
+  const latencyElem = document.createElement("div");
+  latencyElem.id = "latencyDisplay";
+  latencyElem.style.position = "absolute";
+  latencyElem.style.top = "130px";
+  latencyElem.style.right = "10px";
+  latencyElem.style.color = "white";
+  latencyElem.style.fontSize = "18px";
+  latencyElem.style.fontFamily = "Roboto, sans-serif";
+  document.body.appendChild(latencyElem);
 
   // Seed the arena with 30 blocks at the start of the round
   for (let i = 0; i < 30; i++) {
@@ -640,14 +766,14 @@ async function init() {
     }
   }, 100);
 
-  // Create an audible metronome that triggers every quarter note
+  // Pre-allocate metronome synth with optimized settings for low latency
   const metronomeSynth = new TONE.MembraneSynth({
-    volume: 0, // increase volume substantially (adjust as needed)
+    volume: 0,
     envelope: {
       attack: 0.001,
-      decay: 0.001, // even shorter decay for a sharper click
+      decay: 0.001,
       sustain: 0.001,
-      release: 0.001, // shorter release time
+      release: 0.001,
     },
   });
 
@@ -765,7 +891,16 @@ async function init() {
         // Play the block sound with a "big impact" (simulate high impact velocity).
         // Use a high volume version by overriding the computed volume if desired.
         const note = (blockBody as any).assignedTone;
-        (blockBody as any).assignedSynth.triggerAttackRelease(note, "8n");
+        lastCollisionTime = performance.now();
+        
+        // Immediate triggering with no scheduling delay
+        (blockBody as any).assignedSynth.triggerAttackRelease(note, "8n", undefined, 1);
+        
+        // Measure actual audio start time for latency calculation
+        lastAudioStartTime = performance.now();
+        measuredLatency = lastAudioStartTime - lastCollisionTime;
+        latencyElem.innerText = `Audio Latency: ${measuredLatency.toFixed(2)} ms`;
+        
         updateRhythmUI(note);
       }
     }
