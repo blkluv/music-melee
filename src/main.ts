@@ -1117,10 +1117,10 @@ async function init() {
   const newBassSynth = new TONE.MonoSynth({
     oscillator: { type: "square" },
     filter: { type: "lowpass", frequency: 200, Q: 1 },
-    envelope: { attack: 0.001, decay: 0.05, sustain: 0.3, release: 0.2 },
+    envelope: { attack: 0.1, decay: 0.5, sustain: 0.3, release: 0.2 },
   });
   newBassSynth.chain(globalLimiter);
-  newBassSynth.volume.value = -5;  // Boosted volume for audibility
+  newBassSynth.volume.value = -1;  // Boosted volume for audibility
 
   // Create a new arpeggiator sequence that picks a random note from bassNotes each step.
   const newBassLine = new TONE.Sequence(
