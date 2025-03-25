@@ -1070,23 +1070,23 @@ async function init() {
   // Route the bass synth through the global limiter (which is already connected to destination)
   newBassSynth.chain(globalLimiter);
   
-  // Ensure the synth is audible by setting the volume to 0 dB.
-  newBassSynth.volume.value = 0;
+  // Ensure the synth is audible
+  newBassSynth.volume.value = -20;
 
   // Define a 2-bar bassline riff in C Lydian.
   // We use quarter-note subdivisions ("4n"), which gives an 8–step pattern over 2 bars.
-  const newBassPattern = ["C2", "D2", "E2", "F#2", "G2", "A2", "B2", "C3"];
+  const newBassPattern = ["C2", "E2", "D2", "F#2", "G2", "B2", "A2", "C1"];
 
   // Create a Tone.Sequence to play the bassline pattern.
   const newBassLine = new TONE.Sequence(
     (time, note) => {
-      newBassSynth.triggerAttackRelease(note, "8n", time);
+      newBassSynth.triggerAttackRelease(note, "16n", time);
     },
     newBassPattern,
-    "4n"
+    "8n"
   );
   newBassLine.loop = true;
-  newBassLine.loopEnd = "2m";
+  // newBassLine.loopEnd = "";
   console.log("New bassline initialized, looping a 2-bar riff in C Lydian.", newBassLine);
   // --- End of New Groovy Synth Bassline Setup ---
 
