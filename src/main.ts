@@ -1271,9 +1271,10 @@ async function init() {
     transport.bpm.value = 100;
     transport.bpm.rampTo(180, roundDuration);
 
+    // Start the bassline sequence before starting the Transport
+    newBassLine.start(0);
     // Start the Tone.Transport (which drives scheduled events and BPM changes)
     transport.start();
-    newBassLine.start(0);
     console.log("New bassline started.");
 
     // Schedule block spawning: add one block every bar (1 measure) until the round ends
