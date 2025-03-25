@@ -73,8 +73,8 @@ async function init() {
   groundMesh.receiveShadow = true;
   scene.add(groundMesh);
 
-  // Hemisphere light for ambient sky illumination
-  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
+  // Hemisphere light for ambient sky illumination (lower intensity so the sun dominates)
+  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.2);
   hemiLight.position.set(0, 200, 0);
   scene.add(hemiLight);
 
