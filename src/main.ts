@@ -799,6 +799,13 @@ async function init() {
     sunSphere.position.copy(sun.position);
     sunSphere.material.color.copy(sun.color);
 
+    // Update sun intensity: weak at sunrise/sunset, strong at noon
+    const minIntensity = 1;  // intensity at sunrise/sunset
+    const maxIntensity = 2.5; // intensity at noon
+    // Compute a linear ramp based on distance from noon (t=0.5)
+    const intensity = minIntensity + (maxIntensity - minIntensity) * (1 - Math.abs(t - 0.5) / 0.5);
+    sun.intensity = intensity;
+
     // Animate sky background: from redish to blue at noon and back to redish
     if (t <= 0.5) {
       const factor = t / 0.5;
