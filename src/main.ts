@@ -512,7 +512,7 @@ async function init() {
         intersects[0].distance <= playerRadius + 0.2
       ) {
         // Trigger the jump with increased power (sound removed)
-        playerBody.velocity.y = 18;
+        playerBody.velocity.y = 9; // 50% of 18 for a weaker jump
 
         // If jumping off a block (non-ground), apply a stronger reaction impulse to it
         if (intersects[0].object.userData.boxBody) {
@@ -611,7 +611,7 @@ async function init() {
     }
 
     // Basic WASD movement: calculate front and side speeds
-    const speed = 40; // increased movement speed for faster responsiveness
+    const speed = 48; // 20% faster than 40
     const forward = new THREE.Vector3();
     const right = new THREE.Vector3();
     camera.getWorldDirection(forward);
