@@ -73,10 +73,10 @@ async function init() {
   groundMesh.receiveShadow = true;
   scene.add(groundMesh);
 
-  // Hemisphere light for ambient sky illumination (lower intensity so the sun dominates)
-  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.2);
-  hemiLight.position.set(0, 200, 0);
-  scene.add(hemiLight);
+  // Remove ambient hemisphere light (we want the sun and block glow to be primary)
+  // const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.2);
+  // hemiLight.position.set(0, 200, 0);
+  // scene.add(hemiLight);
 
   // Arena dimensions
   const arenaSize = 100; // width and depth
@@ -541,7 +541,7 @@ async function init() {
     // Use the synth type from config
     const chosenType = config.synth;
     // Use the color from config for the material, and make it glow as a light emitter
-    const boxMat = new THREE.MeshStandardMaterial({ color: config.color, emissive: config.color, emissiveIntensity: 1 });
+    const boxMat = new THREE.MeshStandardMaterial({ color: config.color, emissive: config.color, emissiveIntensity: 0.4 });
     const boxMesh = new THREE.Mesh(boxGeo, boxMat);
     boxMesh.userData.originalColor = config.color;
     boxMesh.castShadow = true;
@@ -681,7 +681,7 @@ async function init() {
     const size = 1; // ticker block dimensions
     const tickerColor = 0x808080; // gray
     const blockGeo = new THREE.BoxGeometry(size, size, size);
-    const blockMat = new THREE.MeshStandardMaterial({ color: tickerColor, emissive: tickerColor, emissiveIntensity: 1 });
+    const blockMat = new THREE.MeshStandardMaterial({ color: tickerColor, emissive: tickerColor, emissiveIntensity: 0.4 });
     const blockMesh = new THREE.Mesh(blockGeo, blockMat);
     blockMesh.userData.originalColor = tickerColor;
     blockMesh.castShadow = true;
@@ -1050,40 +1050,24 @@ async function init() {
     sunSphere.position.copy(sun.position);
     sunSphere.material.color.copy(sun.color);
 
-    // Make the day-night cycle extreme:
-    // For the first 20 and last 20 seconds, set complete darkness:
-    if (elapsedRound < 20 || elapsedRound > (roundDuration - 20)) {
-      sun.intensity = 0;
-      sunSphere.visible = false;
-      scene.background.set(0x000000);
+    // Gradual day-night cycle: Extend sunrise/sunset to 30 seconds at boundaries.
+    if (elapsedRound < 30) {
+      // Sunrise: interpolate from black to dawnSkyColor.
+      const factor = elapsedRound / 30;
+      scene.background = new THREE.Color(0x000000).lerp(dawnSkyColor, factor);
+      sun.intensity = factor * 2.5;
+      sunSphere.visible = factor > 0.2;
+    } else if (elapsedRound > (roundDuration - 30)) {
+      // Sunset: interpolate from dawnSkyColor to black.
+      const factor = (roundDuration - elapsedRound) / 30;
+      scene.background = dawnSkyColor.clone().lerp(new THREE.Color(0x000000), 1 - factor);
+      sun.intensity = factor * 2.5;
+      sunSphere.visible = factor > 0.2;
     } else {
+      // Daytime: keep a steady noon sky and full sun intensity.
+      scene.background = noonSkyColor;
+      sun.intensity = 2.5;
       sunSphere.visible = true;
-      // Update sun intensity: weak at sunrise/sunset, strong at noon
-      const minIntensity = 1;
-      const maxIntensity = 2.5;
-      const intensity =
-        minIntensity +
-        (maxIntensity - minIntensity) * (1 - Math.abs(t - 0.5) / 0.5);
-      sun.intensity = intensity;
-    }
-
-    // Update sky background:
-    if (elapsedRound < 20 || elapsedRound > (roundDuration - 20)) {
-      // Before sunrise or after sunset: force sky to black.
-      scene.background.set(0x000000);
-    } else {
-      // During the daytime portion, create a normalized time (0 to 1)
-      // where 0 corresponds to 20s and 1 corresponds to roundDuration-20 (i.e. 100s if roundDuration = 120s)
-      const tDay = (elapsedRound - 20) / (roundDuration - 40);
-      if (tDay <= 0.5) {
-        // First half of the day: interpolate from dawn/dusk color to noon color.
-        const factor = tDay / 0.5;
-        scene.background = dawnSkyColor.clone().lerp(noonSkyColor, factor);
-      } else {
-        // Second half of the day: interpolate from noon back to dawn/dusk.
-        const factor = (tDay - 0.5) / 0.5;
-        scene.background = noonSkyColor.clone().lerp(dawnSkyColor, factor);
-      }
     }
 
     // Ramp metronome volume: quiet/peaceful at round start, louder/more aggressive at the end.
