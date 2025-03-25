@@ -143,7 +143,6 @@ async function init() {
   sun.shadow.camera.right = 50;
   scene.add(sun);
 
-
   // Create a simple player physics body (using a sphere shape)
   const playerShape = new CANNON.Sphere(1);
   const playerBody = new CANNON.Body({ mass: 10 });
@@ -465,7 +464,6 @@ async function init() {
     }
   });
 
-
   // Create crosshair element
   const crosshairElem = document.createElement("div");
   crosshairElem.id = "crosshair";
@@ -549,7 +547,6 @@ async function init() {
         }
       }
     });
-
 
     // Update Tone.js listener position to match the camera/player
     TONE.getContext().listener.positionX.value = camera.position.x;
