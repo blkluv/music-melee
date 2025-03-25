@@ -834,6 +834,7 @@ async function init() {
   // Add ticker block at the center of the arena for debugging
   const tickerBlock = createTickerBlock();
 
+
   // --- Start of round timer and tempo track setup ---
   const roundDuration = 120; // in seconds (2 minutes)
   const roundStartTime = performance.now();
