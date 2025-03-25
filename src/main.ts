@@ -594,6 +594,18 @@ async function init() {
     TONE.getContext().listener.positionX.value = camera.position.x;
     TONE.getContext().listener.positionY.value = camera.position.y;
     TONE.getContext().listener.positionZ.value = camera.position.z;
+    
+    // Update listener orientation based on the camera's direction
+    const forward = new THREE.Vector3();
+    camera.getWorldDirection(forward);
+    forward.normalize();
+    const up = camera.up;
+    TONE.getContext().listener.forwardX.value = forward.x;
+    TONE.getContext().listener.forwardY.value = forward.y;
+    TONE.getContext().listener.forwardZ.value = forward.z;
+    TONE.getContext().listener.upX.value = up.x;
+    TONE.getContext().listener.upY.value = up.y;
+    TONE.getContext().listener.upZ.value = up.z;
 
     renderer.render(scene, camera);
   }
