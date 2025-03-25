@@ -22,6 +22,10 @@ async function init() {
   // Add an AudioListener to the camera for 3D audio
   const audioListener = new THREE.AudioListener();
   camera.add(audioListener);
+  
+  // Cache Tone.js transport for scheduling events
+  const transport = TONE.getTransport();
+  
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -585,11 +589,8 @@ async function init() {
   const roundStartTime = performance.now();
 
   // Set initial tempo and ramp BPM to 180 over the round duration
-  TONE.getTransport().bpm.value = 100;
-  TONE.getTransport().bpm.rampTo(180, roundDuration);
-
-  // Cache the Tone.js transport for better performance
-  const transport = TONE.getTransport();
+  transport.bpm.value = 100;
+  transport.bpm.rampTo(180, roundDuration);
   
   // Start the Tone.Transport (which drives scheduled events and BPM changes)
   transport.start();
