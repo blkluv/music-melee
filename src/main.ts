@@ -422,8 +422,8 @@ async function init() {
     spawnBlock();
   }
 
-  // Schedule block spawning every 4 measures (4/4 time) via Tone.Transport
-  TONE.Transport.scheduleRepeat(spawnBlock, "4m");
+  // Schedule block spawning every 2 measures (4/4 time) via Tone.Transport
+  TONE.Transport.scheduleRepeat(spawnBlock, "2m");
 
   function spawnBlock() {
     const pos = new THREE.Vector3(
@@ -492,22 +492,19 @@ async function init() {
     (boxBody as any).assignedSynth = tickerSynth;
     (boxBody as any).assignedPanner3D = tickerPanner;
 
-    // Set up an interval to flash the ticker block and trigger its click sound every 2000ms.
-    setInterval(() => {
-      // Flash: temporarily set the block color to white and revert after 100 ms.
+    // Schedule ticker block flashing and click sound every 2 measures (2 bars in 4/4 time)
+    TONE.Transport.scheduleRepeat(() => {
       blockMesh.material.color.set(0xffffff);
       setTimeout(() => {
         blockMesh.material.color.setHex(tickerColor);
       }, 100);
-      // Play the click sound (using C4; adjust pitch if desired)
       tickerSynth.triggerAttackRelease("C4", "8n");
-      // Debug log for the ticker block
       console.log(
         "Ticker block triggered at position:",
         blockMesh.position,
         "sound: C4 click",
       );
-    }, 2000);
+    }, "2m");
 
     return { mesh: blockMesh, body: boxBody };
   }
@@ -543,9 +540,10 @@ async function init() {
 
   // Create an audible metronome that triggers every quarter note
   const metronomeSynth = new TONE.MembraneSynth({
+    volume: 3, // Boost volume by 3 dB (adjust as needed)
     envelope: {
       attack: 0.001,
-      decay: 0.05,
+      decay: 0.02, // faster decay for a snappier click
       sustain: 0,
       release: 0.05,
     },
