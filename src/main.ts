@@ -53,6 +53,10 @@ async function init() {
         console.log("Tone.js audio context resumed with low latency settings");
       }
       
+      // Remove the overlay once the user interacts
+      const overlay = document.getElementById("startOverlay");
+      if (overlay) overlay.remove();
+      
       // Spawn the starting blocks now (if not already spawned)
       for (let i = 0; i < 30; i++) {
         spawnBlock();
@@ -1068,10 +1072,11 @@ async function init() {
       baseFrequency: 200,
       octaves: 2,
     },
-  }).toDestination();
-  
-  // Ensure the bass synth is audible
-  bassSynth.volume.value = 0; // set to 0 dB (audible)
+  });
+  // Route the bass synth through the global limiter (which is already connected to destination)
+  bassSynth.chain(globalLimiter);
+  // Set volume to 0 dB so it's audible
+  bassSynth.volume.value = 0;
 
   // Define a 2-bar bassline riff in C Lydian.
   // Using quarter-note subdivisions ("4n") gives us 8 steps over 2 bars (2m).
@@ -1230,7 +1235,7 @@ async function init() {
 
     // Start the Tone.Transport (which drives scheduled events and BPM changes)
     transport.start();
-    bassLine.start("+0.1");
+    bassLine.start(0);
     console.log("Bassline started.");
 
     // Schedule block spawning: add one block every bar (1 measure) until the round ends

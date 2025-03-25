@@ -22,10 +22,26 @@
         font-family: Arial, sans-serif;
         font-size: 24px;
       }
+      #startOverlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #000;
+        color: #fff;
+        font-family: Arial, sans-serif;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
     </style>
   </head>
   <body>
     <div id="loading">Loading Music Melee...</div>
+    <div id="startOverlay">Press any key or click to begin</div>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
