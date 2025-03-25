@@ -132,10 +132,11 @@ async function init() {
     new THREE.Vector3(-halfArena, wallHeight / 2, 0),
   );
 
-  // Define sun positions for the round animation (adjusted for greater height and distance)
-  const startPos = new THREE.Vector3(-halfArena * 1.5, 80, -halfArena * 1.5);
-  const midPos = new THREE.Vector3(0, 120, 0);
-  const endPos = new THREE.Vector3(halfArena * 1.5, 80, halfArena * 1.5);
+  // Define the sun's positions so that at the start and end it sits at the horizon.
+  const horizonY = 5; // Adjust this value if needed so it appears "at the horizon"
+  const startPos = new THREE.Vector3(-halfArena * 1.5, horizonY, -halfArena * 1.5);
+  const midPos = new THREE.Vector3(0, 120, 0); // Noon: sun is high overhead
+  const endPos = new THREE.Vector3(halfArena * 1.5, horizonY, halfArena * 1.5);
 
   // Define sun colors: warm reddish at start, white at noon, sunset red at end.
   const startColor = new THREE.Color(0xff4500); // warm reddish
