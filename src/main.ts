@@ -540,17 +540,17 @@ async function init() {
 
   // Create an audible metronome that triggers every quarter note
   const metronomeSynth = new TONE.MembraneSynth({
-    volume: 3, // Boost volume by 3 dB (adjust as needed)
+    volume: 6, // increase volume substantially (adjust as needed)
     envelope: {
       attack: 0.001,
-      decay: 0.02, // faster decay for a snappier click
+      decay: 0.005, // even shorter decay for a sharper click
       sustain: 0,
-      release: 0.05,
+      release: 0.02, // shorter release time
     },
   });
   TONE.Transport.scheduleRepeat(() => {
-    // Trigger a low C (C2) for a click-like beat
-    metronomeSynth.triggerAttackRelease("C2", "8n");
+    // Trigger a higher-pitched click (C4) for improved audibility
+    metronomeSynth.triggerAttackRelease("C4", "16n");
   }, "4n");
   // --- End of round timer and tempo track setup ---
 
