@@ -483,8 +483,6 @@ async function init() {
   let lastCollisionTime = 0;
   let lastAudioStartTime = 0;
   let measuredLatency = 0;
-  let baseLatency = 0;
-  let totalLatency = 0;
 
   // Helper for collision handling; ensures the block flashes and triggers its sound.
   function attachCollisionHandler(boxBody: CANNON.Body, mesh: THREE.Mesh) {
@@ -522,10 +520,8 @@ async function init() {
         // Measure actual audio start time for latency calculation
         lastAudioStartTime = performance.now();
         measuredLatency = lastAudioStartTime - lastCollisionTime;
-        totalLatency = measuredLatency + baseLatency;
         
         latencyElem.innerText = `JS Latency: ${measuredLatency.toFixed(2)} ms`;
-        totalLatencyElem.innerText = `Total Latency: ${totalLatency.toFixed(2)} ms`;
         
         updateRhythmUI(note);  // Only updated if the collision involves the player
       }
@@ -645,7 +641,7 @@ async function init() {
   roundTimerElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(roundTimerElem);
   
-  // Create latency display elements for debugging
+  // Create latency display element for debugging
   const latencyElem = document.createElement("div");
   latencyElem.id = "latencyDisplay";
   latencyElem.style.position = "absolute";
@@ -655,30 +651,6 @@ async function init() {
   latencyElem.style.fontSize = "18px";
   latencyElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(latencyElem);
-  
-  const baseLatencyElem = document.createElement("div");
-  baseLatencyElem.id = "baseLatencyDisplay";
-  baseLatencyElem.style.position = "absolute";
-  baseLatencyElem.style.top = "160px";
-  baseLatencyElem.style.right = "10px";
-  baseLatencyElem.style.color = "white";
-  baseLatencyElem.style.fontSize = "18px";
-  baseLatencyElem.style.fontFamily = "Roboto, sans-serif";
-  document.body.appendChild(baseLatencyElem);
-  
-  const totalLatencyElem = document.createElement("div");
-  totalLatencyElem.id = "totalLatencyDisplay";
-  totalLatencyElem.style.position = "absolute";
-  totalLatencyElem.style.top = "190px";
-  totalLatencyElem.style.right = "10px";
-  totalLatencyElem.style.color = "white";
-  totalLatencyElem.style.fontSize = "18px";
-  totalLatencyElem.style.fontFamily = "Roboto, sans-serif";
-  document.body.appendChild(totalLatencyElem);
-  
-  // Get and display the audio context's base latency
-  baseLatency = TONE.getContext().baseLatency * 1000; // Convert to ms
-  baseLatencyElem.innerText = `Base Latency: ${baseLatency.toFixed(2)} ms`;
 
   // Seed the arena with 30 blocks at the start of the round
   for (let i = 0; i < 30; i++) {
