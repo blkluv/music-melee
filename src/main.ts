@@ -440,7 +440,7 @@ async function init() {
 
 
   function createTickerBlock() {
-    const size = 2; // ticker block dimensions
+    const size = 1; // ticker block dimensions
     const tickerColor = 0x808080; // gray
     const blockGeo = new THREE.BoxGeometry(size, size, size);
     const blockMat = new THREE.MeshStandardMaterial({ color: tickerColor });
@@ -540,7 +540,7 @@ async function init() {
 
   // Create an audible metronome that triggers every quarter note
   const metronomeSynth = new TONE.MembraneSynth({
-    volume: 6, // increase volume substantially (adjust as needed)
+    volume: 100, // increase volume substantially (adjust as needed)
     envelope: {
       attack: 0.1,
       decay: 0.5, // even shorter decay for a sharper click
