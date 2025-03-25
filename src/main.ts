@@ -1103,37 +1103,37 @@ async function init() {
     lastNoteElem.innerText = `Last Note: ${note}`;
   }
 
-  // --- New Groovy Synth Bassline Setup ---
-  // Create a C Lydian note pool spanning two octaves.
-  const cLydianNotes = ["C", "D", "E", "F#", "G", "A", "B"];
+  // --- New Groovy Synth Bassline Setup (Rewritten from Scratch) ---
+
+  // Build a C Lydian note pool over two octaves.
+  const lydianScale = ["C", "D", "E", "F#", "G", "A", "B"];
   const bassNotes: string[] = [];
   [2, 3].forEach(octave => {
-    cLydianNotes.forEach(note => {
-      bassNotes.push(note + octave);
-    });
+    lydianScale.forEach(n => bassNotes.push(n + octave));
   });
 
-  // Update the bass synth settings for a punchier, "slap" attack.
-  const newBassSynth = new TONE.MonoSynth({
+  // Create a punchy, "slap" bass synth using a MonoSynth.
+  const bassSynth = new TONE.MonoSynth({
     oscillator: { type: "square" },
     filter: { type: "lowpass", frequency: 400, Q: 1 },
-    envelope: { attack: 0.001, decay: 0.5, sustain: 0.3, release: 0.2 }, // Faster attack for slap sound
+    envelope: { attack: 0.001, decay: 0.2, sustain: 0.1, release: 0.2 },
   });
-  newBassSynth.chain(globalLimiter);
-  newBassSynth.volume.value = 3;  // Boosted further for audibility
+  bassSynth.chain(globalLimiter);
+  bassSynth.volume.value = 3;  // Ensure it's loud enough
 
-  // Create a new arpeggiator sequence that picks a random note from bassNotes each step.
-  const newBassLine = new TONE.Sequence(
-    (time, _unused) => {
-      console.log("Bassline note triggered at time:", time);
+  // Create a new arpeggiator sequence that randomly selects notes from the bassNotes array.
+  const bassSequence = new TONE.Sequence(
+    (time, _step) => {
       const note = bassNotes[Math.floor(Math.random() * bassNotes.length)];
-      newBassSynth.triggerAttackRelease(note, "16n", time);
+      bassSynth.triggerAttackRelease(note, "16n", time);
+      console.log("Bassline triggered note:", note, "at time", time);
     },
-    new Array(16).fill(null), // 16 steps per cycle
+    new Array(16).fill(null), // 16-step sequence
     "16n"
   );
-  newBassLine.loop = true;
-  console.log("Updated bassline arpeggiator in C Lydian:", newBassLine);
+  bassSequence.loop = true;
+
+  // When starting the round, ensure bassSequence.start(0); is called before transport.start()
   // --- End of New Groovy Synth Bassline Setup ---
 
   // Track time for physics updates
@@ -1273,7 +1273,7 @@ async function init() {
     transport.bpm.rampTo(180, roundDuration);
 
     // Start the bassline sequence before starting the Transport
-    newBassLine.start(0);
+    bassSequence.start(0);
     // Start the Tone.Transport (which drives scheduled events and BPM changes)
     transport.start();
     console.log("New bassline started.");
