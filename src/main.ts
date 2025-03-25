@@ -477,9 +477,51 @@ async function init() {
   crosshairElem.style.borderRadius = "50%";
   document.body.appendChild(crosshairElem);
 
+  // Initialize raycaster for block click detection
+  const raycaster = new THREE.Raycaster();
+
   // Add Stats.js for performance monitoring
   const stats = Stats();
   document.body.appendChild(stats.dom);
+
+  // Add event listener for click tests
+  renderer.domElement.addEventListener("mouseup", (event) => {
+    // Only proceed if pointer is locked
+    if (!controls.isLocked) return;
+
+    // Cast a ray from the center of the screen.
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+    // Intersect with all objects in the scene (use recursive flag to catch children like outlines)
+    const intersects = raycaster.intersectObjects(scene.children, true);
+
+    if (intersects.length > 0) {
+      // Find the intersected block mesh.
+      let targetMesh = intersects[0].object;
+      // If the clicked object is a child (like an outline), check its parent.
+      if (!targetMesh.userData.boxBody && targetMesh.parent) {
+        targetMesh = targetMesh.parent;
+      }
+      if (targetMesh.userData.boxBody) {
+        // Log block info for debugging.
+        console.log("Block clicked:", targetMesh);
+        console.log("Position:", targetMesh.position);
+        const blockBody = targetMesh.userData.boxBody as CANNON.Body;
+        console.log("Assigned tone:", (blockBody as any).assignedTone);
+        console.log("Assigned synth:", (blockBody as any).assignedSynth);
+
+        // Flash the block white (store original color first).
+        const originalColor = targetMesh.userData.originalColor;
+        targetMesh.material.color.set(0xffffff);
+        setTimeout(() => {
+          targetMesh.material.color.setHex(originalColor);
+        }, 150);
+
+        // Play the block sound with a "big impact" (simulate high impact velocity).
+        // Use a high volume version by overriding the computed volume if desired.
+        (blockBody as any).assignedSynth.triggerAttackRelease((blockBody as any).assignedTone, "8n");
+      }
+    }
+  });
 
   // Track time for physics updates
   let lastTime = performance.now();
