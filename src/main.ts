@@ -610,6 +610,20 @@ async function init() {
           1,
         );
 
+        // Update score based on whether the block's note is in C Lydian.
+        const lydianNotes = ["C", "D", "E", "F#", "G", "A", "B"];
+        const thisNote: string = (boxBody as any).assignedTone;
+        const noteMatch = thisNote.match(/^[A-G]#?/);
+        if (noteMatch) {
+          const noteLetter = noteMatch[0];
+          if (lydianNotes.includes(noteLetter)) {
+            score++;
+          } else {
+            score--;
+          }
+          scoreElem.innerText = `Score: ${score}`;
+        }
+
         // Free the synth from the pool after the note duration
         const poolIndex = (boxBody as any).assignedSynth.poolIndex;
         if (poolIndex !== undefined && poolIndex >= 0) {
@@ -745,6 +759,19 @@ async function init() {
   roundTimerElem.style.fontSize = "24px";
   roundTimerElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(roundTimerElem);
+
+  // Create a new score display element in the top-left corner.
+  let score = 0;  // Global score variable
+  const scoreElem = document.createElement("div");
+  scoreElem.id = "scoreDisplay";
+  scoreElem.style.position = "absolute";
+  scoreElem.style.top = "10px";
+  scoreElem.style.left = "10px";
+  scoreElem.style.color = "white";
+  scoreElem.style.fontSize = "18px";
+  scoreElem.style.fontFamily = "Roboto, sans-serif";
+  scoreElem.innerText = "Score: 0";
+  document.body.appendChild(scoreElem);
 
   // Create latency display element for debugging
   const latencyElem = document.createElement("div");
@@ -992,6 +1019,22 @@ async function init() {
           1,
         );
 
+        // Update score for click-triggered blocks.
+        {
+          const lydianNotes = ["C", "D", "E", "F#", "G", "A", "B"];
+          const thisNote: string = (blockBody as any).assignedTone;
+          const noteMatch = thisNote.match(/^[A-G]#?/);
+          if (noteMatch) {
+            const noteLetter = noteMatch[0];
+            if (lydianNotes.includes(noteLetter)) {
+              score++;
+            } else {
+              score--;
+            }
+            scoreElem.innerText = `Score: ${score}`;
+          }
+        }
+
         // Free the synth from the pool after the note duration
         const poolIndex = (blockBody as any).assignedSynth.poolIndex;
         if (poolIndex !== undefined && poolIndex >= 0) {
@@ -1060,38 +1103,35 @@ async function init() {
   }
 
   // --- New Groovy Synth Bassline Setup ---
-  // Create a MonoSynth bass that will be used for the bassline.
-  // We use a simple square oscillator with a lowpass filter.
+  // Create a C Lydian note pool spanning two octaves.
+  const cLydianNotes = ["C", "D", "E", "F#", "G", "A", "B"];
+  const bassNotes: string[] = [];
+  [2, 3].forEach(octave => {
+    cLydianNotes.forEach(note => {
+      bassNotes.push(note + octave);
+    });
+  });
+
+  // Update the bass synth settings for a punchier, "slap" attack.
   const newBassSynth = new TONE.MonoSynth({
     oscillator: { type: "square" },
     filter: { type: "lowpass", frequency: 200, Q: 1 },
-    envelope: { attack: 0.05, decay: 0.2, sustain: 0.5, release: 0.3 },
+    envelope: { attack: 0.001, decay: 0.05, sustain: 0.3, release: 0.2 },
   });
-
-  // Route the bass synth through the global limiter (which is already connected to destination)
   newBassSynth.chain(globalLimiter);
+  newBassSynth.volume.value = -15;  // Make it a bit louder
 
-  // Ensure the synth is audible
-  newBassSynth.volume.value = -20;
-
-  // Define a 2-bar bassline riff in C Lydian.
-  // We use quarter-note subdivisions ("4n"), which gives an 8–step pattern over 2 bars.
-  const newBassPattern = ["C2", "E2", "D2", "F#2", "G2", "B2", "A2", "C1"];
-
-  // Create a Tone.Sequence to play the bassline pattern.
+  // Create a new arpeggiator sequence that picks a random note from bassNotes each step.
   const newBassLine = new TONE.Sequence(
-    (time, note) => {
+    (time, _unused) => {
+      const note = bassNotes[Math.floor(Math.random() * bassNotes.length)];
       newBassSynth.triggerAttackRelease(note, "16n", time);
     },
-    newBassPattern,
-    "8n",
+    new Array(16).fill(null), // 16 steps per cycle
+    "16n"
   );
   newBassLine.loop = true;
-  // newBassLine.loopEnd = "";
-  console.log(
-    "New bassline initialized, looping a 2-bar riff in C Lydian.",
-    newBassLine,
-  );
+  console.log("Updated bassline arpeggiator in C Lydian:", newBassLine);
   // --- End of New Groovy Synth Bassline Setup ---
 
   // Track time for physics updates
