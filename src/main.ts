@@ -424,7 +424,7 @@ async function init() {
     volumes: Array(30).fill(false),
     synths: {
       Synth: Array(10).fill(false),
-      MetalSynth: Array(10).fill(false),
+      MetalSynth: Array(30).fill(false),
       FMSynth: Array(5).fill(false),
       AMSynth: Array(5).fill(false),
     },
