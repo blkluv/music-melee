@@ -414,6 +414,73 @@ async function init() {
 
   setInterval(spawnBlock, 2000);
 
+  function createTickerBlock() {
+    const size = 2; // ticker block dimensions
+    const tickerColor = 0x808080; // gray
+    const blockGeo = new THREE.BoxGeometry(size, size, size);
+    const blockMat = new THREE.MeshStandardMaterial({ color: tickerColor });
+    const blockMesh = new THREE.Mesh(blockGeo, blockMat);
+    blockMesh.userData.originalColor = tickerColor;
+    blockMesh.castShadow = true;
+    blockMesh.receiveShadow = true;
+    // Position the block at the center of the arena (x:0, z:0) and half its height above ground
+    blockMesh.position.set(0, size / 2, 0);
+    scene.add(blockMesh);
+
+    // Create a static physics body (mass 0 so it remains immovable)
+    const halfExtents = new CANNON.Vec3(size / 2, size / 2, size / 2);
+    const boxShape = new CANNON.Box(halfExtents);
+    const boxBody = new CANNON.Body({ mass: 0 });
+    boxBody.addShape(boxShape);
+    boxBody.position.set(0, size / 2, 0);
+    world.addBody(boxBody);
+
+    // Build an audio chain for the ticker block using a percussive click sound.
+    // We use a MembraneSynth with a very short envelope for a click-like effect.
+    const tickerSynth = new TONE.MembraneSynth({
+      envelope: {
+        attack: 0.001,
+        decay: 0.1,
+        sustain: 0,
+        release: 0.1,
+      },
+    });
+    const tickerFilter = new TONE.Filter(800, "lowpass");
+    const tickerVolume = new TONE.Volume(0);
+    const tickerPanner = new TONE.Panner3D({
+      panningModel: "HRTF",
+      distanceModel: "inverse",
+      refDistance: 1,
+      maxDistance: 50,
+      rolloffFactor: 1,
+      coneInnerAngle: 360,
+      coneOuterAngle: 0,
+      coneOuterGain: 0,
+    });
+    tickerSynth.chain(tickerFilter, tickerPanner, tickerVolume, TONE.Destination);
+    // Save the ticker synth and panner with the physics body if needed later
+    (boxBody as any).assignedSynth = tickerSynth;
+    (boxBody as any).assignedPanner3D = tickerPanner;
+
+    // Set up an interval to flash the ticker block and trigger its click sound every 2000ms.
+    setInterval(() => {
+      // Flash: temporarily set the block color to white and revert after 100 ms.
+      blockMesh.material.color.set(0xffffff);
+      setTimeout(() => {
+        blockMesh.material.color.setHex(tickerColor);
+      }, 100);
+      // Play the click sound (using C4; adjust pitch if desired)
+      tickerSynth.triggerAttackRelease("C4", "8n");
+      // Debug log for the ticker block
+      console.log("Ticker block triggered at position:", blockMesh.position, "sound: C4 click");
+    }, 2000);
+
+    return { mesh: blockMesh, body: boxBody };
+  }
+
+  // Add ticker block at the center of the arena for debugging
+  const tickerBlock = createTickerBlock();
+
   // Movement variables
   const keys: Record<string, boolean> = {
     w: false,
