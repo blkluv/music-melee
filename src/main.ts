@@ -548,6 +548,10 @@ async function init() {
       release: 0.05, // shorter release time
     },
   });
+
+  // Connect the metronome to the output destination
+  metronomeSynth.toDestination();
+
   TONE.getTransport().scheduleRepeat(() => {
     // Trigger a higher-pitched click (C4) for improved audibility
     metronomeSynth.triggerAttackRelease("C4", "16n");
