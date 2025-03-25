@@ -1020,19 +1020,59 @@ async function init() {
           1,
         );
 
-        // Update score for click-triggered blocks.
+        // Update score and modify block based on whether its tone is in the current key.
         {
+          // Define the allowed note letters for the current key (C Lydian)
           const lydianNotes = ["C", "D", "E", "F#", "G", "A", "B"];
+          // Expect the tone to be in a format like "C4" (letter plus octave)
           const thisNote: string = (blockBody as any).assignedTone;
-          const noteMatch = thisNote.match(/^[A-G]#?/);
+          // Use a regex that captures the note letter and octave.
+          const noteMatch = thisNote.match(/^([A-G]#?)(\d)$/);
           if (noteMatch) {
-            const noteLetter = noteMatch[0];
+            const noteLetter = noteMatch[1];
+            const octave = noteMatch[2];
+            // Compute the impulse vector from the player to the block.
+            const impulseDir = new CANNON.Vec3(
+              mesh.position.x - playerBody.position.x,
+              mesh.position.y - playerBody.position.y,
+              mesh.position.z - playerBody.position.z,
+            );
+            impulseDir.normalize();
+
             if (lydianNotes.includes(noteLetter)) {
+              // In-key: Award a point.
               score++;
+              // Choose a new random note (keeping the same octave).
+              const newNoteLetter = lydianNotes[Math.floor(Math.random() * lydianNotes.length)];
+              const newNote = newNoteLetter + octave;
+              (blockBody as any).assignedTone = newNote;
+
+              // Change the block's colour.
+              const newColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
+              mesh.material.color.setHex(newColor);
+              mesh.material.emissive.setHex(newColor);
+              mesh.userData.originalColor = newColor;
+
+              // Apply a strong push away from the player.
+              const strongForce = 20; // Large force
+              impulseDir.scale(strongForce, impulseDir);
+              blockBody.applyImpulse(impulseDir, blockBody.position);
+              
+              console.log(`Block was in-key. Changed tone to ${newNote} and color updated.`);
             } else {
+              // Off-key: Subtract a point.
               score--;
+              // Apply only a mild push.
+              const mildForce = 5; // Small force
+              impulseDir.scale(mildForce, impulseDir);
+              blockBody.applyImpulse(impulseDir, blockBody.position);
+              
+              console.log("Block was off-key. Applied mild push; tone and color unchanged.");
             }
             scoreElem.innerText = `Score: ${score}`;
+          } else {
+            // Fallback if tone format is unexpected.
+            console.warn("Block tone has unexpected format:", thisNote);
           }
         }
 
