@@ -9,6 +9,9 @@ import * as CANNON from "cannon-es";
 async function init() {
   console.log("Music Melee initializing...");
 
+  // Declare bassLine at the top level of init() function
+  let bassLine: TONE.Sequence<string, string>;
+
   // Set up low-latency audio context configuration
   const audioContext = new AudioContext({ latencyHint: "interactive" });
   TONE.setContext(audioContext);
@@ -902,7 +905,7 @@ async function init() {
   // Using quarter-note subdivisions ("4n") gives us 8 steps over 2 bars (2m).
   const bassLinePattern = ["C2", "D2", "E2", "F#2", "G2", "A2", "B2", "C3"];
 
-  const bassLine = new TONE.Sequence(
+  bassLine = new TONE.Sequence(
     (time, note) => {
       bassSynth.triggerAttackRelease(note, "8n", time);
     },
