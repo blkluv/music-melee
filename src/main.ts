@@ -1116,15 +1116,16 @@ async function init() {
   // Update the bass synth settings for a punchier, "slap" attack.
   const newBassSynth = new TONE.MonoSynth({
     oscillator: { type: "square" },
-    filter: { type: "lowpass", frequency: 200, Q: 1 },
+    filter: { type: "lowpass", frequency: 400, Q: 1 },
     envelope: { attack: 0.001, decay: 0.5, sustain: 0.3, release: 0.2 }, // Faster attack for slap sound
   });
   newBassSynth.chain(globalLimiter);
-  newBassSynth.volume.value = 0;  // Maximum volume for better audibility
+  newBassSynth.volume.value = 3;  // Boosted further for audibility
 
   // Create a new arpeggiator sequence that picks a random note from bassNotes each step.
   const newBassLine = new TONE.Sequence(
     (time, _unused) => {
+      console.log("Bassline note triggered at time:", time);
       const note = bassNotes[Math.floor(Math.random() * bassNotes.length)];
       newBassSynth.triggerAttackRelease(note, "16n", time);
     },
