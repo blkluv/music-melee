@@ -204,22 +204,8 @@ async function init() {
           : 0;
       if (impactVelocity < 2) return;
 
-      // Compute spatial audio parameters similar to the block's own collision effect:
-      const diff = new THREE.Vector3().subVectors(
-        mesh.position,
-        camera.position,
-      );
-      const distance = diff.length();
-      const maxDistance = 50;
-      const volumeFactor = Math.max(0, 1 - distance / maxDistance);
-      let computedVolume = -12 - (1 - volumeFactor) * 20;
-      computedVolume = Math.min(computedVolume + impactVelocity * 2, 0);
-      const cameraRight = new THREE.Vector3();
-      cameraRight
-        .crossVectors(camera.up, camera.getWorldDirection(new THREE.Vector3()))
-        .normalize();
-      // Note: The 3D panner position is updated in the animation loop, so no need to set pan manually.
-      otherBody.assignedVolume.volume.value = computedVolume;
+      // Use our helper function to compute volume based on distance and impact
+      otherBody.assignedVolume.volume.value = computeCollisionVolume(mesh, camera, impactVelocity);
 
       // Use a simple cooldown check:
       const now = performance.now();
@@ -364,6 +350,20 @@ async function init() {
     return { synth: boxSynth, bassFilter, spatialVolume, panner3D };
   }
 
+  // Helper function to compute volume based on distance and impact velocity
+  function computeCollisionVolume(
+    mesh: THREE.Mesh,
+    camera: THREE.Camera,
+    impactVelocity: number
+  ): number {
+    const diff = new THREE.Vector3().subVectors(mesh.position, camera.position);
+    const distance = diff.length();
+    const maxDistance = 50;
+    const volumeFactor = Math.max(0, 1 - distance / maxDistance);
+    let computedVolume = -12 - (1 - volumeFactor) * 20;
+    return Math.min(computedVolume + impactVelocity * 2, 0);
+  }
+
   // Helper for collision handling; ensures the block flashes and triggers its sound.
   function attachCollisionHandler(boxBody: CANNON.Body, mesh: THREE.Mesh) {
     boxBody.addEventListener("collide", (e: any) => {
@@ -379,17 +379,7 @@ async function init() {
         mesh.material.color.setHex(originalColor);
       }, 150);
 
-      const diff = new THREE.Vector3().subVectors(
-        mesh.position,
-        camera.position,
-      );
-      const distance = diff.length();
-      const maxDistance = 50;
-      const volumeFactor = Math.max(0, 1 - distance / maxDistance);
-      let computedVolume = -12 - (1 - volumeFactor) * 20;
-      computedVolume = Math.min(computedVolume + impactVelocity * 2, 0);
-
-      (boxBody as any).assignedVolume.volume.value = computedVolume;
+      (boxBody as any).assignedVolume.volume.value = computeCollisionVolume(mesh, camera, impactVelocity);
 
       const now = performance.now();
       if (now - (boxBody as any).lastToneTime > 150) {
@@ -499,7 +489,7 @@ async function init() {
   }
 
   // Schedule block spawning: add one block every bar (1 measure) until the round ends
-  TONE.getTransport().scheduleRepeat(spawnBlock, "1m");
+  transport.scheduleRepeat(spawnBlock, "1m");
 
   function spawnBlock() {
     const pos = new THREE.Vector3(
@@ -571,7 +561,7 @@ async function init() {
     (boxBody as any).assignedPanner3D = tickerPanner;
 
     // Schedule ticker block flashing and click sound every 2 measures (2 bars in 4/4 time)
-    TONE.getTransport().scheduleRepeat(() => {
+    transport.scheduleRepeat(() => {
       blockMesh.material.color.set(0xffffff);
       setTimeout(() => {
         blockMesh.material.color.setHex(tickerColor);
@@ -598,8 +588,11 @@ async function init() {
   TONE.getTransport().bpm.value = 100;
   TONE.getTransport().bpm.rampTo(180, roundDuration);
 
+  // Cache the Tone.js transport for better performance
+  const transport = TONE.getTransport();
+  
   // Start the Tone.Transport (which drives scheduled events and BPM changes)
-  TONE.getTransport().start();
+  transport.start();
 
   // Update the round timer element every 100ms
   const roundTimerInterval = setInterval(() => {
@@ -630,7 +623,7 @@ async function init() {
   // Connect the metronome to the global limiter
   metronomeSynth.chain(globalLimiter);
 
-  TONE.getTransport().scheduleRepeat(() => {
+  transport.scheduleRepeat(() => {
     // Trigger a higher-pitched click (C4) for improved audibility
     metronomeSynth.triggerAttackRelease("C4", "16n");
   }, "4n");
@@ -748,6 +741,24 @@ async function init() {
     }
   });
 
+  // Helper function to update Tone.js listener position and orientation
+  function updateToneListener(camera: THREE.Camera): void {
+    const context = TONE.getContext();
+    context.listener.positionX.value = camera.position.x;
+    context.listener.positionY.value = camera.position.y;
+    context.listener.positionZ.value = camera.position.z;
+    
+    const listenerForward = new THREE.Vector3();
+    camera.getWorldDirection(listenerForward).normalize();
+    const up = camera.up;
+    context.listener.forwardX.value = listenerForward.x;
+    context.listener.forwardY.value = listenerForward.y;
+    context.listener.forwardZ.value = listenerForward.z;
+    context.listener.upX.value = up.x;
+    context.listener.upY.value = up.y;
+    context.listener.upZ.value = up.z;
+  }
+
   // Track time for physics updates
   let lastTime = performance.now();
 
@@ -770,12 +781,12 @@ async function init() {
 
     // Basic WASD movement: calculate front and side speeds
     const speed = 48; // 20% faster than 40
-    const forward = new THREE.Vector3();
-    const right = new THREE.Vector3();
-    camera.getWorldDirection(forward);
-    forward.y = 0; // ignore vertical component
-    forward.normalize();
-    right.crossVectors(camera.up, forward).normalize();
+    const camDir = new THREE.Vector3();
+    camera.getWorldDirection(camDir);
+    // Compute horizontal forward by zeroing the Y component
+    const horizForward = camDir.clone().setY(0).normalize();
+    // Compute right vector: cross(up, forward) yields the right direction
+    const right = new THREE.Vector3().crossVectors(camera.up, horizForward).normalize();
 
     let moveX = 0;
     let moveZ = 0;
@@ -788,7 +799,7 @@ async function init() {
     if (moveZ !== 0 || moveX !== 0) {
       const moveDir = new THREE.Vector3();
       moveDir
-        .add(forward.multiplyScalar(moveZ))
+        .add(horizForward.multiplyScalar(moveZ))
         .add(right.multiplyScalar(moveX));
       moveDir.normalize().multiplyScalar(speed);
       velocity.x = moveDir.x;
@@ -815,25 +826,11 @@ async function init() {
       }
     });
 
-    // Update Tone.js listener position to match the camera/player
-    TONE.getContext().listener.positionX.value = camera.position.x;
-    TONE.getContext().listener.positionY.value = camera.position.y;
-    TONE.getContext().listener.positionZ.value = camera.position.z;
-
-    // Update listener orientation based on the camera's direction
-    const listenerForward = new THREE.Vector3();
-    camera.getWorldDirection(listenerForward);
-    listenerForward.normalize();
-    const up = camera.up;
-    TONE.getContext().listener.forwardX.value = listenerForward.x;
-    TONE.getContext().listener.forwardY.value = listenerForward.y;
-    TONE.getContext().listener.forwardZ.value = listenerForward.z;
-    TONE.getContext().listener.upX.value = up.x;
-    TONE.getContext().listener.upY.value = up.y;
-    TONE.getContext().listener.upZ.value = up.z;
+    // Update Tone.js listener position and orientation to match the camera
+    updateToneListener(camera);
 
     // Update BPM display
-    bpmElem.innerText = `BPM: ${TONE.getTransport().bpm.value.toFixed(0)}`;
+    bpmElem.innerText = `BPM: ${transport.bpm.value.toFixed(0)}`;
 
     // Animate sun position and color over the round duration
     const elapsedRound = (performance.now() - roundStartTime) / 1000;
