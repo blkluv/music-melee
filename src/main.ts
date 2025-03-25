@@ -134,18 +134,22 @@ async function init() {
 
   // Define the sun's positions so that at the start and end it sits at the horizon.
   const horizonY = 5; // Adjust this value if needed so it appears "at the horizon"
-  const startPos = new THREE.Vector3(-halfArena * 1.5, horizonY, -halfArena * 1.5);
+  const startPos = new THREE.Vector3(
+    -halfArena * 1.5,
+    horizonY,
+    -halfArena * 1.5,
+  );
   const midPos = new THREE.Vector3(0, 120, 0); // Noon: sun is high overhead
   const endPos = new THREE.Vector3(halfArena * 1.5, horizonY, halfArena * 1.5);
 
   // Define sun colors: warm reddish at start, white at noon, sunset red at end.
   const startColor = new THREE.Color(0xff4500); // warm reddish
-  const midColor = new THREE.Color(0xffffff);   // white
-  const endColor = new THREE.Color(0xff0000);     // sunset red
+  const midColor = new THREE.Color(0xffffff); // white
+  const endColor = new THREE.Color(0xff0000); // sunset red
 
   // Define sky colors: start (dawn/dusk redish) and noon (blue)
   const dawnSkyColor = new THREE.Color(0xff4500); // redish
-  const noonSkyColor = new THREE.Color(0x87ceeb);   // blue
+  const noonSkyColor = new THREE.Color(0x87ceeb); // blue
 
   // Create the sun with its initial parameters
   const sun = new THREE.DirectionalLight(startColor, 2.5);
@@ -460,7 +464,6 @@ async function init() {
     boxMeshArray.push(mesh);
     updateBlockCounter();
   }
-
 
   function createTickerBlock() {
     const size = 1; // ticker block dimensions
@@ -801,10 +804,12 @@ async function init() {
     sunSphere.material.color.copy(sun.color);
 
     // Update sun intensity: weak at sunrise/sunset, strong at noon
-    const minIntensity = 1;  // intensity at sunrise/sunset
+    const minIntensity = 1; // intensity at sunrise/sunset
     const maxIntensity = 2.5; // intensity at noon
     // Compute a linear ramp based on distance from noon (t=0.5)
-    const intensity = minIntensity + (maxIntensity - minIntensity) * (1 - Math.abs(t - 0.5) / 0.5);
+    const intensity =
+      minIntensity +
+      (maxIntensity - minIntensity) * (1 - Math.abs(t - 0.5) / 0.5);
     sun.intensity = intensity;
 
     // Animate sky background: from redish to blue at noon and back to redish
