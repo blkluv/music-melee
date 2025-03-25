@@ -132,11 +132,20 @@ async function init() {
     new THREE.Vector3(-halfArena, wallHeight / 2, 0),
   );
 
-  // Directional light to simulate the sun (with stronger intensity)
-  const sun = new THREE.DirectionalLight(0xffffff, 2.5);
-  sun.position.set(50, 30, -50);
+  // Define sun positions for the round animation.
+  const startPos = new THREE.Vector3(-halfArena, 15, 0);
+  const midPos = new THREE.Vector3(0, 35, 0);
+  const endPos = new THREE.Vector3(halfArena, 15, 0);
+
+  // Define sun colors: warm reddish at start, white at noon, sunset red at end.
+  const startColor = new THREE.Color(0xff4500); // warm reddish
+  const midColor = new THREE.Color(0xffffff);   // white
+  const endColor = new THREE.Color(0xff0000);     // sunset red
+
+  // Create the sun with its initial parameters
+  const sun = new THREE.DirectionalLight(startColor, 2.5);
+  sun.position.copy(startPos);
   sun.castShadow = true;
-  // Optionally adjust shadow properties for more realism:
   sun.shadow.camera.top = 50;
   sun.shadow.camera.bottom = -50;
   sun.shadow.camera.left = -50;
@@ -756,6 +765,22 @@ async function init() {
 
     // Update BPM display
     bpmElem.innerText = `BPM: ${TONE.getTransport().bpm.value.toFixed(0)}`;
+
+    // Animate sun position and color over the round duration
+    const elapsedRound = (performance.now() - roundStartTime) / 1000;
+    const t = Math.min(elapsedRound / roundDuration, 1); // normalized time (0 to 1)
+
+    if (t <= 0.5) {
+      // First half of the round: from start to mid (noon)
+      const factor = t / 0.5;
+      sun.position.lerpVectors(startPos, midPos, factor);
+      sun.color.copy(startColor.clone().lerp(midColor, factor));
+    } else {
+      // Second half of the round: from mid to end (sunset)
+      const factor = (t - 0.5) / 0.5;
+      sun.position.lerpVectors(midPos, endPos, factor);
+      sun.color.copy(midColor.clone().lerp(endColor, factor));
+    }
 
     renderer.render(scene, camera);
   }
