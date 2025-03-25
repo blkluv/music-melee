@@ -267,7 +267,6 @@ async function init() {
     MetalSynth: 0x00ff00, // green
     PluckSynth: 0x0000ff, // blue
     FMSynth: 0xffff00, // yellow
-    AMSynth: 0xff00ff, // magenta
   };
 
   // ---- New Block Configuration Setup ----
@@ -286,16 +285,15 @@ async function init() {
   const sizes = [0.5, 1.0, 1.5, 2.0, 3.0, 3.5, 4.0, 5.0];
 
   // Map sizes to tones according to C Lydian (biggest → lowest tone)
-  // Biggest (5.0) gets "C2", then next → "D2", "E2", "F#2", "G2", "A2", "B2", smallest (0.5) gets "C3"
   const sizeToTone: Record<number, string> = {
-    5.0: "C2",
-    4.0: "D2",
-    3.5: "E2",
-    3.0: "F#2",
-    2.0: "G2",
-    1.5: "A2",
-    1.0: "B2",
-    0.5: "C3",
+    5.0: "C3",
+    4.0: "D3",
+    3.5: "E3",
+    3.0: "F#3",
+    2.0: "G3",
+    1.5: "A3",
+    1.0: "B3",
+    0.5: "C4",
   };
 
   // Generate a randomized sequence of 150 block configurations
