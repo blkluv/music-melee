@@ -841,6 +841,9 @@ async function init() {
 
   // Start the Tone.Transport (which drives scheduled events and BPM changes)
   transport.start();
+  
+  // Start the bassline now that transport is running
+  bassLine.start();
 
   // Update the round timer element every 100ms
   const roundTimerInterval = setInterval(() => {
@@ -908,8 +911,7 @@ async function init() {
   );
   bassLine.loop = true;
   bassLine.loopEnd = "2m";
-  bassLine.start(0);
-
+  
   // Log for debugging
   console.log("Bassline initialized, looping a 2-bar riff in C Lydian.");
   // --- End groovy synth bassline setup ---
