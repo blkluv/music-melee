@@ -4,6 +4,26 @@ A multiplayer 3D game that will run efficiently off a Node server using websocke
 
 The game is called Music Melee (a working title) and involves fast and responsive parkour-like gameplay as players bounce around the environment and melee each other. As the name suggests, the twist is that everything in the game creates dynamic sounds (mapped out in stereo 3D) and the more chaotic the battles get, the more sonically interesting it becomes. Players can get powerups for musically-interesting behaviour like achieving certain harmonies or matching the rhythm of the arena (which is procedurally generated at the start of the match). Matches are 2 minutes long and then the arena resets.
 
+## Progress
+
+- **3D Sound & Audio Chain:**  
+  - Implemented dynamic 3D spatial sound using Tone.js, including synthesizers routed through filters, spatial volume nodes, and Panner3D.
+  - Improved listener processing by updating both position and orientation every frame.
+  - Reduced distance falloff intensity for more consistent volume with distance.
+
+- **Block Handling & Feedback:**  
+  - Each falling block now creates its own audio chain and flashes on collision.
+  - Fixed issues with green blocks by switching from a MetalSynth to a percussive MembraneSynth.
+  - Added a ticker block at the center of the arena that flashes and plays a click sound every 2 seconds for debugging spatial audio.
+
+- **Player Movement:**  
+  - Adjusted player movement to be more responsive with increased horizontal speed.
+  - Reduced jump power substantially (now 50% weaker) while keeping overall movement fast.
+
+- **General Improvements:**  
+  - Enhanced collision handling to trigger sounds based on impact velocity.
+  - Integrated debugging elements (block counter and Stats.js) for performance and collision feedback.
+
 ## Tech Stack
 
 - **TypeScript**: Provides static type-checking, enhanced code quality, and developer productivity.
@@ -52,3 +72,17 @@ npm run preview
 ### Deployment
 
 Deploy the contents of the `dist` directory to your preferred hosting provider or server setup.
+
+## Roadmap
+
+**Completed:**
+- Initial 3D spatial sound implementation with dynamic audio chains per block.
+- Improved listener orientation and reduced sound distance falloff.
+- Fine-tuned player movement (faster horizontal movement and reduced jump power).
+- Debugging tools: ticker block with periodic flashing and click sound, block counter, and performance stats.
+
+**Upcoming:**
+- Multiplayer functionality via websockets.
+- Additional sound effects and musical power-ups.
+- Procedurally generated arena rhythms and dynamic environment changes.
+- Further performance optimizations and advanced physics interactions.
