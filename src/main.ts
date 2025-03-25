@@ -238,7 +238,7 @@ async function init() {
         e.contact && e.contact.getImpactVelocityAlongNormal
           ? e.contact.getImpactVelocityAlongNormal()
           : 0;
-      if (impactVelocity < 2) return;
+      // Removed minimum impact velocity check to ensure all collisions update the score
 
       // Use our helper function to compute volume based on distance and impact
       otherBody.assignedVolume.volume.value = computeCollisionVolume(
@@ -760,13 +760,14 @@ async function init() {
   roundTimerElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(roundTimerElem);
 
-  // Create a new score display element in the top-left corner.
+  // Create a new score display element in the bottom center.
   let score = 0;  // Global score variable
   const scoreElem = document.createElement("div");
   scoreElem.id = "scoreDisplay";
   scoreElem.style.position = "absolute";
-  scoreElem.style.top = "10px";
-  scoreElem.style.left = "10px";
+  scoreElem.style.bottom = "10px";
+  scoreElem.style.left = "50%";
+  scoreElem.style.transform = "translateX(-50%)";
   scoreElem.style.color = "white";
   scoreElem.style.fontSize = "18px";
   scoreElem.style.fontFamily = "Roboto, sans-serif";
@@ -1119,7 +1120,7 @@ async function init() {
     envelope: { attack: 0.001, decay: 0.05, sustain: 0.3, release: 0.2 },
   });
   newBassSynth.chain(globalLimiter);
-  newBassSynth.volume.value = -15;  // Make it a bit louder
+  newBassSynth.volume.value = -5;  // Boosted volume for audibility
 
   // Create a new arpeggiator sequence that picks a random note from bassNotes each step.
   const newBassLine = new TONE.Sequence(
