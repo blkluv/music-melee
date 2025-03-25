@@ -9,8 +9,10 @@ import * as CANNON from "cannon-es";
 async function init() {
   console.log("Music Melee initializing...");
 
-  // Declare bassLine at the top level of init() function
+  // Declare variables at the top level of init() function
   let bassLine: TONE.Sequence<string, string>;
+  let roundStartTime: number = 0;
+  let roundDuration: number = 120; // in seconds (2 minutes)
 
   // Set up low-latency audio context configuration
   const audioContext = new AudioContext({ latencyHint: "interactive" });
@@ -1220,8 +1222,7 @@ async function init() {
   // Function to start the round with sound and scheduling
   function startRound() {
     // --- Start of round timer and tempo track setup ---
-    const roundDuration = 120; // in seconds (2 minutes)
-    const roundStartTime = performance.now();
+    roundStartTime = performance.now();
 
     // Set initial tempo and ramp BPM to 180 over the round duration
     transport.bpm.value = 100;
