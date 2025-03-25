@@ -394,10 +394,25 @@ async function init() {
   }
   updateBlockCounter();
 
+  // Create a round timer element at the top center of the screen
+  const roundTimerElem = document.createElement("div");
+  roundTimerElem.id = "roundTimer";
+  roundTimerElem.style.position = "absolute";
+  roundTimerElem.style.top = "10px";
+  roundTimerElem.style.left = "50%";
+  roundTimerElem.style.transform = "translateX(-50%)";
+  roundTimerElem.style.color = "white";
+  roundTimerElem.style.fontSize = "24px";
+  roundTimerElem.style.fontFamily = "Roboto, sans-serif";
+  document.body.appendChild(roundTimerElem);
+
   // Spawn the initial boxes using the consolidated spawnBlock helper
   for (let i = 0; i < 20; i++) {
     spawnBlock();
   }
+
+  // Schedule block spawning every 4 measures (4/4 time) via Tone.Transport
+  TONE.Transport.scheduleRepeat(spawnBlock, "4m");
 
   function spawnBlock() {
     const pos = new THREE.Vector3(
@@ -412,7 +427,6 @@ async function init() {
     updateBlockCounter();
   }
 
-  setInterval(spawnBlock, 2000);
 
   function createTickerBlock() {
     const size = 2; // ticker block dimensions
@@ -489,6 +503,33 @@ async function init() {
 
   // Add ticker block at the center of the arena for debugging
   const tickerBlock = createTickerBlock();
+
+  // --- Start of round timer and tempo track setup ---
+  const roundDuration = 120; // in seconds (2 minutes)
+  const roundStartTime = performance.now();
+
+  // Set initial tempo and ramp BPM to 180 over the round duration
+  TONE.Transport.bpm.value = 100;
+  TONE.Transport.bpm.rampTo(180, roundDuration);
+
+  // Start the Tone.Transport (which drives scheduled events and BPM changes)
+  TONE.Transport.start();
+
+  // Update the round timer element every 100ms
+  const roundTimerInterval = setInterval(() => {
+    const elapsed = (performance.now() - roundStartTime) / 1000;
+    const remaining = Math.max(0, roundDuration - elapsed);
+    const minutes = Math.floor(remaining / 60);
+    const seconds = Math.floor(remaining % 60);
+    roundTimerElem.innerText = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    if (remaining <= 0) {
+      clearInterval(roundTimerInterval);
+      // Optionally, stop the round or perform cleanup here:
+      TONE.Transport.stop();
+      console.log("Round ended.");
+    }
+  }, 100);
+  // --- End of round timer and tempo track setup ---
 
   // Movement variables
   const keys: Record<string, boolean> = {
