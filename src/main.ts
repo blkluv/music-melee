@@ -539,8 +539,8 @@ async function init() {
     const boxGeo = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
     // Use the synth type from config
     const chosenType = config.synth;
-    // Use the color from config for the material
-    const boxMat = new THREE.MeshStandardMaterial({ color: config.color });
+    // Use the color from config for the material, and make it glow as a light emitter
+    const boxMat = new THREE.MeshStandardMaterial({ color: config.color, emissive: config.color, emissiveIntensity: 1 });
     const boxMesh = new THREE.Mesh(boxGeo, boxMat);
     boxMesh.userData.originalColor = config.color;
     boxMesh.castShadow = true;
@@ -680,7 +680,7 @@ async function init() {
     const size = 1; // ticker block dimensions
     const tickerColor = 0x808080; // gray
     const blockGeo = new THREE.BoxGeometry(size, size, size);
-    const blockMat = new THREE.MeshStandardMaterial({ color: tickerColor });
+    const blockMat = new THREE.MeshStandardMaterial({ color: tickerColor, emissive: tickerColor, emissiveIntensity: 1 });
     const blockMesh = new THREE.Mesh(blockGeo, blockMat);
     blockMesh.userData.originalColor = tickerColor;
     blockMesh.castShadow = true;
