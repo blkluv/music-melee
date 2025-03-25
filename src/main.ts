@@ -50,10 +50,10 @@ async function init() {
         TONE.getContext().lookAhead = 0.01; // 10ms lookahead
         console.log("Tone.js audio context resumed with low latency settings");
         
-        // Start the bassline here once the context is running
+        // Schedule the bassline to start a short time in the future
         if (bassLine) {
-          bassLine.start();
-          console.log("Bassline started.");
+          bassLine.start("+0.1"); // Schedule bassline to start 0.1 seconds from now
+          console.log("Bassline scheduled to start.");
         } else {
           console.warn("Bassline is not defined at this point.");
         }
@@ -905,6 +905,7 @@ async function init() {
   
   // Ensure the bass synth is audible
   bassSynth.volume.value = 0; // set to 0 dB (audible)
+  console.log("Bass synth initialized with volume:", bassSynth.volume.value);
 
   // Define a 2-bar bassline riff in C Lydian.
   // Using quarter-note subdivisions ("4n") gives us 8 steps over 2 bars (2m).
