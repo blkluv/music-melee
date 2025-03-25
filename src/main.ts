@@ -375,7 +375,7 @@ async function init() {
     Synth: Array(10)
       .fill(0)
       .map(() => new TONE.Synth(synthConfigs.Synth)),
-    MetalSynth: Array(10)
+    MetalSynth: Array(30)
       .fill(0)
       .map(() => new TONE.MembraneSynth(synthConfigs.MetalSynth)),
     FMSynth: Array(5)
@@ -460,9 +460,11 @@ async function init() {
       if (synthIndex >= 0) {
         usedNodes.synths.MetalSynth[synthIndex] = true;
         boxSynth = synthPool.MetalSynth[synthIndex];
+        (boxSynth as any).poolIndex = synthIndex;
       } else {
         console.warn("No available MetalSynth in pool; instantiating a new one.");
         boxSynth = new TONE.MembraneSynth(synthConfigs.MetalSynth);
+        (boxSynth as any).poolIndex = -1;
       }
     } else if (chosenType === "FMSynth") {
       synthIndex = usedNodes.synths.FMSynth.findIndex((used) => !used);
@@ -585,6 +587,14 @@ async function init() {
           undefined,
           1,
         );
+
+        // Free the synth from the pool after the note duration
+        const poolIndex = (boxBody as any).assignedSynth.poolIndex;
+        if (poolIndex !== undefined && poolIndex >= 0) {
+          setTimeout(() => {
+            usedNodes.synths.MetalSynth[poolIndex] = false;
+          }, TONE.Time("8n").toMilliseconds());
+        }
 
         // Measure actual audio start time for latency calculation
         lastAudioStartTime = performance.now();
@@ -881,6 +891,9 @@ async function init() {
       octaves: 2,
     },
   }).toDestination();
+  
+  // Ensure the bass synth is audible
+  bassSynth.volume.value = 0; // set to 0 dB (audible)
 
   // Define a 2-bar bassline riff in C Lydian.
   // Using quarter-note subdivisions ("4n") gives us 8 steps over 2 bars (2m).
@@ -1023,6 +1036,14 @@ async function init() {
           undefined,
           1,
         );
+
+        // Free the synth from the pool after the note duration
+        const poolIndex = (blockBody as any).assignedSynth.poolIndex;
+        if (poolIndex !== undefined && poolIndex >= 0) {
+          setTimeout(() => {
+            usedNodes.synths.MetalSynth[poolIndex] = false;
+          }, TONE.Time("8n").toMilliseconds());
+        }
 
         // Measure actual audio start time for latency calculation
         lastAudioStartTime = performance.now();
