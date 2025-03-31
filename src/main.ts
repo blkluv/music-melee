@@ -1127,7 +1127,7 @@ async function init() {
 
   // --- Mobile Joystick Setup ---
   if (window.innerWidth < 768 || /Mobi/i.test(navigator.userAgent)) {
-    // Mark the game as running on a mobile/small-screen device.
+    // Mark as mobile.
     (window as any).isMobile = true;
 
     // Create a joystick container at the bottom left.
@@ -1140,7 +1140,7 @@ async function init() {
     joystickContainer.style.height = "100px";
     joystickContainer.style.borderRadius = "50%";
     joystickContainer.style.background = "rgba(0, 0, 0, 0.3)";
-    joystickContainer.style.touchAction = "none"; // Prevent default gestures
+    joystickContainer.style.touchAction = "none"; // Disable default gestures.
     document.body.appendChild(joystickContainer);
 
     // Create the joystick knob inside the container.
@@ -1151,127 +1151,130 @@ async function init() {
     joystickKnob.style.height = "50px";
     joystickKnob.style.borderRadius = "50%";
     joystickKnob.style.background = "#007BFF";
-    // Center the knob initially.
+    // Initially center the knob.
     joystickKnob.style.left = "25px";
     joystickKnob.style.top = "25px";
     joystickContainer.appendChild(joystickKnob);
 
-    // Global object to hold the normalized joystick input.
+    // Global joystick state.
     const joystickDirection = { x: 0, y: 0 };
     (window as any).joystickDirection = joystickDirection;
-
     let joystickActive = false;
-    let joystickStartX = 0;
-    let joystickStartY = 0;
+    let joystickPointerId: number | null = null;
 
-    joystickContainer.addEventListener("touchstart", (e: TouchEvent) => {
+    // Use pointer events for the joystick:
+    joystickContainer.addEventListener("pointerdown", (e: PointerEvent) => {
+      if (e.pointerType !== "touch") return; // Only process touch pointers.
       e.preventDefault();
       joystickActive = true;
-      const touch = e.touches[0];
+      joystickPointerId = e.pointerId;
       const rect = joystickContainer.getBoundingClientRect();
-      joystickStartX = touch.clientX - rect.left;
-      joystickStartY = touch.clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      // Position the knob at the touch point (center it).
+      const offsetX = e.clientX - rect.left;
+      const offsetY = e.clientY - rect.top;
+      joystickKnob.style.left = `${offsetX - joystickKnob.offsetWidth / 2}px`;
+      joystickKnob.style.top = `${offsetY - joystickKnob.offsetHeight / 2}px`;
+      // Reset direction.
+      joystickDirection.x = 0;
+      joystickDirection.y = 0;
     });
 
-    joystickContainer.addEventListener("touchmove", (e: TouchEvent) => {
+    joystickContainer.addEventListener("pointermove", (e: PointerEvent) => {
+      if (!joystickActive || e.pointerId !== joystickPointerId) return;
       e.preventDefault();
-      if (!joystickActive) return;
-      const touch = e.touches[0];
       const rect = joystickContainer.getBoundingClientRect();
-      const moveX = touch.clientX - rect.left;
-      const moveY = touch.clientY - rect.top;
-      // Calculate delta from container center (which is at 50,50 for 100x100).
-      let dx = moveX - 50;
-      let dy = moveY - 50;
-
-      // Clamp the magnitude to a maximum radius (e.g., 40px).
-      const maxRadius = 40;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      let dx = e.clientX - rect.left - centerX;
+      let dy = e.clientY - rect.top - centerY;
+      const maxRadius = centerX * 0.8; // Limit movement to 80% of the half container width.
       const distance = Math.sqrt(dx * dx + dy * dy);
       if (distance > maxRadius) {
         const ratio = maxRadius / distance;
         dx *= ratio;
         dy *= ratio;
       }
-      // Update the knob position.
-      joystickKnob.style.left = `${50 + dx - 25}px`;
-      joystickKnob.style.top = `${50 + dy - 25}px`;
-      // Normalize values to range -1 to 1.
+      // Update knob position.
+      joystickKnob.style.left = `${centerX + dx - joystickKnob.offsetWidth / 2}px`;
+      joystickKnob.style.top = `${centerY + dy - joystickKnob.offsetHeight / 2}px`;
+      // Update normalized direction (-1 to 1).
       joystickDirection.x = dx / maxRadius;
       joystickDirection.y = dy / maxRadius;
     });
 
-    joystickContainer.addEventListener("touchend", (e: TouchEvent) => {
+    joystickContainer.addEventListener("pointerup", (e: PointerEvent) => {
+      if (!joystickActive || e.pointerId !== joystickPointerId) return;
       e.preventDefault();
       joystickActive = false;
+      joystickPointerId = null;
       joystickDirection.x = 0;
       joystickDirection.y = 0;
       // Reset knob to center.
-      joystickKnob.style.left = "25px";
-      joystickKnob.style.top = "25px";
+      const rect = joystickContainer.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      joystickKnob.style.left = `${centerX - joystickKnob.offsetWidth / 2}px`;
+      joystickKnob.style.top = `${centerY - joystickKnob.offsetHeight / 2}px`;
     });
   } else {
     (window as any).isMobile = false;
   }
 
-  // --- Global Touch Handlers for Camera Control and Tap-to-Click ---
+  // --- Global Pointer Handlers for Camera Control and Tap-to-Click ---
   // Only add these on mobile devices
   if ((window as any).isMobile) {
-    let lastCameraTouch = { x: 0, y: 0 };
-    let cameraTouchActive = false;
-    // Helper to check if a touch target is within the joystick container.
+    let lastCameraPointer = { x: 0, y: 0 };
+    let cameraPanningActive = false;
+
+    // Helper: check if an event target is within the joystick container.
     function isInJoystick(target: EventTarget | null): boolean {
       if (!(target instanceof HTMLElement)) return false;
       return target.id === "joystickContainer" || !!target.closest("#joystickContainer");
     }
 
-    // When a touch starts anywhere not in the joystick, begin camera control gesture.
-    document.addEventListener("touchstart", (e: TouchEvent) => {
-      // If touch originates *inside* the joystick container, do nothing here.
+    document.addEventListener("pointerdown", (e: PointerEvent) => {
+      if (e.pointerType !== "touch") return;
+      // If the pointer is inside the joystick container, do nothing.
       if (isInJoystick(e.target)) return;
-      cameraTouchActive = true;
-      const touch = e.touches[0];
-      lastCameraTouch.x = touch.clientX;
-      lastCameraTouch.y = touch.clientY;
+      cameraPanningActive = true;
+      lastCameraPointer.x = e.clientX;
+      lastCameraPointer.y = e.clientY;
     }, { passive: false });
 
-    // On touchmove, if a camera gesture is active, update the camera rotation.
-    document.addEventListener("touchmove", (e: TouchEvent) => {
-      if (!cameraTouchActive) return;
-      // Prevent scrolling
+    document.addEventListener("pointermove", (e: PointerEvent) => {
+      if (!cameraPanningActive || e.pointerType !== "touch") return;
+      // To avoid interfering with joystick, ignore if the pointer is within the joystick container.
+      if (isInJoystick(e.target)) return;
       e.preventDefault();
-      const touch = e.touches[0];
-      const deltaX = touch.clientX - lastCameraTouch.x;
-      const deltaY = touch.clientY - lastCameraTouch.y;
-      lastCameraTouch.x = touch.clientX;
-      lastCameraTouch.y = touch.clientY;
-      // Sensitivity factor (adjust as needed)
+      const deltaX = e.clientX - lastCameraPointer.x;
+      const deltaY = e.clientY - lastCameraPointer.y;
+      lastCameraPointer.x = e.clientX;
+      lastCameraPointer.y = e.clientY;
       const sensitivity = 0.002;
-      // Rotate the yaw (horizontal rotation)
       controls.getObject().rotation.y -= deltaX * sensitivity;
-      // For pitch control, if the controls expose a pitchObject, update its rotation.
       if ((controls as any).pitchObject) {
-        const pitchObject = (controls as any).pitchObject;
-        pitchObject.rotation.x -= deltaY * sensitivity;
-        // Clamp pitch between -PI/2 and PI/2
-        pitchObject.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitchObject.rotation.x));
+        const pitchObj = (controls as any).pitchObject;
+        pitchObj.rotation.x -= deltaY * sensitivity;
+        // Clamp pitch rotation.
+        pitchObj.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitchObj.rotation.x));
       }
     }, { passive: false });
 
-    // On touchend, stop the camera control gesture.
-    document.addEventListener("touchend", (e: TouchEvent) => {
-      if (!cameraTouchActive) return;
-      cameraTouchActive = false;
-      // If the touch ended nearly at the same location (i.e. it's a tap), simulate a click.
-      if (e.changedTouches.length > 0) {
-        const touch = e.changedTouches[0];
-        // Create a synthetic click event at the touch location.
+    document.addEventListener("pointerup", (e: PointerEvent) => {
+      if (e.pointerType !== "touch") return;
+      cameraPanningActive = false;
+      // If the pointer did not move much (i.e. it's a tap), simulate a click.
+      if (Math.abs(e.clientX - lastCameraPointer.x) < 10 &&
+          Math.abs(e.clientY - lastCameraPointer.y) < 10) {
         const simulatedClick = new MouseEvent("click", {
           bubbles: true,
           cancelable: true,
-          clientX: touch.clientX,
-          clientY: touch.clientY
+          clientX: e.clientX,
+          clientY: e.clientY
         });
-        document.elementFromPoint(touch.clientX, touch.clientY)?.dispatchEvent(simulatedClick);
+        document.elementFromPoint(e.clientX, e.clientY)?.dispatchEvent(simulatedClick);
       }
     }, { passive: false });
   }
