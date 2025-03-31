@@ -1166,6 +1166,14 @@ async function init() {
                 triggerCameraShake();
               }
               
+              // Extract just the note letter (and accidental if present) from the full tone.
+              const noteMatch = note.match(/^([A-G]#?)/);
+              const noteLetter = noteMatch ? noteMatch[1] : note;
+
+              // Show the note popup and multiplier popup at the block's position.
+              spawnNotePopup(noteLetter, targetMesh.position);
+              spawnMultiplierPopup(bonusMultiplier, targetMesh.position);
+              
               // Trigger explosion sound
               explosionSynth.triggerAttackRelease((blockBody as any).assignedTone, "8n", undefined, 1.5);
               
@@ -1354,6 +1362,84 @@ async function init() {
       }
     }
     requestAnimationFrame(animateText);
+  }
+  
+  function spawnNotePopup(note: string, position: THREE.Vector3) {
+    const div = document.createElement("div");
+    div.innerText = note;
+    div.style.position = "absolute";
+    div.style.color = "#ffcc00";
+    div.style.fontSize = "22px";
+    div.style.fontWeight = "bold";
+    div.style.pointerEvents = "none";
+    div.style.opacity = "1";
+    document.body.appendChild(div);
+
+    // Convert the world position to screen coordinates.
+    const vector = position.clone().project(camera);
+    const x = ((vector.x + 1) / 2) * window.innerWidth;
+    const y = ((-vector.y + 1) / 2) * window.innerHeight;
+    div.style.left = `${x}px`;
+    div.style.top = `${y}px`;
+
+    // Generate random offsets for a funny angle.
+    const angle = (Math.random() - 0.5) * 90; // rotation between -45° and +45°
+    const xOffset = (Math.random() - 0.5) * 100; // horizontal offset in pixels
+    const yOffset = -50 - Math.random() * 50;    // always upward
+
+    const duration = 1500;
+    const start = performance.now();
+    function animate(now: number) {
+      const elapsed = now - start;
+      const progress = elapsed / duration;
+      div.style.transform = `translate(${xOffset * progress}px, ${yOffset * progress}px) rotate(${angle * progress}deg)`;
+      div.style.opacity = `${1 - progress}`;
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        div.remove();
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+
+  function spawnMultiplierPopup(multiplier: number, position: THREE.Vector3) {
+    const div = document.createElement("div");
+    div.innerText = `×${multiplier.toFixed(1)}`;
+    div.style.position = "absolute";
+    div.style.color = "#00ff00";
+    div.style.fontSize = "24px";
+    div.style.fontWeight = "bold";
+    div.style.pointerEvents = "none";
+    div.style.opacity = "1";
+    document.body.appendChild(div);
+
+    // Convert the world position to screen coordinates.
+    const vector = position.clone().project(camera);
+    const x = ((vector.x + 1) / 2) * window.innerWidth;
+    const y = ((-vector.y + 1) / 2) * window.innerHeight;
+    div.style.left = `${x}px`;
+    div.style.top = `${y}px`;
+
+    // Generate random trajectory.
+    const angle = (Math.random() - 0.5) * 90;
+    const xOffset = (Math.random() - 0.5) * 80;
+    const yOffset = -30 - Math.random() * 40;
+
+    const duration = 1500;
+    const start = performance.now();
+    function animate(now: number) {
+      const elapsed = now - start;
+      const progress = elapsed / duration;
+      div.style.transform = `translate(${xOffset * progress}px, ${yOffset * progress}px) rotate(${angle * progress}deg)`;
+      div.style.opacity = `${1 - progress}`;
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        div.remove();
+      }
+    }
+    requestAnimationFrame(animate);
   }
   
   function spawnParticlesAt(position: THREE.Vector3, color: number, countMultiplier?: number) {
