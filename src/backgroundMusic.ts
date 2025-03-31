@@ -28,7 +28,7 @@ export function setupBackgroundMusic(_globalLimiter: TONE.Limiter): BackgroundMu
       release: 3,
     },
   });
-  padSynth.volume.value = -20;
+  padSynth.volume.value = -40;
   padSynth.connect(musicMasterVolume);
 
   // Helper function to convert chord symbols to note arrays.
@@ -81,5 +81,5 @@ export function setupBackgroundMusic(_globalLimiter: TONE.Limiter): BackgroundMu
     console.log("Background music stopped");
   }
 
-  return { start, stop, updateMusicVolume: (vol: number) => { musicMasterVolume.volume.setValueAtTime(vol, TONE.now()); } };
+  return { start, stop };
 }

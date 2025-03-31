@@ -51,18 +51,6 @@ async function init() {
   controlsDiv.appendChild(gameVolSlider);
   controlsDiv.appendChild(document.createElement("br"));
 
-  // --- Music Volume Slider ---
-  const musicVolLabel = document.createElement("label");
-  musicVolLabel.textContent = "Music Volume:";
-  const musicVolSlider = document.createElement("input");
-  musicVolSlider.type = "range";
-  musicVolSlider.min = "-40";
-  musicVolSlider.max = "0";
-  musicVolSlider.value = "0";
-  musicVolSlider.step = "1";
-  controlsDiv.appendChild(musicVolLabel);
-  controlsDiv.appendChild(musicVolSlider);
-  controlsDiv.appendChild(document.createElement("br"));
 
   controlPane.appendChild(controlsDiv);
   document.body.appendChild(controlPane);
@@ -460,12 +448,6 @@ async function init() {
   // Setup background music system
   backgroundMusicSystem = setupBackgroundMusic(globalLimiter);
   
-  // Now register the music volume slider event listener.
-  musicVolSlider.addEventListener("input", () => {
-    if (backgroundMusicSystem && typeof backgroundMusicSystem.updateMusicVolume === "function") {
-      backgroundMusicSystem.updateMusicVolume(Number(musicVolSlider.value));
-    }
-  });
 
   // Pre-allocate a pool of synths for immediate use
   const synthPool = {
