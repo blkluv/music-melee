@@ -179,7 +179,7 @@ async function init() {
   const horizonY = 5; // Adjust this value if needed so it appears "at the horizon"
   const startPos = new THREE.Vector3(
     -halfArena * 1.5,
-    horizonY + 10, // Raise sun 10 units above the horizon at round start
+    horizonY + 30, // Raise sun 30 units above the horizon at round start
     -halfArena * 1.5,
   );
   const midPos = new THREE.Vector3(0, 120, 0); // Noon: sun is high overhead
