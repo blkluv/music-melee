@@ -1704,13 +1704,7 @@ async function init() {
     // Start the background music part in sync with the game round.
     backgroundPart.start("+0.1");
 
-    // After 60 seconds, transition from earlyProgression to lateProgression.
-    transport.schedule((time) => {
-      backgroundPart.clear(); // Remove all early progression events.
-      lateProgression.forEach((event) => {
-        backgroundPart.add(event.time, event);
-      });
-    }, "+60");
+    // Late progression transition removed to keep consistent chord progression
 
     // Optionally, ramp up the background synth volume until round end (e.g., from -18 dB to -12 dB)
     backgroundSynth.volume.rampTo(-36, roundDuration);
@@ -1743,7 +1737,8 @@ async function init() {
         clearInterval(roundTimerInterval);
         // Stop the round and perform cleanup:
         TONE.getTransport().stop();
-        // Background music disabled
+        TONE.getTransport().cancel();  // Cancel all pending scheduled events.
+        
         console.log("Round ended.");
         
         // Display summary overlay
