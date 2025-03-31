@@ -225,6 +225,8 @@ async function init() {
       const originalEmissiveIntensity = (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity;
       // Flash: Override color and emissive properties to white and boost flash intensity.
       (mesh.material as THREE.MeshStandardMaterial).color.set(0xffffff);
+      // Calculate timing error
+      const timingErrorMs = computeTimingError();
       // If perfect timing, add glow by increasing emissive intensity temporarily.
       if (timingErrorMs < 30) {
         (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity = 3;
