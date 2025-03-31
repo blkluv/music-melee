@@ -53,17 +53,40 @@
         font-size: 20px;
         color: #aaaaaa;
       }
+      #vibeJamLink {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        padding: 8px 12px;
+        font-size: 16px;
+        font-family: 'Roboto', sans-serif;
+        background: #fff;
+        color: #000;
+        text-decoration: none;
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+      #vibeJamLink:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      }
     </style>
   </head>
   <body>
     <div id="loading">Loading Music Melee...</div>
     <div id="startOverlay">
       <h2>Welcome to Music Melee!</h2>
-      <p>Hit blocks in-key for bonus points and build your combo.<br/>
-      Stay on beat to multiply your score.<br/>
-      Use WASD to move, and mouse to interact. Good luck!</p>
-      <p>Press any key or click to begin</p>
+      <p><strong>Gameplay Tips:</strong></p>
+      <ul style="text-align:left;">
+        <li>Use <strong>WASD</strong> to move and the <strong>mouse</strong> (or tap on mobile) to hit blocks.</li>
+        <li>Hit blocks that are in-key (notes C, D, E, F#, G, A, B) for bonus points.</li>
+        <li>Stay on beat – perfect timing increases your combo and score!</li>
+      </ul>
+      <p><strong>Press any key or click to begin</strong></p>
     </div>
     <script type="module" src="./main.ts"></script>
+    <a id="vibeJamLink" href="https://jam.pieter.com" target="_blank">🕹️ Vibe Jam 2025</a>
   </body>
 </html>

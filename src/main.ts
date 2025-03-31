@@ -620,19 +620,28 @@ async function init() {
         );
 
         // Revised scoring: use baseScore and combo multiplier.
+        // Revised scoring: compute timing error and bonus multiplier
+        const timingErrorMs = computeTimingError();
+        let bonusMultiplier = 1;
+        if (timingErrorMs < 30) {
+          bonusMultiplier = 1.5; // perfect timing: extra 50% bonus
+        } else if (timingErrorMs < 60) {
+          bonusMultiplier = 1.2; // nearly perfect timing: 20% bonus
+        }
+
         const lydianNotes = ["C", "D", "E", "F#", "G", "A", "B"];
         const thisNote: string = (boxBody as any).assignedTone;
         const noteMatch = thisNote.match(/^[A-G]#?/);
         if (noteMatch) {
           const noteLetter = noteMatch[0];
           if (lydianNotes.includes(noteLetter)) {
-            // In-key: add bonus score and increase combo
-            const pointsEarned = baseScore * comboMultiplier;
+            // In-key: add score considering combo and timing bonus.
+            const pointsEarned = baseScore * comboMultiplier * bonusMultiplier;
             score += pointsEarned;
-            comboMultiplier++; // chain bonus
+            comboMultiplier++;
             if (comboMultiplier > maxCombo) maxCombo = comboMultiplier;
-            // Optionally, call a particle effect
             spawnParticlesAt(mesh.position, mesh.userData.originalColor);
+            // Optionally: display a brief "Perfect!" message at the block position if timingErrorMs < 30.
           } else {
             // Off-key: penalize and reset combo multiplier
             score = score - baseScore < 0 ? 0 : score - baseScore;
@@ -1073,6 +1082,15 @@ async function init() {
 
         // Update score and modify block based on whether its tone is in the current key.
         {
+          // Revised scoring: compute timing error and bonus multiplier
+          const timingErrorMs = computeTimingError();
+          let bonusMultiplier = 1;
+          if (timingErrorMs < 30) {
+            bonusMultiplier = 1.5; // perfect timing: extra 50% bonus
+          } else if (timingErrorMs < 60) {
+            bonusMultiplier = 1.2; // nearly perfect timing: 20% bonus
+          }
+              
           // Define the allowed note letters for the current key (C Lydian)
           const lydianNotes = ["C", "D", "E", "F#", "G", "A", "B"];
           // Expect the tone to be in a format like "C4" (letter plus octave)
@@ -1091,12 +1109,12 @@ async function init() {
             impulseDir.normalize();
 
             if (lydianNotes.includes(noteLetter)) {
-              // In-key: Award points based on combo
-              const pointsEarned = baseScore * comboMultiplier;
+              // In-key: Award points based on combo and timing bonus
+              const pointsEarned = baseScore * comboMultiplier * bonusMultiplier;
               score += pointsEarned;
               comboMultiplier++;
               if (comboMultiplier > maxCombo) maxCombo = comboMultiplier;
-              
+                  
               // Choose a new random note (keeping the same octave).
               const newNoteLetter =
                 lydianNotes[Math.floor(Math.random() * lydianNotes.length)];
@@ -1109,7 +1127,7 @@ async function init() {
               ((targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial).color.setHex(newColor);
               ((targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial).emissive.setHex(newColor);
               targetMesh.userData.originalColor = newColor;
-              
+                  
               // Spawn particles for visual feedback
               spawnParticlesAt(targetMesh.position, newColor);
 
@@ -1125,7 +1143,7 @@ async function init() {
               // Off-key: Subtract a point and reset combo.
               score = score - baseScore < 0 ? 0 : score - baseScore;
               comboMultiplier = 1;
-              
+                  
               // Apply only a mild push.
               const mildForce = 5; // Small force
               impulseDir.scale(mildForce, impulseDir);
@@ -1179,6 +1197,16 @@ async function init() {
     context.listener.upZ.value = up.z;
   }
 
+  // Helper to compute the absolute timing error (in ms) relative to the nearest eighth note boundary.
+  function computeTimingError(): number {
+    const currentBPM = transport.bpm.value;
+    const eighthNoteLength = 60 / currentBPM / 2;
+    const currentTime = transport.seconds;
+    const mod = currentTime % eighthNoteLength;
+    const diff = Math.min(mod, eighthNoteLength - mod);
+    return diff * 1000; // return difference in milliseconds
+  }
+  
   // Helper function to compute timing accuracy and update UI
   function updateRhythmUI(note: string) {
     // Get the current BPM from the cached transport.
@@ -1473,8 +1501,14 @@ async function init() {
         summaryOverlay.innerHTML = `<h1>Round Over!</h1>
           <p>Final Score: ${score}</p>
           <p>Max Combo: ${maxCombo}</p>
-          <p>Great job – press F5 to play again</p>`;
+          <button id="playAgainBtn" style="margin-top:20px; padding:10px 20px; font-size:18px; cursor:pointer;">Play Again</button>
+          <p style="margin-top:10px;">Great job – click below to try again</p>`;
         document.body.appendChild(summaryOverlay);
+        
+        document.getElementById("playAgainBtn")!.addEventListener("click", () => {
+          // Option 1: Reload the page to restart the game:
+          window.location.reload();
+        });
       }
     }, 100);
   }
