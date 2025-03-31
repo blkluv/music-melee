@@ -1146,7 +1146,8 @@ async function init() {
             const noteLetter = noteMatch[1];
             const octave = noteMatch[2];
             // Always show the note popup, regardless of key.
-            spawnNotePopup(noteLetter, targetMesh.position);
+            const blockColorHex = '#' + targetMesh.userData.originalColor.toString(16).padStart(6, '0');
+            spawnNotePopup(noteLetter, targetMesh.position, blockColorHex);
             
             // Compute the impulse vector from the player to the block.
             const impulseDir = new CANNON.Vec3(
@@ -1169,8 +1170,8 @@ async function init() {
                 triggerCameraShake();
               }
               
-              // Only show the multiplier popup if combo > 1 or the hit was perfect.
-              if (comboMultiplier > 1 || timingErrorMs < 30) {
+              // Only show the multiplier popup if the bonus multiplier is above 1.
+              if (bonusMultiplier > 1) {
                 spawnMultiplierPopup(bonusMultiplier, targetMesh.position);
               }
               
@@ -1364,11 +1365,12 @@ async function init() {
     requestAnimationFrame(animateText);
   }
   
-  function spawnNotePopup(note: string, position: THREE.Vector3) {
+  function spawnNotePopup(note: string, position: THREE.Vector3, noteColor?: string) {
     const div = document.createElement("div");
     div.innerText = note;
     div.style.position = "absolute";
-    div.style.color = "#ffcc00";
+    // Use the provided noteColor (converted from block's original color) or default to yellow.
+    div.style.color = noteColor || "#ffcc00";
     div.style.fontSize = "22px";
     div.style.fontWeight = "bold";
     div.style.pointerEvents = "none";
@@ -1382,10 +1384,10 @@ async function init() {
     div.style.left = `${x}px`;
     div.style.top = `${y}px`;
 
-    // Generate random offsets for a funny angle.
-    const angle = (Math.random() - 0.5) * 90; // rotation between -45° and +45°
-    const xOffset = (Math.random() - 0.5) * 100; // horizontal offset in pixels
-    const yOffset = -50 - Math.random() * 50;    // always upward
+    // Force the note popup to fly to the right:
+    const angle = Math.random() * 30; // angle in degrees moving rightward
+    const xOffset = 50 + Math.random() * 50; // always positive (rightward)
+    const yOffset = -50 - Math.random() * 50;  // upward motion
 
     const duration = 1500;
     const start = performance.now();
@@ -1403,7 +1405,7 @@ async function init() {
     requestAnimationFrame(animate);
   }
 
-  function spawnMultiplierPopup(multiplier: number, position: THREE.Vector3) {
+  function spawnMultiplierPopup(multiplier: number, /* position parameter unused */ _pos?: THREE.Vector3) {
     const div = document.createElement("div");
     div.innerText = `×${multiplier.toFixed(1)}`;
     div.style.position = "absolute";
@@ -1414,24 +1416,23 @@ async function init() {
     div.style.opacity = "1";
     document.body.appendChild(div);
 
-    // Convert the world position to screen coordinates.
-    const vector = position.clone().project(camera);
-    const x = ((vector.x + 1) / 2) * window.innerWidth;
-    const y = ((-vector.y + 1) / 2) * window.innerHeight;
-    div.style.left = `${x}px`;
-    div.style.top = `${y}px`;
+    // Position the multiplier popup fixed above the score display.
+    div.style.left = "50%";
+    div.style.bottom = "60px";  // Adjust this value as needed for proper spacing
+    div.style.transform = "translateX(-50%)";
 
-    // Generate random trajectory.
-    const angle = (Math.random() - 0.5) * 90;
-    const xOffset = (Math.random() - 0.5) * 80;
-    const yOffset = -30 - Math.random() * 40;
+    // Generate a slight random offset and rotation for a subtle animation effect.
+    const angle = (Math.random() - 0.5) * 20; // small rotation variation
+    const xOffset = (Math.random() - 0.5) * 20; 
+    const yOffset = -10 - Math.random() * 10;
 
     const duration = 1500;
     const start = performance.now();
     function animate(now: number) {
       const elapsed = now - start;
       const progress = elapsed / duration;
-      div.style.transform = `translate(${xOffset * progress}px, ${yOffset * progress}px) rotate(${angle * progress}deg)`;
+      // Combine the fixed centering with the animated offset and rotation.
+      div.style.transform = `translate(${xOffset * progress}px, ${yOffset * progress}px) rotate(${angle * progress}deg) translateX(-50%)`;
       div.style.opacity = `${1 - progress}`;
       if (progress < 1) {
         requestAnimationFrame(animate);
