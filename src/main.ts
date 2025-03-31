@@ -1642,10 +1642,11 @@ async function init() {
 
     // New day–night cycle update:
     const elapsedRound = (performance.now() - roundStartTime) / 1000; // seconds elapsed since round start
+    let t = 0; // Declare t at this scope so it's available throughout the animation loop
 
     if (elapsedRound <= roundDuration - 20) {
       // From round start until (roundDuration - 20) seconds: transition from sunrise to noon.
-      const t = elapsedRound / (roundDuration - 20);  // normalized progression (0 to 1)
+      t = elapsedRound / (roundDuration - 20);  // normalized progression (0 to 1)
       
       // Lerp sun position from start (sunrise) to mid (noon) and sun colour from startColor to midColor.
       sun.position.lerpVectors(startPos, midPos, t);
@@ -1659,7 +1660,7 @@ async function init() {
       sunSphere.visible = true;
     } else {
       // In the final 20 seconds of the round: transition towards nightfall.
-      const t = (elapsedRound - (roundDuration - 20)) / 20;  // normalized (0 at 100s to 1 at 120s)
+      t = (elapsedRound - (roundDuration - 20)) / 20;  // normalized (0 at 100s to 1 at 120s)
       
       // Continue sun position transition: from noon (midPos) to end (sunset) if desired.
       sun.position.lerpVectors(midPos, endPos, t);
