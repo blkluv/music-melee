@@ -14,6 +14,10 @@ export interface BackgroundMusic {
 export function setupBackgroundMusic(_globalLimiter: TONE.Limiter): BackgroundMusic {
   console.log("Setting up simple background music...");
 
+  // Create a master volume node for background music.
+  const musicMasterVolume = new TONE.Volume(0);
+  musicMasterVolume.toDestination();
+
   // Create a gentle pad using a polyphonic synth with a slow envelope.
   const padSynth = new TONE.PolySynth(TONE.Synth, {
     oscillator: { type: "sine" },
@@ -23,8 +27,9 @@ export function setupBackgroundMusic(_globalLimiter: TONE.Limiter): BackgroundMu
       sustain: 0.7,
       release: 3,
     },
-  }).toDestination();
+  });
   padSynth.volume.value = -80;
+  padSynth.connect(musicMasterVolume);
 
   // Helper function to convert chord symbols to note arrays.
   function getChordNotes(chord: string): string[] {
@@ -76,5 +81,5 @@ export function setupBackgroundMusic(_globalLimiter: TONE.Limiter): BackgroundMu
     console.log("Background music stopped");
   }
 
-  return { start, stop };
+  return { start, stop, updateMusicVolume: (vol: number) => { musicMasterVolume.volume.value = vol; } };
 }
