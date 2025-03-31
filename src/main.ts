@@ -4,7 +4,6 @@ import { PointerLockControls } from "three/examples/jsm/controls/PointerLockCont
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import * as TONE from "tone";
 import * as CANNON from "cannon-es";
-import { setupBackgroundMusic } from "./backgroundMusic";
 
 // Initialize the game
 async function init() {
@@ -13,7 +12,6 @@ async function init() {
   // Declare variables at the top level of init() function
   let roundStartTime: number = 0;
   let roundDuration: number = 120; // in seconds (2 minutes)
-  let backgroundMusicSystem: any; // Will hold the background music controller
 
 
   // Set up low-latency audio context configuration
