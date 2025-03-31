@@ -1919,6 +1919,11 @@ async function init() {
     // --- Start of round timer and tempo track setup ---
     roundStartTime = performance.now();
 
+    // --- NEW: Force player spawn on the ground ---
+    playerBody.position.set(0, 1, 0);
+    playerBody.velocity.set(0, 0, 0);
+    // -------------------------------------------
+
     // Set initial tempo and ramp BPM to 180 over the round duration
     transport.bpm.value = 100;
     transport.bpm.rampTo(180, roundDuration);
