@@ -61,6 +61,74 @@ async function init() {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Optional: for a softer shadow look
   document.body.appendChild(renderer.domElement);
 
+  // --- New Mobile Camera Control on Canvas using Pointer Events ---
+  if ((window as any).isMobile) {
+    // Variables to store camera control state:
+    let cameraControlActive = false;
+    let cameraControlPointerId: number | null = null;
+    let cameraControlStart = { x: 0, y: 0 };
+
+    // Attach pointer events to the renderer canvas
+    renderer.domElement.addEventListener("pointerdown", (e: PointerEvent) => {
+      // Only process touch pointers
+      if (e.pointerType !== "touch") return;
+
+      // Do nothing if the pointer is inside the joystick container
+      const targetElem = e.target as HTMLElement;
+      if (targetElem.closest("#joystickContainer")) return; 
+
+      // Activate camera control:
+      cameraControlActive = true;
+      cameraControlPointerId = e.pointerId;
+      cameraControlStart = { x: e.clientX, y: e.clientY };
+
+      // Capture the pointer so that subsequent moves are always received
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    }, { passive: false });
+
+    renderer.domElement.addEventListener("pointermove", (e: PointerEvent) => {
+      if (!cameraControlActive || e.pointerId !== cameraControlPointerId) return;
+      // Prevent default scrolling or other browser gestures
+      e.preventDefault();
+      
+      // Calculate delta from previous move
+      const deltaX = e.movementX;
+      const deltaY = e.movementY;
+      // Adjust sensitivity as needed
+      const sensitivity = 0.002;
+      // Update camera rotation using the PointerLockControls object.
+      // We use controls.getObject() (which is the camera container)
+      controls.getObject().rotation.y -= deltaX * sensitivity;
+      if ((controls as any).pitchObject) {
+        const pitchObj = (controls as any).pitchObject;
+        pitchObj.rotation.x -= deltaY * sensitivity;
+        // Clamp the pitch rotation between -PI/2 and PI/2
+        pitchObj.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, pitchObj.rotation.x));
+      }
+    }, { passive: false });
+
+    renderer.domElement.addEventListener("pointerup", (e: PointerEvent) => {
+      if (e.pointerType !== "touch" || e.pointerId !== cameraControlPointerId) return;
+      // Release pointer capture
+      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      // Determine if this was a tap (minimal movement)
+      const tapThreshold = 10;
+      if (Math.abs(e.clientX - cameraControlStart.x) < tapThreshold &&
+          Math.abs(e.clientY - cameraControlStart.y) < tapThreshold) {
+        // Simulate a click event at the position
+        const simulatedClick = new MouseEvent("click", {
+          bubbles: true,
+          cancelable: true,
+          clientX: e.clientX,
+          clientY: e.clientY
+        });
+        document.elementFromPoint(e.clientX, e.clientY)?.dispatchEvent(simulatedClick);
+      }
+      cameraControlActive = false;
+      cameraControlPointerId = null;
+    }, { passive: false });
+  }
+
   // Setup Tone.js – resume audio context on first user interaction
   document.body.addEventListener(
     "click",
@@ -1188,6 +1256,8 @@ async function init() {
       e.preventDefault();
       joystickActive = true;
       joystickPointerId = e.pointerId;
+      // Capture the pointer so all subsequent moves are received
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
       const rect = joystickContainer.getBoundingClientRect();
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
@@ -1227,6 +1297,8 @@ async function init() {
     joystickContainer.addEventListener("pointerup", (e: PointerEvent) => {
       if (!joystickActive || e.pointerId !== joystickPointerId) return;
       e.preventDefault();
+      // Release pointer capture
+      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
       joystickActive = false;
       joystickPointerId = null;
       joystickDirection.x = 0;
@@ -1242,66 +1314,7 @@ async function init() {
     (window as any).isMobile = false;
   }
 
-  // --- Global Pointer Handlers for Camera Control and Tap-to-Click ---
-  // NOTE: If targeting older mobile browsers that do not support pointer events,
-  // consider adding equivalent touch event listeners for "touchstart", "touchmove", and "touchend".
-  // Only add these on mobile devices
-  if ((window as any).isMobile) {
-    let lastCameraPointer = { x: 0, y: 0 };
-    let cameraTapStart = { x: 0, y: 0 };
-    let cameraPanningActive = false;
-
-    // Helper: check if an event target is within the joystick container.
-    function isInJoystick(target: EventTarget | null): boolean {
-      if (!(target instanceof HTMLElement)) return false;
-      return target.id === "joystickContainer" || !!target.closest("#joystickContainer");
-    }
-
-    document.addEventListener("pointerdown", (e: PointerEvent) => {
-      if (e.pointerType !== "touch") return;
-      // If the pointer is inside the joystick container, do nothing.
-      if (isInJoystick(e.target)) return;
-      cameraPanningActive = true;
-      lastCameraPointer.x = e.clientX;
-      lastCameraPointer.y = e.clientY;
-      cameraTapStart = { x: e.clientX, y: e.clientY };
-    }, { passive: false });
-
-    document.addEventListener("pointermove", (e: PointerEvent) => {
-      if (!cameraPanningActive || e.pointerType !== "touch") return;
-      // To avoid interfering with joystick, ignore if the pointer is within the joystick container.
-      if (isInJoystick(e.target)) return;
-      e.preventDefault();
-      const deltaX = e.clientX - lastCameraPointer.x;
-      const deltaY = e.clientY - lastCameraPointer.y;
-      lastCameraPointer.x = e.clientX;
-      lastCameraPointer.y = e.clientY;
-      const sensitivity = 0.002;
-      controls.getObject().rotation.y -= deltaX * sensitivity;
-      if ((controls as any).pitchObject) {
-        const pitchObj = (controls as any).pitchObject;
-        pitchObj.rotation.x -= deltaY * sensitivity;
-        // Clamp pitch rotation.
-        pitchObj.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitchObj.rotation.x));
-      }
-    }, { passive: false });
-
-    document.addEventListener("pointerup", (e: PointerEvent) => {
-      if (e.pointerType !== "touch") return;
-      cameraPanningActive = false;
-      // If the pointer did not move much (i.e. it's a tap), simulate a click.
-      if (Math.abs(e.clientX - cameraTapStart.x) < 10 &&
-          Math.abs(e.clientY - cameraTapStart.y) < 10) {
-        const simulatedClick = new MouseEvent("click", {
-          bubbles: true,
-          cancelable: true,
-          clientX: e.clientX,
-          clientY: e.clientY
-        });
-        document.elementFromPoint(e.clientX, e.clientY)?.dispatchEvent(simulatedClick);
-      }
-    }, { passive: false });
-  }
+  // Camera control for mobile devices is now handled directly on the renderer canvas
 
   // Initialize raycaster for block click detection
   const raycaster = new THREE.Raycaster();
