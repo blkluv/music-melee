@@ -24,7 +24,7 @@ export function setupBackgroundMusic(_globalLimiter: TONE.Limiter): BackgroundMu
       release: 3,
     },
   }).toDestination();
-  padSynth.volume.value = -15;
+  padSynth.volume.value = -30;
 
   // Helper function to convert chord symbols to note arrays.
   function getChordNotes(chord: string): string[] {
