@@ -1145,6 +1145,9 @@ async function init() {
           if (noteMatch) {
             const noteLetter = noteMatch[1];
             const octave = noteMatch[2];
+            // Always show the note popup, regardless of key.
+            spawnNotePopup(noteLetter, targetMesh.position);
+            
             // Compute the impulse vector from the player to the block.
             const impulseDir = new CANNON.Vec3(
               targetMesh.position.x - playerBody.position.x,
@@ -1154,7 +1157,7 @@ async function init() {
             impulseDir.normalize();
 
             if (lydianNotes.includes(noteLetter)) {
-              // In-key: Award points as before
+              // In-key: Award points and adjust combo.
               const pointsEarned = baseScore * comboMultiplier * bonusMultiplier;
               score += pointsEarned;
               comboMultiplier++;
@@ -1166,13 +1169,10 @@ async function init() {
                 triggerCameraShake();
               }
               
-              // Extract just the note letter (and accidental if present) from the full tone.
-              const noteMatch = note.match(/^([A-G]#?)/);
-              const noteLetter = noteMatch ? noteMatch[1] : note;
-
-              // Show the note popup and multiplier popup at the block's position.
-              spawnNotePopup(noteLetter, targetMesh.position);
-              spawnMultiplierPopup(bonusMultiplier, targetMesh.position);
+              // Only show the multiplier popup if combo > 1 or the hit was perfect.
+              if (comboMultiplier > 1 || timingErrorMs < 30) {
+                spawnMultiplierPopup(bonusMultiplier, targetMesh.position);
+              }
               
               // Trigger explosion sound
               explosionSynth.triggerAttackRelease((blockBody as any).assignedTone, "8n", undefined, 1.5);
