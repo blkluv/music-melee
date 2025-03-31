@@ -426,12 +426,12 @@ async function init() {
     { time: "3:0:0", chord: ["G3", "B3", "D4", "F#4"] }
   ];
 
-  // Late progression: an even more exotic, jazz-inflected set of chords.
+  // Late progression: a less clashing, more jazzy set of chords.
   const lateProgression = [
-    { time: "0:0:0", chord: ["C4", "Eb4", "G4", "Bb4"] },
-    { time: "1:0:0", chord: ["F4", "Ab4", "C5", "Eb5"] },
-    { time: "2:0:0", chord: ["Bb3", "D4", "F4", "A4"] },
-    { time: "3:0:0", chord: ["E4", "G#4", "B4", "D5"] }
+    { time: "0:0:0", chord: ["C4", "E4", "G4", "Bb4"] }, // C7: dominant seventh with gentle tension
+    { time: "1:0:0", chord: ["A3", "C4", "E4", "G4"] },    // A minor 7
+    { time: "2:0:0", chord: ["D4", "F4", "A4", "C5"] },    // Dm7: classic jazz chord
+    { time: "3:0:0", chord: ["G3", "B3", "D4", "F4"] }     // G7: dominant seventh resolving back
   ];
 
   // Create a Tone.Part using the early progression and loop every 4 measures.
