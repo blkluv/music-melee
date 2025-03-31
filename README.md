@@ -16,13 +16,16 @@ The game is called Music Melee (a working title) and involves fast and responsiv
 - [x] Vibe Jam 2025 snippet [^0]
 - [x] Play again / new round
 - [x] More visual and auditory feedback: tempo flash, sounds / colours / confetti for perfect on-tempo in-key hits, etc.
+- [x] Vibey background music (in C Lydian) that adapts to increasing tempo and helps the players hear which blocks are in key
 
 **Upcoming:**
 
-- [ ] Vibey background music (in C Lydian) that adapts to increasing tempo and helps the players hear which blocks are in key
+- [ ] UI fixes and cleanup
+- [ ] Lighting, ambient illumination, and sky colour changes should be more gradual and elegant.
+- [ ] Block colours should be more easily distinguished. Dissonant blocks on opposite ends of colour spectrum.
 - [ ] Mobile support and tap controls
 - [ ] Leaderboard / score sharing option
-- [ ] levels portal: https://gist.github.com/levelsio/ffdbfe356b421b97a31664ded4bc961d
+- [ ] BONUS: levels' player portal: https://gist.github.com/levelsio/ffdbfe356b421b97a31664ded4bc961d
 
 ## Progress
 
