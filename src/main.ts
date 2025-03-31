@@ -426,12 +426,16 @@ async function init() {
     { time: "3:0:0", chord: ["G3", "B3", "D4", "F#4"] }
   ];
 
-  // Late progression: a less clashing, more jazzy set of chords.
+  // Late progression: more variety – keeping it subtle and jazzy.
   const lateProgression = [
-    { time: "0:0:0", chord: ["C4", "E4", "G4", "Bb4"] }, // C7: dominant seventh with gentle tension
-    { time: "1:0:0", chord: ["A3", "C4", "E4", "G4"] },    // A minor 7
-    { time: "2:0:0", chord: ["D4", "F4", "A4", "C5"] },    // Dm7: classic jazz chord
-    { time: "3:0:0", chord: ["G3", "B3", "D4", "F4"] }     // G7: dominant seventh resolving back
+    { time: "0:0:0", chord: ["C4", "E4", "G4", "Bb4"] }, // C7
+    { time: "1:0:0", chord: ["E4", "G4", "B4", "D5"] },
+    { time: "2:0:0", chord: ["A3", "C4", "E4", "G4"] },    // Am7
+    { time: "3:0:0", chord: ["D4", "F4", "A4", "C5"] },    // Dm7
+    { time: "4:0:0", chord: ["G3", "B3", "D4", "F4"] },     // G7
+    { time: "5:0:0", chord: ["F4", "A4", "C5", "E5"] },
+    { time: "6:0:0", chord: ["Bb3", "D4", "F4", "Ab4"] },   // adds a subtle tension
+    { time: "7:0:0", chord: ["C4", "E4", "G4", "Bb4"] }     // resolves back
   ];
 
   // Create a Tone.Part using the early progression and loop every 4 measures.
@@ -441,14 +445,14 @@ async function init() {
   backgroundPart.loop = true;
   backgroundPart.loopEnd = "4m";
 
-  // Lower the starting volume for backgroundSynth.
-  backgroundSynth.volume.value = -30;
+  // Lower the starting volume for backgroundSynth – even quieter.
+  backgroundSynth.volume.value = -32;
 
   // --- End new background music setup ---
   
   // --- Begin chillhop lofi percussion setup ---
   const lofiKick = new TONE.MembraneSynth({
-    volume: -10,
+    volume: -8,
     envelope: {
       attack: 0.001,
       decay: 0.3,
@@ -1709,7 +1713,7 @@ async function init() {
     }, "+60");
 
     // Optionally, ramp up the background synth volume until round end (e.g., from -18 dB to -12 dB)
-    backgroundSynth.volume.rampTo(-24, roundDuration);
+    backgroundSynth.volume.rampTo(-36, roundDuration);
 
     // Schedule block spawning: add two blocks per measure until the round ends
     transport.scheduleRepeat(spawnBlock, "2n");
@@ -1731,6 +1735,9 @@ async function init() {
       
       // Round progress (no longer used for music intensity)
       const progress = elapsed / roundDuration;
+    
+      // Gradually increase the chillhop beat's volume from -8 dB to 0 dB as the round progresses.
+      lofiKick.volume.value = -8 + (8 * t);
       
       if (remaining <= 0) {
         clearInterval(roundTimerInterval);
