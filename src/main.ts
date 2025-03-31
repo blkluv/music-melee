@@ -221,16 +221,16 @@ async function init() {
       // Flash the block white
       const originalColor = mesh.userData.originalColor;
       // Store the original emissive intensity.
-      const originalEmissiveIntensity = mesh.material.emissiveIntensity;
+      const originalEmissiveIntensity = (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity;
       // Flash: Override color and emissive properties to white and boost flash intensity.
-      mesh.material.color.set(0xffffff);
-      mesh.material.emissive.set(0xffffff);
-      mesh.material.emissiveIntensity = 2;
+      (mesh.material as THREE.MeshStandardMaterial).color.set(0xffffff);
+      (mesh.material as THREE.MeshStandardMaterial).emissive.set(0xffffff);
+      (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity = 2;
       setTimeout(() => {
         // Restore original color and a subtler emissive glow.
-        mesh.material.color.setHex(originalColor);
-        mesh.material.emissive.setHex(originalColor);
-        mesh.material.emissiveIntensity = 0.4;
+        (mesh.material as THREE.MeshStandardMaterial).color.setHex(originalColor);
+        (mesh.material as THREE.MeshStandardMaterial).emissive.setHex(originalColor);
+        (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.4;
       }, 150);
 
       // Compute impact velocity (if available) and ignore very soft collisions
@@ -544,13 +544,13 @@ async function init() {
     spatialVolume.volume.value = -12;
 
     // Connect the chain
-    boxSynth.disconnect();
-    boxSynth.chain(bassFilter, panner3D, spatialVolume, globalLimiter);
+    boxSynth!.disconnect();
+    boxSynth!.chain(bassFilter, panner3D, spatialVolume, globalLimiter);
 
     // Reset volume from -Infinity (dormant state) to 0 for audible output
-    boxSynth.volume.value = 0;
+    boxSynth!.volume.value = 0;
 
-    return { synth: boxSynth, bassFilter, spatialVolume, panner3D };
+    return { synth: boxSynth!, bassFilter, spatialVolume, panner3D };
   }
 
   // Helper function to compute volume based on distance and impact velocity
@@ -916,7 +916,7 @@ async function init() {
       const downRaycaster = new THREE.Raycaster();
       const origin = playerBody.position.clone();
       // Set ray downward (0, -1, 0)
-      downRaycaster.set(origin, new THREE.Vector3(0, -1, 0));
+      downRaycaster.set(new THREE.Vector3(origin.x, origin.y, origin.z), new THREE.Vector3(0, -1, 0));
 
       // Include the ground mesh and all block meshes in the raycast
       const intersectObjects = [groundMesh, ...boxMeshArray];
@@ -964,7 +964,7 @@ async function init() {
   const raycaster = new THREE.Raycaster();
 
   // Add Stats.js for performance monitoring
-  const stats = Stats();
+  const stats = new Stats();
   document.body.appendChild(stats.dom);
 
   // Add event listener for click tests
@@ -995,16 +995,16 @@ async function init() {
         // Flash the block white (store original color first).
         const originalColor = targetMesh.userData.originalColor;
         // Store the original emissive intensity.
-        const originalEmissiveIntensity = targetMesh.material.emissiveIntensity;
+        const originalEmissiveIntensity = (targetMesh as THREE.Mesh).material.emissiveIntensity;
         // Flash: Override color and emissive properties to white.
-        targetMesh.material.color.set(0xffffff);
-        targetMesh.material.emissive.set(0xffffff);
-        targetMesh.material.emissiveIntensity = 2;
+        (targetMesh as THREE.Mesh).material.color.set(0xffffff);
+        (targetMesh as THREE.Mesh).material.emissive.set(0xffffff);
+        (targetMesh as THREE.Mesh).material.emissiveIntensity = 2;
         setTimeout(() => {
           // Restore the original color and glow settings.
-          targetMesh.material.color.setHex(originalColor);
-          targetMesh.material.emissive.setHex(originalColor);
-          targetMesh.material.emissiveIntensity = 0.4;
+          (targetMesh as THREE.Mesh).material.color.setHex(originalColor);
+          (targetMesh as THREE.Mesh).material.emissive.setHex(originalColor);
+          (targetMesh as THREE.Mesh).material.emissiveIntensity = 0.4;
         }, 150);
 
         // Play the block sound with a "big impact" (simulate high impact velocity).
@@ -1051,8 +1051,8 @@ async function init() {
               // Change the block's colour.
               const newColor =
                 rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
-              targetMesh.material.color.setHex(newColor);
-              targetMesh.material.emissive.setHex(newColor);
+              (targetMesh as THREE.Mesh).material.color.setHex(newColor);
+              (targetMesh as THREE.Mesh).material.emissive.setHex(newColor);
               targetMesh.userData.originalColor = newColor;
 
               // Apply a strong push away from the player.
