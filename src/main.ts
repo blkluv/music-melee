@@ -669,18 +669,27 @@ async function init() {
           1,
         );
 
-        // Update score based on whether the block's note is in C Lydian.
+        // Revised scoring: use baseScore and combo multiplier.
         const lydianNotes = ["C", "D", "E", "F#", "G", "A", "B"];
         const thisNote: string = (boxBody as any).assignedTone;
         const noteMatch = thisNote.match(/^[A-G]#?/);
         if (noteMatch) {
           const noteLetter = noteMatch[0];
           if (lydianNotes.includes(noteLetter)) {
-            score++;
+            // In-key: add bonus score and increase combo
+            const pointsEarned = baseScore * comboMultiplier;
+            score += pointsEarned;
+            comboMultiplier++; // chain bonus
+            if (comboMultiplier > maxCombo) maxCombo = comboMultiplier;
+            // Optionally, call a particle effect
+            spawnParticlesAt(mesh.position, mesh.userData.originalColor);
           } else {
-            score--;
+            // Off-key: penalize and reset combo multiplier
+            score = score - baseScore < 0 ? 0 : score - baseScore;
+            comboMultiplier = 1;
           }
           scoreElem.innerText = `Score: ${score}`;
+          updateComboDisplay();
         }
 
         // Free the synth from the pool after the note duration
@@ -843,6 +852,37 @@ async function init() {
   latencyElem.style.fontSize = "18px";
   latencyElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(latencyElem);
+  
+  // New combo multiplier display
+  const comboElem = document.createElement("div");
+  comboElem.id = "comboDisplay";
+  comboElem.style.position = "absolute";
+  comboElem.style.top = "160px";
+  comboElem.style.left = "50%";
+  comboElem.style.transform = "translateX(-50%)";
+  comboElem.style.color = "yellow";
+  comboElem.style.fontSize = "24px";
+  comboElem.style.fontFamily = "Roboto, sans-serif";
+  comboElem.innerText = "Combo: 1";
+  document.body.appendChild(comboElem);
+
+  // New beat meter
+  const beatMeter = document.createElement("div");
+  beatMeter.id = "beatMeter";
+  beatMeter.style.position = "absolute";
+  beatMeter.style.bottom = "40px";
+  beatMeter.style.left = "50%";
+  beatMeter.style.transform = "translateX(-50%)";
+  beatMeter.style.width = "200px";
+  beatMeter.style.height = "20px";
+  beatMeter.style.background = "rgba(255,255,0,0.3)";
+  beatMeter.style.borderRadius = "10px";
+  document.body.appendChild(beatMeter);
+  
+  // Global scoring variables
+  let comboMultiplier = 1; // increases on each in-key hit
+  let maxCombo = 0;        // track the highest combo reached
+  const baseScore = 10;    // base points earned per hit (will be multiplied by the combo)
   
   // Music controls removed - background music now plays automatically with no UI controls
 
@@ -1101,8 +1141,12 @@ async function init() {
             impulseDir.normalize();
 
             if (lydianNotes.includes(noteLetter)) {
-              // In-key: Award a point.
-              score++;
+              // In-key: Award points based on combo
+              const pointsEarned = baseScore * comboMultiplier;
+              score += pointsEarned;
+              comboMultiplier++;
+              if (comboMultiplier > maxCombo) maxCombo = comboMultiplier;
+              
               // Choose a new random note (keeping the same octave).
               const newNoteLetter =
                 lydianNotes[Math.floor(Math.random() * lydianNotes.length)];
@@ -1115,6 +1159,9 @@ async function init() {
               ((targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial).color.setHex(newColor);
               ((targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial).emissive.setHex(newColor);
               targetMesh.userData.originalColor = newColor;
+              
+              // Spawn particles for visual feedback
+              spawnParticlesAt(targetMesh.position, newColor);
 
               // Apply a strong push away from the player.
               const strongForce = 20; // Large force
@@ -1122,21 +1169,24 @@ async function init() {
               blockBody.applyImpulse(impulseDir, blockBody.position);
 
               console.log(
-                `Block was in-key. Changed tone to ${newNote} and color updated.`,
+                `Block was in-key. Changed tone to ${newNote} and color updated. Combo: ${comboMultiplier}`,
               );
             } else {
-              // Off-key: Subtract a point.
-              score--;
+              // Off-key: Subtract a point and reset combo.
+              score = score - baseScore < 0 ? 0 : score - baseScore;
+              comboMultiplier = 1;
+              
               // Apply only a mild push.
               const mildForce = 5; // Small force
               impulseDir.scale(mildForce, impulseDir);
               blockBody.applyImpulse(impulseDir, blockBody.position);
 
               console.log(
-                "Block was off-key. Applied mild push; tone and color unchanged.",
+                "Block was off-key. Applied mild push; tone and color unchanged. Combo reset.",
               );
             }
             scoreElem.innerText = `Score: ${score}`;
+            updateComboDisplay();
           } else {
             // Fallback if tone format is unexpected.
             console.warn("Block tone has unexpected format:", thisNote);
@@ -1209,6 +1259,60 @@ async function init() {
     timingAccuracyElem.innerText = `Timing: ${diffMs} ms (${accuracyText})`;
     lastNoteElem.innerText = `Last Note: ${note}`;
   }
+  
+  function updateComboDisplay() {
+    comboElem.innerText = `Combo: ${comboMultiplier}`;
+  }
+  
+  function spawnParticlesAt(position: THREE.Vector3, color: number) {
+    // Create a small particle geometry and material to simulate a burst.
+    const particleGeo = new THREE.SphereGeometry(0.1, 8, 8);
+    const particleMat = new THREE.MeshBasicMaterial({ 
+      color,
+      transparent: true,
+      opacity: 1
+    });
+    const particle = new THREE.Mesh(particleGeo, particleMat);
+    particle.position.copy(position);
+    scene.add(particle);
+    
+    // Create 8 particles in different directions
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const speed = 0.05 + Math.random() * 0.05;
+      const clone = particle.clone();
+      clone.position.copy(position);
+      scene.add(clone);
+      
+      // Simple animation without TWEEN
+      const direction = new THREE.Vector3(
+        Math.cos(angle), 
+        0.5, // slight upward movement
+        Math.sin(angle)
+      );
+      
+      // Store animation data on the particle
+      (clone as any).velocity = direction.multiplyScalar(speed);
+      (clone as any).life = 1.0;
+      (clone as any).update = function(delta: number) {
+        this.position.add(this.velocity);
+        this.life -= delta * 2;
+        (this.material as THREE.MeshBasicMaterial).opacity = this.life;
+        if (this.life <= 0) {
+          scene.remove(this);
+        }
+      };
+      
+      // Add to a global array for animation
+      particlesToAnimate.push(clone);
+    }
+    
+    // Remove the original template particle
+    scene.remove(particle);
+  }
+  
+  // Array to track particles for animation
+  const particlesToAnimate: THREE.Mesh[] = [];
 
   // Track time for physics updates
   let lastTime = performance.now();
@@ -1284,6 +1388,29 @@ async function init() {
 
     // Update BPM display
     bpmElem.innerText = `BPM: ${transport.bpm.value.toFixed(0)}`;
+    
+    // Update beat meter: calculate time to next eighth note boundary
+    const currentBPM = transport.bpm.value;
+    const eighthNoteLength = 60 / currentBPM / 2;
+    const currentTransportTime = transport.seconds;
+    const mod = currentTransportTime % eighthNoteLength;
+    const beatFactor = mod / eighthNoteLength;
+    beatMeter.style.width = `${200 * (0.5 + 0.5 * Math.sin(beatFactor * Math.PI * 2))}px`;
+    
+    // Update particles
+    for (let i = particlesToAnimate.length - 1; i >= 0; i--) {
+      const particle = particlesToAnimate[i];
+      if (particle.parent === null) {
+        // Particle was already removed
+        particlesToAnimate.splice(i, 1);
+        continue;
+      }
+      
+      (particle as any).update(dt);
+      if ((particle as any).life <= 0) {
+        particlesToAnimate.splice(i, 1);
+      }
+    }
 
     // Animate sun position and color over the round duration
     const elapsedRound = (performance.now() - roundStartTime) / 1000;
@@ -1378,6 +1505,27 @@ async function init() {
         TONE.getTransport().stop();
         backgroundMusicSystem.stop();
         console.log("Round ended.");
+        
+        // Display summary overlay
+        const summaryOverlay = document.createElement("div");
+        summaryOverlay.id = "summaryOverlay";
+        summaryOverlay.style.position = "absolute";
+        summaryOverlay.style.top = "0";
+        summaryOverlay.style.left = "0";
+        summaryOverlay.style.right = "0";
+        summaryOverlay.style.bottom = "0";
+        summaryOverlay.style.background = "rgba(0, 0, 0, 0.8)";
+        summaryOverlay.style.color = "white";
+        summaryOverlay.style.display = "flex";
+        summaryOverlay.style.flexDirection = "column";
+        summaryOverlay.style.alignItems = "center";
+        summaryOverlay.style.justifyContent = "center";
+        summaryOverlay.style.fontFamily = "Roboto, sans-serif";
+        summaryOverlay.innerHTML = `<h1>Round Over!</h1>
+          <p>Final Score: ${score}</p>
+          <p>Max Combo: ${maxCombo}</p>
+          <p>Great job – press F5 to play again</p>`;
+        document.body.appendChild(summaryOverlay);
       }
     }, 100);
   }
