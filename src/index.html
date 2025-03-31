@@ -56,24 +56,25 @@
       #vibeJamLink {
         position: fixed;
         bottom: 10px;
-        left: 10px;
-        padding: 8px 12px;
-        font-size: 16px;
+        right: 10px;
+        padding: 4px 8px; /* Reduced padding for smaller size */
+        font-size: 12px;  /* Smaller font size */
         font-family: 'Roboto', sans-serif;
-        background: #fff;
-        color: #000;
+        background: #FFFFFF;
+        color: #FFFFFF;
         text-decoration: none;
-        border: 1px solid #ccc;
-        border-radius: 12px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        border: 1px solid #000; /* Black border */
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         transition: transform 0.3s, box-shadow 0.3s;
+        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
       }
       #vibeJamLink:hover {
         transform: scale(1.1);
         box-shadow: 0 4px 8px rgba(0,0,0,0.3);
       }
       @media (max-width: 768px) {
-        /* Reduce font sizes for UI elements */
+        /* Ensure all UI elements with IDs retain a legible size with white text and black outline */
         #blockCounter,
         #bpmDisplay,
         #timingAccuracy,
@@ -82,6 +83,8 @@
         #scoreDisplay,
         #comboDisplay {
           font-size: 16px !important;
+          color: #FFFFFF !important;
+          text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
         }
 
         /* Adjust start overlay for mobile screens */
@@ -126,7 +129,6 @@
       <p>Vibecoded with love by <a href="https://gianluca.ai" target="_blank" style="color: #a0a0ff; text-decoration: none;">Gianluca</a> using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet</p>
       <a id="vibeJamLink" href="https://jam.pieter.com" target="_blank">🕹️ Vibe Jam 2025</a>
     </div>
-    <a id="vibeJamLink" href="https://jam.pieter.com" target="_blank">🕹️ Vibe Jam 2025</a>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>

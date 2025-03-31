@@ -832,7 +832,8 @@ async function init() {
   blockCounterElem.style.position = "absolute";
   blockCounterElem.style.top = "10px";
   blockCounterElem.style.right = "10px"; // Changed from left to right
-  blockCounterElem.style.color = "#007BFF";
+  blockCounterElem.style.color = "#FFFFFF";
+  blockCounterElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
   blockCounterElem.style.fontSize = "18px";
   blockCounterElem.style.fontFamily = "Roboto, sans-serif"; // New font-family
   document.body.appendChild(blockCounterElem);
@@ -843,7 +844,8 @@ async function init() {
   bpmElem.style.position = "absolute";
   bpmElem.style.top = "40px";
   bpmElem.style.right = "10px";
-  bpmElem.style.color = "#007BFF";
+  bpmElem.style.color = "#FFFFFF";
+  bpmElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
   bpmElem.style.fontSize = "18px";
   bpmElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(bpmElem);
@@ -854,7 +856,8 @@ async function init() {
   timingAccuracyElem.style.position = "absolute";
   timingAccuracyElem.style.top = "70px";
   timingAccuracyElem.style.right = "10px";
-  timingAccuracyElem.style.color = "#007BFF";
+  timingAccuracyElem.style.color = "#FFFFFF";
+  timingAccuracyElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
   timingAccuracyElem.style.fontSize = "18px";
   timingAccuracyElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(timingAccuracyElem);
@@ -865,7 +868,8 @@ async function init() {
   lastNoteElem.style.position = "absolute";
   lastNoteElem.style.top = "100px";
   lastNoteElem.style.right = "10px";
-  lastNoteElem.style.color = "#007BFF";
+  lastNoteElem.style.color = "#FFFFFF";
+  lastNoteElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
   lastNoteElem.style.fontSize = "18px";
   lastNoteElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(lastNoteElem);
@@ -883,7 +887,8 @@ async function init() {
   roundTimerElem.style.top = "10px";
   roundTimerElem.style.left = "50%";
   roundTimerElem.style.transform = "translateX(-50%)";
-  roundTimerElem.style.color = "#007BFF";
+  roundTimerElem.style.color = "#FFFFFF";
+  roundTimerElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
   roundTimerElem.style.fontSize = "24px";
   roundTimerElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(roundTimerElem);
@@ -896,7 +901,8 @@ async function init() {
   scoreElem.style.bottom = "10px";
   scoreElem.style.left = "50%";
   scoreElem.style.transform = "translateX(-50%)";
-  scoreElem.style.color = "#007BFF";
+  scoreElem.style.color = "#FFFFFF";
+  scoreElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
   scoreElem.style.fontSize = "18px";
   scoreElem.style.fontFamily = "Roboto, sans-serif";
   scoreElem.innerText = "Score: 0";
@@ -911,7 +917,8 @@ async function init() {
   comboElem.style.top = "160px";
   comboElem.style.left = "50%";
   comboElem.style.transform = "translateX(-50%)";
-  comboElem.style.color = "#DC3545";
+  comboElem.style.color = "#FFFFFF";
+  comboElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
   comboElem.style.fontSize = "24px";
   comboElem.style.fontFamily = "Roboto, sans-serif";
   comboElem.innerText = "Combo: 1";
@@ -1895,8 +1902,11 @@ async function init() {
   creditElem.id = "creditFooter";
   creditElem.style.position = "absolute";
   creditElem.style.bottom = "5px";
-  creditElem.style.right = "10px";
-  creditElem.style.color = "#28A745";
+  creditElem.style.left = "0";
+  creditElem.style.right = "0";
+  creditElem.style.textAlign = "center";
+  creditElem.style.color = "#FFFFFF";
+  creditElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
   creditElem.style.fontSize = "12px";
   creditElem.style.fontFamily = "Roboto, sans-serif";
   creditElem.innerHTML = 'Vibecoded with love by <a href="https://gianluca.ai" target="_blank" style="color: #a0a0ff; text-decoration: none;">Gianluca</a> using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet';
