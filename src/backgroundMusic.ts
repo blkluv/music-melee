@@ -134,7 +134,9 @@ export function setupBackgroundMusic(globalLimiter: TONE.Limiter): BackgroundMus
       (time, chord) => {
         // Convert chord symbol into an array of note names
         const notes = getChordNotes(chord);
-        padSynth.triggerAttackRelease(notes, "2n", time);
+        notes.forEach(note => {
+          padSynth.triggerAttackRelease(note, "2n", time);
+        });
       },
       progression,
       "up"
