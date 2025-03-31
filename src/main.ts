@@ -113,7 +113,11 @@ async function init() {
   // Wall parameters
   const wallThickness = 1;
   const wallHeight = 20;
-  const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x999999 });
+  const wallMaterial = new THREE.MeshStandardMaterial({ 
+    color: 0x999999,
+    roughness: 0.7,
+    metalness: 0.2
+  });
   const halfArena = arenaSize / 2;
 
   // Create a helper function to make a wall with matching physics body:
@@ -197,6 +201,7 @@ async function init() {
   sun.shadow.camera.bottom = -50;
   sun.shadow.camera.left = -50;
   sun.shadow.camera.right = 50;
+  sun.shadow.bias = -0.001; // Add shadow bias to reduce artifacts on walls
   scene.add(sun);
 
   // Create a visible sun sphere to simulate the sun
