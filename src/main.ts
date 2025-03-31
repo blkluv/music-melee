@@ -1722,6 +1722,7 @@ async function init() {
     // Update the round timer element every 100ms
     const roundTimerInterval = setInterval(() => {
       const elapsed = (performance.now() - roundStartTime) / 1000;
+      const t = Math.min(elapsed / roundDuration, 1);
       const remaining = Math.max(0, roundDuration - elapsed);
       const minutes = Math.floor(remaining / 60);
       const seconds = Math.floor(remaining % 60);
