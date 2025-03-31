@@ -1090,6 +1090,9 @@ async function init() {
         const note = (blockBody as any).assignedTone;
         lastCollisionTime = performance.now();
 
+        // Compute timing error before using it
+        const timingErrorMs = computeTimingError();
+        
         // Immediate triggering with no scheduling delay
         if (timingErrorMs < 30) {
           // For perfect hit, trigger note at slightly higher volume
