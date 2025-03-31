@@ -1667,16 +1667,17 @@ async function init() {
 
     let moveX = 0;
     let moveZ = 0;
-    if ((window as any).isMobile) {
-      // Use joystick input on mobile: positive x = right; negative y = forward.
+    // Add keyboard inputs
+    if (keys.w) moveZ += 1;
+    if (keys.s) moveZ -= 1;
+    if (keys.a) moveX += 1;
+    if (keys.d) moveX -= 1;
+
+    // Add joystick inputs if available (non-blocking)
+    if ((window as any).joystickDirection) {
       const joy = (window as any).joystickDirection;
-      moveX = joy.x;
-      moveZ = -joy.y;  // Invert y so that upward on the joystick (negative) means forward.
-    } else {
-      if (keys.w) moveZ += 1;
-      if (keys.s) moveZ -= 1;
-      if (keys.a) moveX += 1;
-      if (keys.d) moveX -= 1;
+      moveX += joy.x;
+      moveZ += -joy.y; // Invert y so that upward on the joystick means forward.
     }
 
     const velocity = new CANNON.Vec3();
