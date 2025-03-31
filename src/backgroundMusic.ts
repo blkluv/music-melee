@@ -51,6 +51,26 @@ export function setupBackgroundMusic(globalLimiter: TONE.Limiter): BackgroundMus
   }).connect(musicReverb);
   padSynth.volume.value = -20;
   
+  // Helper function to convert chord symbols to arrays of note names
+  function getChordNotes(chord: string): string[] {
+    switch (chord) {
+      case "CM7":
+        return ["C4", "E4", "G4", "B4"];
+      case "D7":
+        return ["D4", "F#4", "A4", "C5"];
+      case "EM7":
+        return ["E4", "G#4", "B4", "D#5"];
+      case "F#m7":
+        return ["F#4", "A4", "C#5", "E5"];
+      case "AM7":
+        return ["A4", "C#5", "E5", "G#5"];
+      case "GM7":
+        return ["G4", "B4", "D5", "F#5"];
+      default:
+        return [chord]; // fallback: return chord as a single note
+    }
+  }
+  
   // Create a bass synth
   const bassSynth = new TONE.MonoSynth({
     oscillator: {
@@ -112,7 +132,9 @@ export function setupBackgroundMusic(globalLimiter: TONE.Limiter): BackgroundMus
     const progression = chordProgressions[currentProgression];
     const pattern = new TONE.Pattern(
       (time, chord) => {
-        padSynth.triggerAttackRelease(chord, "2n", time);
+        // Convert chord symbol into an array of note names
+        const notes = getChordNotes(chord);
+        padSynth.triggerAttackRelease(notes, "2n", time);
       },
       progression,
       "up"
