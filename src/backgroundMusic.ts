@@ -16,7 +16,7 @@ export function setupBackgroundMusic(_globalLimiter: TONE.Limiter): BackgroundMu
 
   // Create a master volume node for background music.
   const musicMasterVolume = new TONE.Volume(0);
-  musicMasterVolume.toDestination();
+  musicMasterVolume.connect(_globalLimiter);
 
   // Create a gentle pad using a polyphonic synth with a slow envelope.
   const padSynth = new TONE.PolySynth(TONE.Synth, {
@@ -28,7 +28,7 @@ export function setupBackgroundMusic(_globalLimiter: TONE.Limiter): BackgroundMu
       release: 3,
     },
   });
-  padSynth.volume.value = -40;
+  padSynth.volume.value = -60;
   padSynth.connect(musicMasterVolume);
 
   // Helper function to convert chord symbols to note arrays.
