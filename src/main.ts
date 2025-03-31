@@ -753,8 +753,8 @@ async function init() {
         lastAudioStartTime = performance.now();
         measuredLatency = lastAudioStartTime - lastCollisionTime;
 
-        latencyElem.innerText = `JS Latency: ${measuredLatency.toFixed(2)} ms`;
-
+        // latencyElem removed - no longer displaying JS latency
+        
         updateRhythmUI(note); // Only updated if the collision involves the player
       }
     });
