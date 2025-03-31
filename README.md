@@ -1,24 +1,24 @@
 # Music Melee
 
-A multiplayer 3D game that will run efficiently off a Node server using websockets.
-
-The game is called Music Melee (a working title) and involves fast and responsive parkour-like gameplay as players bounce around the environment and melee each other. As the name suggests, the twist is that everything in the game creates dynamic sounds (mapped out in stereo 3D) and the more chaotic the battles get, the more sonically interesting it becomes. Players can get powerups for musically-interesting behaviour like achieving certain harmonies or matching the rhythm of the arena (which is procedurally generated at the start of the match). Matches are 2 minutes long and then the arena resets.
+The game is called Music Melee (a working title) and involves fast and responsive parkour-like gameplay as players bounce around the environment and melee blocks. As the name suggests, the twist is that everything in the game creates dynamic sounds (mapped out in stereo 3D) and the more chaotic the battles get, the more sonically interesting it becomes. Players can get powerups for musically-interesting behaviour like achieving certain harmonies or matching the rhythm of the arena (which is procedurally generated at the start of the match). Matches are 2 minutes long and then the arena resets.
 
 ## Roadmap
 
 **Completed:**
 
-- Initial 3D spatial sound implementation with dynamic audio chains per block.
-- Improved listener orientation and reduced sound distance falloff.
-- Fine-tuned player movement (faster horizontal movement and reduced jump power).
-- Debugging tools: ticker block with periodic flashing and click sound, block counter, and performance stats.
+- [x] Initial 3D spatial sound implementation with dynamic audio chains per block.
+- [x] Improved listener orientation and reduced sound distance falloff.
+- [x] Fine-tuned player movement (faster horizontal movement and reduced jump power).
+- [x] Debugging tools: ticker block with periodic flashing and click sound, block counter, and performance stats.
 
 **Upcoming:**
 
-- Multiplayer functionality via websockets.
-- Additional sound effects and musical power-ups.
-- Procedurally generated arena rhythms and dynamic environment changes.
-- Further performance optimizations and advanced physics interactions.
+- [ ] Background music
+- [ ] Mobile support and controls
+- [ ] Updated scoring based on rhythm and notes in key
+- [ ] Plug to personal site: "Vibecoded with love by [Gianluca](https://gianluca.ai) using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet"
+- [ ] Leaderboard / score sharing option
+- [ ] levels portal
 
 ## Progress
 
