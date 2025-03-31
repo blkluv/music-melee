@@ -58,7 +58,7 @@ async function init() {
       if (overlay) overlay.remove();
 
       // Spawn the starting blocks now (if not already spawned)
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < 50; i++) {
         spawnBlock();
       }
 
@@ -1128,42 +1128,32 @@ async function init() {
             impulseDir.normalize();
 
             if (lydianNotes.includes(noteLetter)) {
-              // In-key: Award points based on combo and timing bonus
+              // In-key: Award points as before
               const pointsEarned = baseScore * comboMultiplier * bonusMultiplier;
               score += pointsEarned;
               comboMultiplier++;
               if (comboMultiplier > maxCombo) maxCombo = comboMultiplier;
               
-              // For very perfect timing (error < 30ms), show floating "Perfect!"
+              // For very perfect timing, display feedback
               if (timingErrorMs < 30) {
                 spawnFloatingText("Perfect!", targetMesh.position);
                 triggerCameraShake();
               }
               
-              // Choose a new random note (keeping the same octave).
-              const newNoteLetter =
-                lydianNotes[Math.floor(Math.random() * lydianNotes.length)];
-              const newNote = newNoteLetter + octave;
-              (blockBody as any).assignedTone = newNote;
-
-              // Change the block's colour.
-              const newColor =
-                rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
-              ((targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial).color.setHex(newColor);
-              ((targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial).emissive.setHex(newColor);
-              targetMesh.userData.originalColor = newColor;
-                  
-              // Spawn particles for visual feedback
-              spawnParticlesAt(targetMesh.position, newColor);
-
-              // Apply a strong push away from the player.
-              const strongForce = 20; // Large force
-              impulseDir.scale(strongForce, impulseDir);
-              blockBody.applyImpulse(impulseDir, blockBody.position);
-
-              console.log(
-                `Block was in-key. Changed tone to ${newNote} and color updated. Combo: ${comboMultiplier}`,
-              );
+              // Trigger explosion effect at the block's position
+              spawnParticlesAt(targetMesh.position, targetMesh.userData.originalColor);
+              
+              // Remove the block from the scene and physics world
+              scene.remove(targetMesh);
+              world.removeBody(blockBody);
+              // Also remove from the global block mesh array and update counter:
+              const index = boxMeshArray.indexOf(targetMesh);
+              if (index > -1) {
+                boxMeshArray.splice(index, 1);
+                updateBlockCounter();
+              }
+              
+              console.log("Block exploded and removed.");
             } else {
               // Off-key: Subtract a point and reset combo.
               score = score - baseScore < 0 ? 0 : score - baseScore;
@@ -1546,16 +1536,10 @@ async function init() {
     
     // Background music disabled
 
-    // Schedule block spawning: add one block every bar (1 measure) until the round ends
-    transport.scheduleRepeat(spawnBlock, "1m");
+    // Schedule block spawning: add two blocks per measure until the round ends
+    transport.scheduleRepeat(spawnBlock, "2n");
     
-    // Flash the screen border each bar (once per measure)
-    transport.scheduleRepeat((time) => {
-      document.body.style.border = "4px solid rgba(255,255,255,0.5)";
-      setTimeout(() => {
-        document.body.style.border = "";
-      }, 100); // flash duration (100ms)
-    }, "1m");
+    // Border flash removed for cleaner UI
 
     // Debug transport ticking
     transport.scheduleRepeat((time) => {
