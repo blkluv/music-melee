@@ -277,8 +277,6 @@ async function init() {
         lastAudioStartTime = performance.now();
         measuredLatency = lastAudioStartTime - lastCollisionTime;
 
-        latencyElem.innerText = `JS Latency: ${measuredLatency.toFixed(2)} ms`;
-
         updateRhythmUI(note); // Update UI for player-driven collision actions
       }
     }
@@ -856,16 +854,7 @@ async function init() {
   scoreElem.innerText = "Score: 0";
   document.body.appendChild(scoreElem);
 
-  // Create latency display element for debugging
-  const latencyElem = document.createElement("div");
-  latencyElem.id = "latencyDisplay";
-  latencyElem.style.position = "absolute";
-  latencyElem.style.top = "130px";
-  latencyElem.style.right = "10px";
-  latencyElem.style.color = "white";
-  latencyElem.style.fontSize = "18px";
-  latencyElem.style.fontFamily = "Roboto, sans-serif";
-  document.body.appendChild(latencyElem);
+  // Latency display removed
   
   // New combo multiplier display
   const comboElem = document.createElement("div");
@@ -1227,7 +1216,6 @@ async function init() {
         // Measure actual audio start time for latency calculation
         lastAudioStartTime = performance.now();
         measuredLatency = lastAudioStartTime - lastCollisionTime;
-        latencyElem.innerText = `Audio Latency: ${measuredLatency.toFixed(2)} ms`;
 
         updateRhythmUI(note);
       }
@@ -1642,7 +1630,10 @@ async function init() {
           <p>Final Score: ${score}</p>
           <p>Max Combo: ${maxCombo}</p>
           <button id="playAgainBtn" style="margin-top:20px; padding:10px 20px; font-size:18px; cursor:pointer;">Play Again</button>
-          <p style="margin-top:10px;">Great job – click below to try again</p>`;
+          <p style="margin-top:10px;">Great job – click below to try again</p>
+          <p style="font-size:24px; color:#ffcc00; margin-top:20px;">
+            Vibecoded with love by Gianluca | <a href="https://jam.pieter.com" target="_blank" style="color:#a0a0ff; text-decoration:underline;">Vibe Jam 2025</a>
+          </p>`;
         document.body.appendChild(summaryOverlay);
         
         document.getElementById("playAgainBtn")!.addEventListener("click", () => {
