@@ -800,7 +800,7 @@ async function init() {
   musicControlsElem.style.fontSize = "18px";
   musicControlsElem.style.fontFamily = "Roboto, sans-serif";
   
-  // Create music toggle button
+  // Create music toggle button (simplified to just stop/start)
   const musicToggleBtn = document.createElement("button");
   musicToggleBtn.textContent = "🔇 Mute Music";
   musicToggleBtn.style.background = "rgba(0, 0, 0, 0.5)";
@@ -811,12 +811,18 @@ async function init() {
   musicToggleBtn.style.borderRadius = "4px";
   
   let musicMuted = false;
+  let musicWasPlaying = false;
   musicToggleBtn.addEventListener("click", () => {
     if (musicMuted) {
-      backgroundMusicSystem.unmute();
+      // Restart music if it was playing before
+      if (musicWasPlaying) {
+        backgroundMusicSystem.start();
+      }
       musicToggleBtn.textContent = "🔇 Mute Music";
     } else {
-      backgroundMusicSystem.mute();
+      // Remember if music was playing
+      musicWasPlaying = TONE.Transport.state === "started";
+      backgroundMusicSystem.stop();
       musicToggleBtn.textContent = "🔊 Unmute Music";
     }
     musicMuted = !musicMuted;
@@ -1348,9 +1354,8 @@ async function init() {
       const seconds = Math.floor(remaining % 60);
       roundTimerElem.innerText = `${minutes}:${seconds.toString().padStart(2, "0")}`;
       
-      // Update background music intensity based on round progress
+      // Round progress (no longer used for music intensity)
       const progress = elapsed / roundDuration;
-      backgroundMusicSystem.updateIntensity(progress);
       
       if (remaining <= 0) {
         clearInterval(roundTimerInterval);
