@@ -836,6 +836,8 @@ async function init() {
   blockCounterElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
   blockCounterElem.style.fontSize = "18px";
   blockCounterElem.style.fontFamily = "Roboto, sans-serif"; // New font-family
+  blockCounterElem.style.maxWidth = "90%";
+  blockCounterElem.style.whiteSpace = "normal";
   document.body.appendChild(blockCounterElem);
 
   // Create BPM display element below the block counter
@@ -848,6 +850,8 @@ async function init() {
   bpmElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
   bpmElem.style.fontSize = "18px";
   bpmElem.style.fontFamily = "Roboto, sans-serif";
+  bpmElem.style.maxWidth = "90%";
+  bpmElem.style.whiteSpace = "normal";
   document.body.appendChild(bpmElem);
 
   // Create new UI element for timing accuracy (difference to nearest measure in ms)
@@ -860,6 +864,8 @@ async function init() {
   timingAccuracyElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
   timingAccuracyElem.style.fontSize = "18px";
   timingAccuracyElem.style.fontFamily = "Roboto, sans-serif";
+  timingAccuracyElem.style.maxWidth = "90%";
+  timingAccuracyElem.style.whiteSpace = "normal";
   document.body.appendChild(timingAccuracyElem);
 
   // Create new UI element for last triggered note
@@ -872,6 +878,8 @@ async function init() {
   lastNoteElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
   lastNoteElem.style.fontSize = "18px";
   lastNoteElem.style.fontFamily = "Roboto, sans-serif";
+  lastNoteElem.style.maxWidth = "90%";
+  lastNoteElem.style.whiteSpace = "normal";
   document.body.appendChild(lastNoteElem);
 
   // Function to update the counter text
@@ -891,6 +899,8 @@ async function init() {
   roundTimerElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
   roundTimerElem.style.fontSize = "24px";
   roundTimerElem.style.fontFamily = "Roboto, sans-serif";
+  roundTimerElem.style.maxWidth = "90%";
+  roundTimerElem.style.whiteSpace = "normal";
   document.body.appendChild(roundTimerElem);
 
   // Create a new score display element in the bottom center.
@@ -898,13 +908,15 @@ async function init() {
   const scoreElem = document.createElement("div");
   scoreElem.id = "scoreDisplay";
   scoreElem.style.position = "absolute";
-  scoreElem.style.bottom = "10px";
+  scoreElem.style.bottom = "40px"; // Lifted up to avoid overlapping the credit/footer text.
   scoreElem.style.left = "50%";
   scoreElem.style.transform = "translateX(-50%)";
   scoreElem.style.color = "#FFFFFF";
   scoreElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
   scoreElem.style.fontSize = "18px";
   scoreElem.style.fontFamily = "Roboto, sans-serif";
+  scoreElem.style.maxWidth = "90%";  // Ensure text wraps if too long.
+  scoreElem.style.whiteSpace = "normal"; // Allow wrapping.
   scoreElem.innerText = "Score: 0";
   document.body.appendChild(scoreElem);
 
@@ -921,6 +933,8 @@ async function init() {
   comboElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
   comboElem.style.fontSize = "24px";
   comboElem.style.fontFamily = "Roboto, sans-serif";
+  comboElem.style.maxWidth = "90%";
+  comboElem.style.whiteSpace = "normal";
   comboElem.innerText = "Combo: 1";
   document.body.appendChild(comboElem);
 
