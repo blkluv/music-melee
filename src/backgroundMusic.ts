@@ -5,7 +5,6 @@ interface BackgroundMusic {
   start: () => void;
   stop: () => void;
   updateIntensity: (progress: number) => void;
-  setVolume: (volume: number) => void;
   mute: () => void;
   unmute: () => void;
 }
@@ -235,21 +234,10 @@ export function setupBackgroundMusic(globalLimiter: TONE.Limiter): BackgroundMus
     start,
     stop,
     updateIntensity,
-    setVolume,
     mute,
     unmute
   };
 }
-import * as TONE from "tone";
-
-/**
- * Sets up the background music system with ambient chord progressions,
- * bass lines, and melody patterns that evolve over time.
- * 
- * @param globalLimiter - The global limiter to connect the music output to
- * @returns An object with methods to control the background music
- */
-export function setupBackgroundMusic(globalLimiter: TONE.Limiter) {
   // Create synths for different musical elements
   const chordSynth = new TONE.PolySynth(TONE.Synth, {
     envelope: {
@@ -406,56 +394,6 @@ export function setupBackgroundMusic(globalLimiter: TONE.Limiter) {
     }, "2m");
   }
   
-  return {
-    // Start the background music
-    start: function() {
-      // Always schedule music patterns when start() is called
-      chordPatternId = scheduleChords();
-      bassPatternId = scheduleBass();
-      melodyPatternId = scheduleMelody();
-      
-      console.log("Background music started");
-    },
-    
-    // Stop the background music
-    stop: function() {
-      // Clear all scheduled events
-      TONE.Transport.clear(chordPatternId);
-      TONE.Transport.clear(bassPatternId);
-      TONE.Transport.clear(melodyPatternId);
-      
-      console.log("Background music stopped");
-    },
-    
-    // Update the music intensity based on game progress (0-1)
-    updateIntensity: function(value: number) {
-      intensity = Math.max(0, Math.min(1, value));
-      
-      // Adjust filter cutoff based on intensity
-      filter.frequency.value = 1000 + (intensity * 4000);
-      
-      // Adjust reverb wet/dry mix based on intensity
-      reverb.wet.value = 0.3 + (intensity * 0.4);
-      
-      // Adjust delay feedback based on intensity
-      delay.feedback.value = 0.2 + (intensity * 0.3);
-    },
-    
-    // Mute the background music
-    mute: function() {
-      musicVolume.volume.value = -Infinity;
-    },
-    
-    // Unmute the background music
-    unmute: function() {
-      musicVolume.volume.value = 0;
-    }
-  };
-}
-import * as TONE from "tone";
-
-// Define chord progressions for different intensity levels
-const progressions = {
   low: [
     ["Cmaj7", "Am7", "Fmaj7", "G7"],
     ["Dm7", "G7", "Cmaj7", "Cmaj7"],
@@ -707,18 +645,6 @@ export function setupBackgroundMusic(outputNode: TONE.ToneAudioNode): {
     }
   };
   
-  return {
-    start,
-    stop,
-    updateIntensity,
-    mute,
-    unmute
-  };
-}
-import * as TONE from "tone";
-
-// Define the background music system
-export function setupBackgroundMusic(outputNode: TONE.ToneAudioNode) {
   // Define chord progressions for different intensity levels
   const progressions: { [key: string]: string[][] } = {
     low: [
