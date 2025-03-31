@@ -442,9 +442,29 @@ async function init() {
   backgroundPart.loopEnd = "4m";
 
   // Lower the starting volume for backgroundSynth.
-  backgroundSynth.volume.value = -24;
+  backgroundSynth.volume.value = -30;
 
   // --- End new background music setup ---
+  
+  // --- Begin chillhop lofi percussion setup ---
+  const lofiKick = new TONE.MembraneSynth({
+    volume: -10,
+    envelope: {
+      attack: 0.001,
+      decay: 0.3,
+      sustain: 0,
+      release: 0.4,
+    },
+  });
+  lofiKick.connect(globalLimiter);
+
+  // Schedule a kick drum pattern: trigger on beats 1 and 3 (every half note) with slight timing variation.
+  transport.scheduleRepeat((time) => {
+    // Apply a small random delay for a laid-back, humanized feel.
+    const randomDelay = (Math.random() - 0.5) * 0.05; // ±25ms
+    lofiKick.triggerAttackRelease("C2", "8n", time + randomDelay, 1);
+  }, "2n");
+  // --- End chillhop lofi percussion setup ---
   
   // --- Begin explosion sound setup ---
   const explosionSynth = new TONE.MembraneSynth({
@@ -1689,7 +1709,7 @@ async function init() {
     }, "+60");
 
     // Optionally, ramp up the background synth volume until round end (e.g., from -18 dB to -12 dB)
-    backgroundSynth.volume.rampTo(-12, roundDuration);
+    backgroundSynth.volume.rampTo(-24, roundDuration);
 
     // Schedule block spawning: add two blocks per measure until the round ends
     transport.scheduleRepeat(spawnBlock, "2n");
