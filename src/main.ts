@@ -13,6 +13,7 @@ async function init() {
   let roundStartTime: number = 0;
   let roundDuration: number = 120; // in seconds (2 minutes)
   let comboFadeTimeout: ReturnType<typeof setTimeout>;
+  let orbitAngle = 0;
 
 
   // Set up low-latency audio context configuration
@@ -1745,8 +1746,25 @@ async function init() {
     world.step(1 / 60, dt, 3);
     requestAnimationFrame(animate);
 
-    // Update camera position to match the player's physics body
-    if (controls.isLocked) {
+    // If the start overlay is still active, orbit the camera for a cinematic pre-round view.
+    const startOverlayElem = document.getElementById("startOverlay");
+    if (startOverlayElem) {
+      // Update orbit angle (adjust speed as desired)
+      orbitAngle += dt * 0.2;  // dt is the timestep in seconds (e.g., 0.016 for ~60fps)
+
+      // Set the orbit parameters: radius and height (tweak these values as needed)
+      const orbitRadius = 40;
+      const orbitHeight = 40;
+
+      // Compute new camera position on a circle around the arena center (assumed at (0,0,0))
+      camera.position.x = Math.cos(orbitAngle) * orbitRadius;
+      camera.position.z = Math.sin(orbitAngle) * orbitRadius;
+      camera.position.y = orbitHeight;
+
+      // Look at the center of the arena
+      camera.lookAt(new THREE.Vector3(0, 0, 0));
+    } else if (controls.isLocked) {
+      // Otherwise, if pointer lock is active, follow the player's physics body.
       camera.position.copy(playerBody.position as unknown as THREE.Vector3);
     }
 
