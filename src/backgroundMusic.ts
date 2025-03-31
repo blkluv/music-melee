@@ -196,10 +196,18 @@ export function setupBackgroundMusic(globalLimiter: TONE.Limiter): BackgroundMus
   
   // Stop the background music
   function stop() {
-    // Dispose of patterns
-    if (chordPatternId) chordPatternId.dispose();
-    if (bassPatternId) bassPatternId.dispose();
-    if (melodyPatternId) TONE.Transport.clear(melodyPatternId);
+    // Stop the patterns first then dispose them.
+    if (chordPatternId) {
+      chordPatternId.stop(0);
+      chordPatternId.dispose();
+    }
+    if (bassPatternId) {
+      bassPatternId.stop(0);
+      bassPatternId.dispose();
+    }
+    if (melodyPatternId) {
+      TONE.Transport.clear(melodyPatternId);
+    }
     
     console.log("Background music stopped");
   }
