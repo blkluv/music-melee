@@ -77,13 +77,6 @@ async function init() {
     globalGameVolume.volume.value = Number(gameVolSlider.value);
   });
 
-  // Update music volume in realtime.
-  musicVolSlider.addEventListener("input", () => {
-    // backgroundMusicSystem is your background music controller.
-    // Use the exposed updateMusicVolume to adjust the master music level.
-    backgroundMusicSystem.updateMusicVolume(Number(musicVolSlider.value));
-  });
-
   // Set up low-latency audio context configuration
   const audioContext = new AudioContext({ latencyHint: "interactive" });
   TONE.setContext(audioContext);
@@ -466,6 +459,13 @@ async function init() {
   
   // Setup background music system
   backgroundMusicSystem = setupBackgroundMusic(globalLimiter);
+  
+  // Now register the music volume slider event listener.
+  musicVolSlider.addEventListener("input", () => {
+    if (backgroundMusicSystem && typeof backgroundMusicSystem.updateMusicVolume === "function") {
+      backgroundMusicSystem.updateMusicVolume(Number(musicVolSlider.value));
+    }
+  });
 
   // Pre-allocate a pool of synths for immediate use
   const synthPool = {
