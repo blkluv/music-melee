@@ -1100,6 +1100,94 @@ async function init() {
   crosshairElem.style.borderRadius = "50%";
   document.body.appendChild(crosshairElem);
 
+  // --- Mobile Joystick Setup ---
+  if (window.innerWidth < 768 || /Mobi/i.test(navigator.userAgent)) {
+    // Mark the game as running on a mobile/small-screen device.
+    (window as any).isMobile = true;
+
+    // Create a joystick container at the bottom left.
+    const joystickContainer = document.createElement("div");
+    joystickContainer.id = "joystickContainer";
+    joystickContainer.style.position = "absolute";
+    joystickContainer.style.bottom = "20px";
+    joystickContainer.style.left = "20px";
+    joystickContainer.style.width = "100px";
+    joystickContainer.style.height = "100px";
+    joystickContainer.style.borderRadius = "50%";
+    joystickContainer.style.background = "rgba(0, 0, 0, 0.3)";
+    joystickContainer.style.touchAction = "none"; // Prevent default gestures
+    document.body.appendChild(joystickContainer);
+
+    // Create the joystick knob inside the container.
+    const joystickKnob = document.createElement("div");
+    joystickKnob.id = "joystickKnob";
+    joystickKnob.style.position = "absolute";
+    joystickKnob.style.width = "50px";
+    joystickKnob.style.height = "50px";
+    joystickKnob.style.borderRadius = "50%";
+    joystickKnob.style.background = "#007BFF";
+    // Center the knob initially.
+    joystickKnob.style.left = "25px";
+    joystickKnob.style.top = "25px";
+    joystickContainer.appendChild(joystickKnob);
+
+    // Global object to hold the normalized joystick input.
+    const joystickDirection = { x: 0, y: 0 };
+    (window as any).joystickDirection = joystickDirection;
+
+    let joystickActive = false;
+    let joystickStartX = 0;
+    let joystickStartY = 0;
+
+    joystickContainer.addEventListener("touchstart", (e: TouchEvent) => {
+      e.preventDefault();
+      joystickActive = true;
+      const touch = e.touches[0];
+      const rect = joystickContainer.getBoundingClientRect();
+      joystickStartX = touch.clientX - rect.left;
+      joystickStartY = touch.clientY - rect.top;
+    });
+
+    joystickContainer.addEventListener("touchmove", (e: TouchEvent) => {
+      e.preventDefault();
+      if (!joystickActive) return;
+      const touch = e.touches[0];
+      const rect = joystickContainer.getBoundingClientRect();
+      const moveX = touch.clientX - rect.left;
+      const moveY = touch.clientY - rect.top;
+      // Calculate delta from container center (which is at 50,50 for 100x100).
+      let dx = moveX - 50;
+      let dy = moveY - 50;
+
+      // Clamp the magnitude to a maximum radius (e.g., 40px).
+      const maxRadius = 40;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance > maxRadius) {
+        const ratio = maxRadius / distance;
+        dx *= ratio;
+        dy *= ratio;
+      }
+      // Update the knob position.
+      joystickKnob.style.left = `${50 + dx - 25}px`;
+      joystickKnob.style.top = `${50 + dy - 25}px`;
+      // Normalize values to range -1 to 1.
+      joystickDirection.x = dx / maxRadius;
+      joystickDirection.y = dy / maxRadius;
+    });
+
+    joystickContainer.addEventListener("touchend", (e: TouchEvent) => {
+      e.preventDefault();
+      joystickActive = false;
+      joystickDirection.x = 0;
+      joystickDirection.y = 0;
+      // Reset knob to center.
+      joystickKnob.style.left = "25px";
+      joystickKnob.style.top = "25px";
+    });
+  } else {
+    (window as any).isMobile = false;
+  }
+
   // Initialize raycaster for block click detection
   const raycaster = new THREE.Raycaster();
 
@@ -1579,10 +1667,17 @@ async function init() {
 
     let moveX = 0;
     let moveZ = 0;
-    if (keys.w) moveZ += 1; // W now moves forward
-    if (keys.s) moveZ -= 1; // S now moves backward
-    if (keys.a) moveX += 1; // A now strafes left (relative to camera)
-    if (keys.d) moveX -= 1; // D now strafes right
+    if ((window as any).isMobile) {
+      // Use joystick input on mobile: positive x = right; negative y = forward.
+      const joy = (window as any).joystickDirection;
+      moveX = joy.x;
+      moveZ = -joy.y;  // Invert y so that upward on the joystick (negative) means forward.
+    } else {
+      if (keys.w) moveZ += 1;
+      if (keys.s) moveZ -= 1;
+      if (keys.a) moveX += 1;
+      if (keys.d) moveX -= 1;
+    }
 
     const velocity = new CANNON.Vec3();
     if (moveZ !== 0 || moveX !== 0) {
