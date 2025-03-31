@@ -836,7 +836,7 @@ async function init() {
   blockCounterElem.style.top = "10px";
   blockCounterElem.style.right = "10px"; // Changed from left to right
   blockCounterElem.style.color = "#FFFFFF";
-  blockCounterElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
+  blockCounterElem.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
   blockCounterElem.style.fontSize = "18px";
   blockCounterElem.style.fontFamily = "Roboto, sans-serif"; // New font-family
   blockCounterElem.style.maxWidth = "90%";
@@ -850,7 +850,7 @@ async function init() {
   bpmElem.style.top = "40px";
   bpmElem.style.right = "10px";
   bpmElem.style.color = "#FFFFFF";
-  bpmElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
+  bpmElem.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
   bpmElem.style.fontSize = "18px";
   bpmElem.style.fontFamily = "Roboto, sans-serif";
   bpmElem.style.maxWidth = "90%";
@@ -864,7 +864,7 @@ async function init() {
   timingAccuracyElem.style.top = "70px";
   timingAccuracyElem.style.right = "10px";
   timingAccuracyElem.style.color = "#FFFFFF";
-  timingAccuracyElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
+  timingAccuracyElem.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
   timingAccuracyElem.style.fontSize = "18px";
   timingAccuracyElem.style.fontFamily = "Roboto, sans-serif";
   timingAccuracyElem.style.maxWidth = "90%";
@@ -878,7 +878,7 @@ async function init() {
   lastNoteElem.style.top = "100px";
   lastNoteElem.style.right = "10px";
   lastNoteElem.style.color = "#FFFFFF";
-  lastNoteElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
+  lastNoteElem.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
   lastNoteElem.style.fontSize = "18px";
   lastNoteElem.style.fontFamily = "Roboto, sans-serif";
   lastNoteElem.style.maxWidth = "90%";
@@ -899,7 +899,7 @@ async function init() {
   roundTimerElem.style.left = "50%";
   roundTimerElem.style.transform = "translateX(-50%)";
   roundTimerElem.style.color = "#FFFFFF";
-  roundTimerElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
+  roundTimerElem.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
   roundTimerElem.style.fontSize = "24px";
   roundTimerElem.style.fontFamily = "Roboto, sans-serif";
   roundTimerElem.style.maxWidth = "90%";
@@ -915,7 +915,7 @@ async function init() {
   scoreElem.style.left = "50%";
   scoreElem.style.transform = "translateX(-50%)";
   scoreElem.style.color = "#FFFFFF";
-  scoreElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
+  scoreElem.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
   scoreElem.style.fontSize = "18px";
   scoreElem.style.fontFamily = "Roboto, sans-serif";
   scoreElem.style.maxWidth = "90%";  // Ensure text wraps if too long.
@@ -933,7 +933,7 @@ async function init() {
   comboElem.style.left = "50%";
   comboElem.style.transform = "translateX(-50%)";
   comboElem.style.color = "#FFFFFF";
-  comboElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
+  comboElem.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
   comboElem.style.fontSize = "24px";
   comboElem.style.fontFamily = "Roboto, sans-serif";
   comboElem.style.maxWidth = "90%";
@@ -1567,7 +1567,7 @@ async function init() {
     div.style.color = "lime";  // use an accent color for perfect timing
     div.style.fontSize = "20px";
     div.style.fontWeight = "bold";
-    div.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
+    div.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
     div.style.pointerEvents = "none";
     div.style.opacity = "1";
     document.body.appendChild(div);
@@ -1603,7 +1603,7 @@ async function init() {
     div.style.color = noteColor || "#ffcc00";
     div.style.fontSize = "22px";
     div.style.fontWeight = "bold";
-    div.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
+    div.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
     div.style.pointerEvents = "none";
     div.style.opacity = "1";
     document.body.appendChild(div);
@@ -1643,7 +1643,7 @@ async function init() {
     div.style.color = "#00ff00";
     div.style.fontSize = "24px";
     div.style.fontWeight = "bold";
-    div.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
+    div.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
     div.style.pointerEvents = "none";
     div.style.opacity = "1";
     document.body.appendChild(div);
