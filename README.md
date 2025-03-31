@@ -14,11 +14,12 @@ The game is called Music Melee (a working title) and involves fast and responsiv
 **Upcoming:**
 
 - [x] Plug to personal site: "Vibecoded with love by [Gianluca](https://gianluca.ai) using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet"
-- [ ] Background music (working)
-- [ ] Instructions on how to play / objectives
-- [ ] Vibe Jam 2025 snippet [^0]
-- [ ] Mobile support and controls
+- [ ] Background music that adapts to increasing tempo and helps the players hear which blocks are in key
 - [ ] Updated scoring based on rhythm and notes in key
+- [ ] Instructions on how to play / objectives on loading screen, then "press and key / tap to begin"
+- [ ] Vibe Jam 2025 snippet [^0]
+- [ ] Play again / new round
+- [ ] Mobile support and tap controls
 - [ ] Leaderboard / score sharing option
 - [ ] levels portal: https://gist.github.com/levelsio/ffdbfe356b421b97a31664ded4bc961d
 
