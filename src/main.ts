@@ -843,18 +843,6 @@ async function init() {
   comboElem.innerText = "Combo: 1";
   document.body.appendChild(comboElem);
 
-  // New beat meter
-  const beatMeter = document.createElement("div");
-  beatMeter.id = "beatMeter";
-  beatMeter.style.position = "absolute";
-  beatMeter.style.bottom = "40px";
-  beatMeter.style.left = "50%";
-  beatMeter.style.transform = "translateX(-50%)";
-  beatMeter.style.width = "200px";
-  beatMeter.style.height = "20px";
-  beatMeter.style.background = "rgba(255,255,0,0.3)";
-  beatMeter.style.borderRadius = "10px";
-  document.body.appendChild(beatMeter);
   
   // Global scoring variables
   let comboMultiplier = 1; // increases on each in-key hit
@@ -1465,13 +1453,12 @@ async function init() {
     // Update BPM display
     bpmElem.innerText = `BPM: ${transport.bpm.value.toFixed(0)}`;
     
-    // Update beat meter: calculate time to next eighth note boundary
+    // Calculate beat factor for ambient pulsing
     const currentBPM = transport.bpm.value;
     const eighthNoteLength = 60 / currentBPM / 2;
     const currentTransportTime = transport.seconds;
     const mod = currentTransportTime % eighthNoteLength;
     const beatFactor = mod / eighthNoteLength;
-    beatMeter.style.width = `${200 * (0.5 + 0.5 * Math.sin(beatFactor * Math.PI * 2))}px`;
     
     // Ambient pulsing: vary sun intensity slightly with beat (using a sine wave)
     const pulseIntensity = 2.5 + 0.3 * Math.sin(beatFactor * Math.PI * 2);
@@ -1561,6 +1548,14 @@ async function init() {
 
     // Schedule block spawning: add one block every bar (1 measure) until the round ends
     transport.scheduleRepeat(spawnBlock, "1m");
+    
+    // Flash the screen border each bar (once per measure)
+    transport.scheduleRepeat((time) => {
+      document.body.style.border = "4px solid rgba(255,255,255,0.5)";
+      setTimeout(() => {
+        document.body.style.border = "";
+      }, 100); // flash duration (100ms)
+    }, "1m");
 
     // Debug transport ticking
     transport.scheduleRepeat((time) => {
