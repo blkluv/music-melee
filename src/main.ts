@@ -1896,7 +1896,7 @@ async function init() {
           <button id="playAgainBtn" style="margin-top:20px; padding:10px 20px; font-size:18px; cursor:pointer;">Play Again</button>
           <p style="margin-top:10px;">Great job – click below to try again</p>
           <p style="font-size:24px; color:#ffcc00; margin-top:20px;">
-            Vibecoded with love by Gianluca | <a href="https://jam.pieter.com" target="_blank" style="color:#a0a0ff; text-decoration:underline;">Vibe Jam 2025</a>
+            Vibecoded with love by <a href="https://gianluca.ai">Gianluca</a> for <a href="https://jam.pieter.com" target="_blank" style="color:#a0a0ff; text-decoration:underline;">Vibe Jam 2025</a>
           </p>`;
         document.body.appendChild(summaryOverlay);
         
@@ -1926,7 +1926,7 @@ async function init() {
   creditElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
   creditElem.style.fontSize = "12px";
   creditElem.style.fontFamily = "Roboto, sans-serif";
-  creditElem.innerHTML = 'Vibecoded with love by <a href="https://gianluca.ai" target="_blank" style="color: #a0a0ff; text-decoration: none;">Gianluca</a> using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet';
+  creditElem.innerHTML = 'Vibecoded with love by <a href="https://gianluca.ai" target="_blank" style="color: #a0a0ff; text-decoration: none;">Gianluca</a> using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet. <a href="https://jam.pieter.com/" style="color: #a0a0ff; text-decoration: none;" >Vibe Jam 2025</a>';
   document.body.appendChild(creditElem);
 
   // Handle window resize
