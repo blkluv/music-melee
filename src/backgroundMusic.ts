@@ -393,23 +393,6 @@ export function setupBackgroundMusic(globalLimiter: TONE.Limiter): BackgroundMus
       }
     }, "2m");
   }
-  
-  low: [
-    ["Cmaj7", "Am7", "Fmaj7", "G7"],
-    ["Dm7", "G7", "Cmaj7", "Cmaj7"],
-    ["Am7", "Dm7", "G7", "Cmaj7"]
-  ],
-  medium: [
-    ["Cmaj7", "F7", "Dm7", "G7"],
-    ["Cmaj7", "Am7", "Dm7", "G7"],
-    ["Fmaj7", "G7", "Em7", "Am7"]
-  ],
-  high: [
-    ["Cmaj9", "F9", "Dm9", "G13"],
-    ["Am9", "D7b9", "Gmaj9", "C13"],
-    ["Fmaj9", "Bm7b5", "E7alt", "Am9"]
-  ]
-};
 
 // Define bass patterns for different intensity levels
 const bassPatterns = {
