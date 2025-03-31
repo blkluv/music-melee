@@ -72,6 +72,45 @@
         transform: scale(1.1);
         box-shadow: 0 4px 8px rgba(0,0,0,0.3);
       }
+      @media (max-width: 768px) {
+        /* Reduce font sizes for UI elements */
+        #blockCounter,
+        #bpmDisplay,
+        #timingAccuracy,
+        #lastNote,
+        #roundTimer,
+        #scoreDisplay,
+        #comboDisplay {
+          font-size: 16px !important;
+        }
+
+        /* Adjust start overlay for mobile screens */
+        #startOverlay {
+          font-size: 20px !important;
+          padding: 10px;
+        }
+
+        /* Resize the canvas if necessary */
+        canvas {
+          width: 100% !important;
+          height: 100% !important;
+        }
+
+        /* Adjust mobile joystick dimensions */
+        #joystickContainer {
+          width: 80px !important;
+          height: 80px !important;
+          bottom: 10px !important;
+          left: 10px !important;
+        }
+
+        #joystickKnob {
+          width: 40px !important;
+          height: 40px !important;
+          left: 20px !important;
+          top: 20px !important;
+        }
+      }
     </style>
   </head>
   <body>
