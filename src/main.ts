@@ -15,55 +15,6 @@ async function init() {
   let roundDuration: number = 120; // in seconds (2 minutes)
   let backgroundMusicSystem: any; // Will hold the background music controller
 
-  // Create collapsible control pane for audio volumes.
-  const controlPane = document.createElement("div");
-  controlPane.id = "controlPane";
-  controlPane.style.position = "absolute";
-  controlPane.style.top = "10px";
-  controlPane.style.left = "10px";
-  controlPane.style.background = "rgba(0, 0, 0, 0.7)";
-  controlPane.style.padding = "10px";
-  controlPane.style.borderRadius = "5px";
-  controlPane.style.zIndex = "1000";
-
-  // Toggle button for the pane.
-  const toggleBtn = document.createElement("button");
-  toggleBtn.textContent = "Audio Controls";
-  toggleBtn.style.display = "block";
-  toggleBtn.style.marginBottom = "5px";
-  controlPane.appendChild(toggleBtn);
-
-  // Div to contain the actual slider controls (start collapsed).
-  const controlsDiv = document.createElement("div");
-  controlsDiv.id = "audioControls";
-  controlsDiv.style.display = "none";
-
-  // --- Game Volume Slider ---
-  const gameVolLabel = document.createElement("label");
-  gameVolLabel.textContent = "Game Volume:";
-  const gameVolSlider = document.createElement("input");
-  gameVolSlider.type = "range";
-  gameVolSlider.min = "-40";
-  gameVolSlider.max = "0";
-  gameVolSlider.value = "0";
-  gameVolSlider.step = "1";
-  controlsDiv.appendChild(gameVolLabel);
-  controlsDiv.appendChild(gameVolSlider);
-  controlsDiv.appendChild(document.createElement("br"));
-
-
-  controlPane.appendChild(controlsDiv);
-  document.body.appendChild(controlPane);
-
-  // Toggle the pane visibility when clicking the button.
-  toggleBtn.addEventListener("click", () => {
-    controlsDiv.style.display = controlsDiv.style.display === "none" ? "block" : "none";
-  });
-
-  // Update game volume in realtime.
-  gameVolSlider.addEventListener("input", () => {
-    globalGameVolume.volume.value = Number(gameVolSlider.value);
-  });
 
   // Set up low-latency audio context configuration
   const audioContext = new AudioContext({ latencyHint: "interactive" });
@@ -445,8 +396,7 @@ async function init() {
   globalGameVolume.connect(globalLimiter);
   globalLimiter.toDestination();
   
-  // Setup background music system
-  backgroundMusicSystem = setupBackgroundMusic(globalLimiter);
+  // Background music system disabled
   
 
   // Pre-allocate a pool of synths for immediate use
@@ -1477,8 +1427,7 @@ async function init() {
     transport.start("+0.1");
     console.log("Transport started with offset +0.1");
     
-    // Start background music
-    backgroundMusicSystem.start();
+    // Background music disabled
 
     // Schedule block spawning: add one block every bar (1 measure) until the round ends
     transport.scheduleRepeat(spawnBlock, "1m");
@@ -1503,7 +1452,7 @@ async function init() {
         clearInterval(roundTimerInterval);
         // Stop the round and perform cleanup:
         TONE.getTransport().stop();
-        backgroundMusicSystem.stop();
+        // Background music disabled
         console.log("Round ended.");
         
         // Display summary overlay
