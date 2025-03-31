@@ -15,11 +15,11 @@ The game is called Music Melee (a working title) and involves fast and responsiv
 - [x] Instructions on how to play / objectives on loading screen, then "press and key / tap to begin"
 - [x] Vibe Jam 2025 snippet [^0]
 - [x] Play again / new round
+- [x] More visual and auditory feedback: tempo flash, sounds / colours / confetti for perfect on-tempo in-key hits, etc.
 
 **Upcoming:**
 
 - [ ] Vibey background music (in C Lydian) that adapts to increasing tempo and helps the players hear which blocks are in key
-- [ ] More visual and auditory feedback: tempo flash, sounds / colours / confetti for perfect on-tempo in-key hits, etc.
 - [ ] Mobile support and tap controls
 - [ ] Leaderboard / score sharing option
 - [ ] levels portal: https://gist.github.com/levelsio/ffdbfe356b421b97a31664ded4bc961d
