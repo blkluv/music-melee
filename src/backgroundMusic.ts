@@ -715,3 +715,177 @@ export function setupBackgroundMusic(outputNode: TONE.ToneAudioNode): {
     unmute
   };
 }
+import * as TONE from "tone";
+
+// Define the background music system
+export function setupBackgroundMusic(outputNode: TONE.ToneAudioNode) {
+  // Define chord progressions for different intensity levels
+  const progressions: { [key: string]: string[][] } = {
+    low: [
+      ["Cmaj7", "Am7", "Fmaj7", "G7"],
+      ["Dm7", "G7", "Cmaj7", "Am7"],
+      ["Am7", "Fmaj7", "Dm7", "E7"]
+    ],
+    medium: [
+      ["Cmaj9", "Am9", "Fmaj9", "G9"],
+      ["Dm9", "G13", "Cmaj9", "E7b9"],
+      ["Am9", "D7", "Gmaj9", "Cmaj7"]
+    ],
+    high: [
+      ["C7sus4", "F9", "G13", "Am7b5"],
+      ["Dm11", "G7#5", "Cmaj9", "F13"],
+      ["Am7b5", "D7b9", "Gmaj9#11", "C7alt"]
+    ]
+  };
+
+  // Define bass patterns for different intensity levels
+  const bassPatterns: { [key: string]: string[] } = {
+    low: ["C2", "A1", "F2", "G1"],
+    medium: ["C2", "A1", "F2", "G1", "D2", "E1"],
+    high: ["C1", "C2", "A1", "A2", "F1", "F2", "G1", "G2", "D1", "D2"]
+  };
+
+  // Create synths
+  const padSynth = new TONE.PolySynth(TONE.Synth, {
+    volume: -18,
+    envelope: {
+      attack: 0.5,
+      decay: 0.5,
+      sustain: 0.8,
+      release: 1.5
+    }
+  }).connect(outputNode);
+
+  const bassSynth = new TONE.MonoSynth({
+    volume: -12,
+    envelope: {
+      attack: 0.05,
+      decay: 0.2,
+      sustain: 0.8,
+      release: 0.5
+    },
+    filterEnvelope: {
+      attack: 0.05,
+      decay: 0.2,
+      sustain: 0.5,
+      release: 0.5,
+      baseFrequency: 200,
+      octaves: 2
+    }
+  }).connect(outputNode);
+
+  // Track current state
+  let currentIntensity = "low";
+  let currentProgressionIndex = 0;
+  let isPlaying = false;
+  let chordPatternId: TONE.Pattern<any>;
+  let bassPatternId: TONE.Pattern<any>;
+
+  // Function to start the background music
+  function start() {
+    if (isPlaying) return;
+    
+    // Start with low intensity
+    currentIntensity = "low";
+    currentProgressionIndex = Math.floor(Math.random() * progressions[currentIntensity].length);
+    
+    // Schedule chord progression
+    scheduleChordProgression();
+    
+    // Schedule bass pattern
+    scheduleBassPattern();
+    
+    isPlaying = true;
+  }
+
+  // Function to stop the background music
+  function stop() {
+    if (!isPlaying) return;
+    
+    // Dispose of patterns
+    if (chordPatternId) chordPatternId.dispose();
+    if (bassPatternId) bassPatternId.dispose();
+    
+    isPlaying = false;
+  }
+
+  // Function to mute the background music
+  function mute() {
+    padSynth.volume.value = -Infinity;
+    bassSynth.volume.value = -Infinity;
+  }
+
+  // Function to unmute the background music
+  function unmute() {
+    padSynth.volume.value = -18;
+    bassSynth.volume.value = -12;
+  }
+
+  // Function to update the intensity based on game progress
+  function updateIntensity(progress: number) {
+    // Map progress (0-1) to intensity levels
+    let newIntensity: string;
+    
+    if (progress < 0.3) {
+      newIntensity = "low";
+    } else if (progress < 0.7) {
+      newIntensity = "medium";
+    } else {
+      newIntensity = "high";
+    }
+    
+    // Only update if intensity changed
+    if (newIntensity !== currentIntensity) {
+      currentIntensity = newIntensity;
+      
+      // Update chord progression
+      currentProgressionIndex = Math.floor(Math.random() * progressions[currentIntensity].length);
+      
+      // Reschedule patterns with new intensity
+      if (chordPatternId) chordPatternId.dispose();
+      if (bassPatternId) bassPatternId.dispose();
+      
+      scheduleChordProgression();
+      scheduleBassPattern();
+    }
+  }
+
+  // Helper function to schedule chord progression
+  function scheduleChordProgression() {
+    const intensityKey = currentIntensity as "low" | "medium" | "high";
+    const progression = progressions[intensityKey][currentProgressionIndex];
+    
+    let chordIndex = 0;
+    chordPatternId = new TONE.Pattern(
+      (time, chord) => {
+        padSynth.triggerAttackRelease(chord, "2n", time);
+      },
+      progression,
+      "up"
+    ).start(0);
+  }
+
+  // Helper function to schedule bass pattern
+  function scheduleBassPattern() {
+    const intensityKey = currentIntensity as "low" | "medium" | "high";
+    const bassPattern = bassPatterns[intensityKey];
+    
+    let bassIndex = 0;
+    bassPatternId = new TONE.Pattern(
+      (time, note) => {
+        bassSynth.triggerAttackRelease(note, "8n", time);
+      },
+      bassPattern,
+      "up"
+    ).start(0);
+  }
+
+  // Return the background music system interface
+  return {
+    start,
+    stop,
+    mute,
+    unmute,
+    updateIntensity
+  };
+}
