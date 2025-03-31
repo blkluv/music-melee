@@ -227,8 +227,13 @@ async function init() {
       const originalEmissiveIntensity = (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity;
       // Flash: Override color and emissive properties to white and boost flash intensity.
       (mesh.material as THREE.MeshStandardMaterial).color.set(0xffffff);
+      // If perfect timing, add glow by increasing emissive intensity temporarily.
+      if (timingErrorMs < 30) {
+        (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity = 3;
+      } else {
+        (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity = 2;
+      }
       (mesh.material as THREE.MeshStandardMaterial).emissive.set(0xffffff);
-      (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity = 2;
       setTimeout(() => {
         // Restore original color and a subtler emissive glow.
         (mesh.material as THREE.MeshStandardMaterial).color.setHex(originalColor);
@@ -258,7 +263,14 @@ async function init() {
         const note = otherBody.assignedTone;
 
         // Immediate triggering with no scheduling delay
-        otherBody.assignedSynth.triggerAttackRelease(note, "8n", undefined, 1);
+        // Revised scoring: compute timing error and bonus multiplier
+        const timingErrorMs = computeTimingError();
+        if (timingErrorMs < 30) {
+          // For perfect hit, trigger note at slightly higher volume
+          otherBody.assignedSynth.triggerAttackRelease(note, "8n", undefined, 1.2);
+        } else {
+          otherBody.assignedSynth.triggerAttackRelease(note, "8n", undefined, 1);
+        }
 
         // Measure actual audio start time for latency calculation
         lastAudioStartTime = performance.now();
@@ -640,8 +652,14 @@ async function init() {
             score += pointsEarned;
             comboMultiplier++;
             if (comboMultiplier > maxCombo) maxCombo = comboMultiplier;
+            
+            // For very perfect timing (error < 30ms), show floating "Perfect!"
+            if (timingErrorMs < 30) {
+              spawnFloatingText("Perfect!", mesh.position);
+              triggerCameraShake();
+            }
+            
             spawnParticlesAt(mesh.position, mesh.userData.originalColor);
-            // Optionally: display a brief "Perfect!" message at the block position if timingErrorMs < 30.
           } else {
             // Off-key: penalize and reset combo multiplier
             score = score - baseScore < 0 ? 0 : score - baseScore;
@@ -1073,12 +1091,22 @@ async function init() {
         lastCollisionTime = performance.now();
 
         // Immediate triggering with no scheduling delay
-        (blockBody as any).assignedSynth.triggerAttackRelease(
-          note,
-          "8n",
-          undefined,
-          1,
-        );
+        if (timingErrorMs < 30) {
+          // For perfect hit, trigger note at slightly higher volume
+          (blockBody as any).assignedSynth.triggerAttackRelease(
+            note,
+            "8n",
+            undefined,
+            1.2
+          );
+        } else {
+          (blockBody as any).assignedSynth.triggerAttackRelease(
+            note,
+            "8n",
+            undefined,
+            1
+          );
+        }
 
         // Update score and modify block based on whether its tone is in the current key.
         {
@@ -1114,7 +1142,13 @@ async function init() {
               score += pointsEarned;
               comboMultiplier++;
               if (comboMultiplier > maxCombo) maxCombo = comboMultiplier;
-                  
+              
+              // For very perfect timing (error < 30ms), show floating "Perfect!"
+              if (timingErrorMs < 30) {
+                spawnFloatingText("Perfect!", targetMesh.position);
+                triggerCameraShake();
+              }
+              
               // Choose a new random note (keeping the same octave).
               const newNoteLetter =
                 lydianNotes[Math.floor(Math.random() * lydianNotes.length)];
@@ -1240,6 +1274,65 @@ async function init() {
   
   function updateComboDisplay() {
     comboElem.innerText = `Combo: ${comboMultiplier}`;
+    // Scale up briefly then transition back
+    comboElem.style.transition = "transform 0.2s ease";
+    comboElem.style.transform = "scale(1.5)";
+    setTimeout(() => { comboElem.style.transform = "scale(1)"; }, 200);
+  }
+  
+  function triggerCameraShake() {
+    const originalPos = camera.position.clone();
+    let shakeTime = 0;
+    const shakeDuration = 150; // in ms
+    function shake() {
+      if (shakeTime < shakeDuration) {
+        const offset = new THREE.Vector3(
+          (Math.random() - 0.5) * 0.1,
+          (Math.random() - 0.5) * 0.1,
+          (Math.random() - 0.5) * 0.1
+        );
+        camera.position.add(offset);
+        shakeTime += 16;
+        requestAnimationFrame(shake);
+      } else {
+        camera.position.copy(originalPos);
+      }
+    }
+    shake();
+  }
+
+  function spawnFloatingText(text: string, position: THREE.Vector3) {
+    const div = document.createElement("div");
+    div.innerText = text;
+    div.style.position = "absolute";
+    div.style.color = "lime";  // use an accent color for perfect timing
+    div.style.fontSize = "20px";
+    div.style.fontWeight = "bold";
+    div.style.pointerEvents = "none";
+    div.style.opacity = "1";
+    document.body.appendChild(div);
+
+    // Convert world position to screen coordinates
+    const vector = position.clone().project(camera);
+    const x = ((vector.x + 1) / 2) * window.innerWidth;
+    const y = ((-vector.y + 1) / 2) * window.innerHeight;
+    div.style.left = `${x}px`;
+    div.style.top = `${y}px`;
+
+    // Animate: move upward and fade out over 1.0 second.
+    const duration = 1000;
+    const start = performance.now();
+    function animateText(now: number) {
+      const elapsed = now - start;
+      div.style.transform = `translateY(${ - (elapsed / duration) * 30 }px)`;
+      div.style.opacity = `${1 - elapsed / duration}`;
+      if (elapsed < duration) {
+        requestAnimationFrame(animateText);
+      } else {
+        div.remove();
+      }
+    }
+    requestAnimationFrame(animateText);
   }
   
   function spawnParticlesAt(position: THREE.Vector3, color: number) {
@@ -1276,6 +1369,8 @@ async function init() {
         this.position.add(this.velocity);
         this.life -= delta * 2;
         (this.material as THREE.MeshBasicMaterial).opacity = this.life;
+        // Scale particle based on life for a trail-like effect
+        this.scale.set(this.life * 0.8, this.life * 0.8, this.life * 0.8);
         if (this.life <= 0) {
           scene.remove(this);
         }
@@ -1374,6 +1469,10 @@ async function init() {
     const mod = currentTransportTime % eighthNoteLength;
     const beatFactor = mod / eighthNoteLength;
     beatMeter.style.width = `${200 * (0.5 + 0.5 * Math.sin(beatFactor * Math.PI * 2))}px`;
+    
+    // Ambient pulsing: vary sun intensity slightly with beat (using a sine wave)
+    const pulseIntensity = 2.5 + 0.3 * Math.sin(beatFactor * Math.PI * 2);
+    sun.intensity = pulseIntensity;
     
     // Update particles
     for (let i = particlesToAnimate.length - 1; i >= 0; i--) {
