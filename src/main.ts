@@ -4,6 +4,7 @@ import { PointerLockControls } from "three/examples/jsm/controls/PointerLockCont
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import * as TONE from "tone";
 import * as CANNON from "cannon-es";
+import { setupBackgroundMusic } from "./backgroundMusic";
 
 // Initialize the game
 async function init() {
@@ -12,6 +13,7 @@ async function init() {
   // Declare variables at the top level of init() function
   let roundStartTime: number = 0;
   let roundDuration: number = 120; // in seconds (2 minutes)
+  let backgroundMusicSystem: any; // Will hold the background music controller
 
   // Set up low-latency audio context configuration
   const audioContext = new AudioContext({ latencyHint: "interactive" });
@@ -389,6 +391,9 @@ async function init() {
   // Pre-allocate all audio processing nodes to avoid instantiation during gameplay
   const globalLimiter = new TONE.Limiter(-12);
   globalLimiter.toDestination();
+  
+  // Setup background music system
+  backgroundMusicSystem = setupBackgroundMusic(globalLimiter);
 
   // Pre-allocate a pool of synths for immediate use
   const synthPool = {
@@ -784,6 +789,41 @@ async function init() {
   latencyElem.style.fontSize = "18px";
   latencyElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(latencyElem);
+  
+  // Create music controls
+  const musicControlsElem = document.createElement("div");
+  musicControlsElem.id = "musicControls";
+  musicControlsElem.style.position = "absolute";
+  musicControlsElem.style.top = "160px";
+  musicControlsElem.style.right = "10px";
+  musicControlsElem.style.color = "white";
+  musicControlsElem.style.fontSize = "18px";
+  musicControlsElem.style.fontFamily = "Roboto, sans-serif";
+  
+  // Create music toggle button
+  const musicToggleBtn = document.createElement("button");
+  musicToggleBtn.textContent = "🔇 Mute Music";
+  musicToggleBtn.style.background = "rgba(0, 0, 0, 0.5)";
+  musicToggleBtn.style.color = "white";
+  musicToggleBtn.style.border = "1px solid white";
+  musicToggleBtn.style.padding = "5px 10px";
+  musicToggleBtn.style.cursor = "pointer";
+  musicToggleBtn.style.borderRadius = "4px";
+  
+  let musicMuted = false;
+  musicToggleBtn.addEventListener("click", () => {
+    if (musicMuted) {
+      backgroundMusicSystem.unmute();
+      musicToggleBtn.textContent = "🔇 Mute Music";
+    } else {
+      backgroundMusicSystem.mute();
+      musicToggleBtn.textContent = "🔊 Unmute Music";
+    }
+    musicMuted = !musicMuted;
+  });
+  
+  musicControlsElem.appendChild(musicToggleBtn);
+  document.body.appendChild(musicControlsElem);
 
   // Blocks will be spawned after user interaction
 
@@ -1288,6 +1328,9 @@ async function init() {
     // Start the Transport with a slight offset
     transport.start("+0.1");
     console.log("Transport started with offset +0.1");
+    
+    // Start background music
+    backgroundMusicSystem.start();
 
     // Schedule block spawning: add one block every bar (1 measure) until the round ends
     transport.scheduleRepeat(spawnBlock, "1m");
@@ -1304,10 +1347,16 @@ async function init() {
       const minutes = Math.floor(remaining / 60);
       const seconds = Math.floor(remaining % 60);
       roundTimerElem.innerText = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+      
+      // Update background music intensity based on round progress
+      const progress = elapsed / roundDuration;
+      backgroundMusicSystem.updateIntensity(progress);
+      
       if (remaining <= 0) {
         clearInterval(roundTimerInterval);
-        // Optionally, stop the round or perform cleanup here:
+        // Stop the round and perform cleanup:
         TONE.getTransport().stop();
+        backgroundMusicSystem.stop();
         console.log("Round ended.");
       }
     }, 100);
@@ -1318,6 +1367,18 @@ async function init() {
   if (loadingElem) {
     loadingElem.remove();
   }
+  
+  // Add credit footer
+  const creditElem = document.createElement("div");
+  creditElem.id = "creditFooter";
+  creditElem.style.position = "absolute";
+  creditElem.style.bottom = "5px";
+  creditElem.style.right = "10px";
+  creditElem.style.color = "rgba(255, 255, 255, 0.7)";
+  creditElem.style.fontSize = "12px";
+  creditElem.style.fontFamily = "Roboto, sans-serif";
+  creditElem.innerHTML = 'Vibecoded with love by <a href="https://gianluca.ai" target="_blank" style="color: #a0a0ff; text-decoration: none;">Gianluca</a> using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet';
+  document.body.appendChild(creditElem);
 
   // Handle window resize
   window.addEventListener("resize", () => {
