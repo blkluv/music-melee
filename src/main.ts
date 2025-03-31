@@ -1230,6 +1230,7 @@ async function init() {
   // Only add these on mobile devices
   if ((window as any).isMobile) {
     let lastCameraPointer = { x: 0, y: 0 };
+    let cameraTapStart = { x: 0, y: 0 };
     let cameraPanningActive = false;
 
     // Helper: check if an event target is within the joystick container.
@@ -1245,6 +1246,7 @@ async function init() {
       cameraPanningActive = true;
       lastCameraPointer.x = e.clientX;
       lastCameraPointer.y = e.clientY;
+      cameraTapStart = { x: e.clientX, y: e.clientY };
     }, { passive: false });
 
     document.addEventListener("pointermove", (e: PointerEvent) => {
@@ -1270,8 +1272,8 @@ async function init() {
       if (e.pointerType !== "touch") return;
       cameraPanningActive = false;
       // If the pointer did not move much (i.e. it's a tap), simulate a click.
-      if (Math.abs(e.clientX - lastCameraPointer.x) < 10 &&
-          Math.abs(e.clientY - lastCameraPointer.y) < 10) {
+      if (Math.abs(e.clientX - cameraTapStart.x) < 10 &&
+          Math.abs(e.clientY - cameraTapStart.y) < 10) {
         const simulatedClick = new MouseEvent("click", {
           bubbles: true,
           cancelable: true,
