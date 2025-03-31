@@ -313,18 +313,18 @@ async function init() {
 
   // Define a cozy retro palette of 12 colors (6 pairs)
   const retroColorPalette: number[] = [
-    0x8b5e3c, // Cozy Cocoa primary (#8B5E3C)
-    0xa67c52, // Cozy Cocoa variation (#A67C52)
-    0xd5a42f, // Retro Mustard primary (#D5A42F)
-    0xe2b755, // Retro Mustard variation (#E2B755)
-    0x78866b, // Olive Grove primary (#78866B)
-    0x8fa595, // Olive Grove variation (#8FA595)
-    0x5c8c7b, // Muted Teal primary (#5C8C7B)
-    0x78a394, // Muted Teal variation (#78A394)
-    0xc27c83, // Dusty Rose primary (#C27C83)
-    0xd1939a, // Dusty Rose variation (#D1939A)
-    0x6b8ba4, // Soft Blue primary (#6B8BA4)
-    0x87a2b9  // Soft Blue variation (#87A2B9)
+    0x007bff, // Bright Blue primary (#007BFF)
+    0x66bfff, // Bright Blue variation (#66BFFF)
+    0xdc3545, // Vivid Red primary (#DC3545)
+    0xff6b75, // Vivid Red variation (#FF6B75)
+    0x28a745, // Lime Green primary (#28A745)
+    0x6fcf97, // Lime Green variation (#6FCF97)
+    0xffc107, // Sunny Yellow primary (#FFC107)
+    0xffd966, // Sunny Yellow variation (#FFD966)
+    0x6f42c1, // Vivid Purple primary (#6F42C1)
+    0xa280ff, // Vivid Purple variation (#A280FF)
+    0xfd7e14, // Vibrant Orange primary (#FD7E14)
+    0xffb266  // Vibrant Orange variation (#FFB266)
   ];
 
   // Define a mapping from each of the 12 colour indices to a note.
@@ -821,7 +821,7 @@ async function init() {
   blockCounterElem.style.position = "absolute";
   blockCounterElem.style.top = "10px";
   blockCounterElem.style.right = "10px"; // Changed from left to right
-  blockCounterElem.style.color = "#A67C52";
+  blockCounterElem.style.color = "#007BFF";
   blockCounterElem.style.fontSize = "18px";
   blockCounterElem.style.fontFamily = "Roboto, sans-serif"; // New font-family
   document.body.appendChild(blockCounterElem);
@@ -832,7 +832,7 @@ async function init() {
   bpmElem.style.position = "absolute";
   bpmElem.style.top = "40px";
   bpmElem.style.right = "10px";
-  bpmElem.style.color = "#A67C52";
+  bpmElem.style.color = "#007BFF";
   bpmElem.style.fontSize = "18px";
   bpmElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(bpmElem);
@@ -843,7 +843,7 @@ async function init() {
   timingAccuracyElem.style.position = "absolute";
   timingAccuracyElem.style.top = "70px";
   timingAccuracyElem.style.right = "10px";
-  timingAccuracyElem.style.color = "#A67C52";
+  timingAccuracyElem.style.color = "#007BFF";
   timingAccuracyElem.style.fontSize = "18px";
   timingAccuracyElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(timingAccuracyElem);
@@ -854,7 +854,7 @@ async function init() {
   lastNoteElem.style.position = "absolute";
   lastNoteElem.style.top = "100px";
   lastNoteElem.style.right = "10px";
-  lastNoteElem.style.color = "#A67C52";
+  lastNoteElem.style.color = "#007BFF";
   lastNoteElem.style.fontSize = "18px";
   lastNoteElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(lastNoteElem);
@@ -872,7 +872,7 @@ async function init() {
   roundTimerElem.style.top = "10px";
   roundTimerElem.style.left = "50%";
   roundTimerElem.style.transform = "translateX(-50%)";
-  roundTimerElem.style.color = "#A67C52";
+  roundTimerElem.style.color = "#007BFF";
   roundTimerElem.style.fontSize = "24px";
   roundTimerElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(roundTimerElem);
@@ -885,7 +885,7 @@ async function init() {
   scoreElem.style.bottom = "10px";
   scoreElem.style.left = "50%";
   scoreElem.style.transform = "translateX(-50%)";
-  scoreElem.style.color = "#A67C52";
+  scoreElem.style.color = "#007BFF";
   scoreElem.style.fontSize = "18px";
   scoreElem.style.fontFamily = "Roboto, sans-serif";
   scoreElem.innerText = "Score: 0";
@@ -900,7 +900,7 @@ async function init() {
   comboElem.style.top = "160px";
   comboElem.style.left = "50%";
   comboElem.style.transform = "translateX(-50%)";
-  comboElem.style.color = "#C27C83";
+  comboElem.style.color = "#DC3545";
   comboElem.style.fontSize = "24px";
   comboElem.style.fontFamily = "Roboto, sans-serif";
   comboElem.innerText = "Combo: 1";
@@ -1787,7 +1787,7 @@ async function init() {
   creditElem.style.position = "absolute";
   creditElem.style.bottom = "5px";
   creditElem.style.right = "10px";
-  creditElem.style.color = "#8FA595";
+  creditElem.style.color = "#28A745";
   creditElem.style.fontSize = "12px";
   creditElem.style.fontFamily = "Roboto, sans-serif";
   creditElem.innerHTML = 'Vibecoded with love by <a href="https://gianluca.ai" target="_blank" style="color: #a0a0ff; text-decoration: none;">Gianluca</a> using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet';
