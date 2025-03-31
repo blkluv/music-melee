@@ -22,6 +22,11 @@ async function init() {
   // Setup Three.js scene
   const scene = new THREE.Scene();
   
+  // Define sky and sun colors
+  const dawnSkyColor = new THREE.Color(0xff4500); // Sunrise state: warm reddish-orange
+  const noonSkyColor = new THREE.Color(0x87ceeb);   // Midday: clear blue
+  const nightSkyColor = new THREE.Color(0x000022);  // Night: deep, dark blue
+  const nightSunColor = new THREE.Color(0x222244);  // A dim, cool tone for the sun at night
   
   scene.background = dawnSkyColor;
   const camera = new THREE.PerspectiveCamera(
@@ -179,13 +184,6 @@ async function init() {
   const midColor = new THREE.Color(0xffffff); // white
   const endColor = new THREE.Color(0xff0000); // sunset red
 
-  // Replace the original sky colours with a sunrise and night setting.
-  const dawnSkyColor = new THREE.Color(0xff4500); // Sunrise state: warm reddish-orange
-  const noonSkyColor = new THREE.Color(0x87ceeb);   // Midday: clear blue
-  const nightSkyColor = new THREE.Color(0x000022);  // Night: deep, dark blue
-
-  // Optionally, define a night sun color:
-  const nightSunColor = new THREE.Color(0x222244);  // A dim, cool tone for the sun at night
 
   // Create the sun with its initial parameters
   const sun = new THREE.DirectionalLight(startColor, 2.5);
