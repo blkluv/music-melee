@@ -12,6 +12,7 @@ async function init() {
   // Declare variables at the top level of init() function
   let roundStartTime: number = 0;
   let roundDuration: number = 120; // in seconds (2 minutes)
+  let comboFadeTimeout: ReturnType<typeof setTimeout>;
 
 
   // Set up low-latency audio context configuration
@@ -434,6 +435,18 @@ async function init() {
 
   // --- End new background music setup ---
   
+  // --- Begin explosion sound setup ---
+  const explosionSynth = new TONE.MembraneSynth({
+    volume: -6, // louder output
+    envelope: {
+      attack: 0.001,
+      decay: 0.08,
+      sustain: 0,
+      release: 0.1,
+    },
+  });
+  explosionSynth.connect(globalLimiter);
+  // --- End explosion sound setup ---
 
   // Pre-allocate a pool of synths for immediate use
   const synthPool = {
@@ -1164,8 +1177,11 @@ async function init() {
                 triggerCameraShake();
               }
               
-              // Trigger explosion effect at the block's position
-              spawnParticlesAt(targetMesh.position, targetMesh.userData.originalColor);
+              // Trigger explosion sound
+              explosionSynth.triggerAttackRelease((blockBody as any).assignedTone, "8n", undefined, 1.5);
+              
+              // Trigger explosion effect at the block's position with triple the particles
+              spawnParticlesAt(targetMesh.position, targetMesh.userData.originalColor, 3);
               
               // Remove the block from the scene and physics world
               scene.remove(targetMesh);
@@ -1279,10 +1295,22 @@ async function init() {
   
   function updateComboDisplay() {
     comboElem.innerText = `Combo: ${comboMultiplier}`;
-    // Scale up briefly then transition back
-    comboElem.style.transition = "transform 0.2s ease";
+    // Immediately show the combo text
+    comboElem.style.opacity = "1";
+    // Animate scale-up (and specify a transition that covers both transform and opacity)
+    comboElem.style.transition = "transform 0.2s ease, opacity 1s ease";
     comboElem.style.transform = "scale(1.5)";
-    setTimeout(() => { comboElem.style.transform = "scale(1)"; }, 200);
+    
+    // Clear any existing fade-out timeout so that rapid updates reset the timer
+    clearTimeout(comboFadeTimeout);
+    comboFadeTimeout = setTimeout(() => {
+      comboElem.style.opacity = "0";
+    }, 3000);
+    
+    // Reset scale after the brief enlargement
+    setTimeout(() => { 
+      comboElem.style.transform = "scale(1)"; 
+    }, 200);
   }
   
   function triggerCameraShake() {
@@ -1340,7 +1368,10 @@ async function init() {
     requestAnimationFrame(animateText);
   }
   
-  function spawnParticlesAt(position: THREE.Vector3, color: number) {
+  function spawnParticlesAt(position: THREE.Vector3, color: number, countMultiplier?: number) {
+    // Use 8 as the base particle count; multiply if countMultiplier is provided.
+    const particleCount = countMultiplier ? 8 * countMultiplier : 8;
+    
     // Create a small particle geometry and material to simulate a burst.
     const particleGeo = new THREE.SphereGeometry(0.1, 8, 8);
     const particleMat = new THREE.MeshBasicMaterial({ 
@@ -1352,9 +1383,9 @@ async function init() {
     particle.position.copy(position);
     scene.add(particle);
     
-    // Create 8 particles in different directions
-    for (let i = 0; i < 8; i++) {
-      const angle = (i / 8) * Math.PI * 2;
+    // Use 'particleCount' in the loop:
+    for (let i = 0; i < particleCount; i++) {
+      const angle = (i / particleCount) * Math.PI * 2;
       const speed = 0.05 + Math.random() * 0.05;
       const clone = particle.clone();
       clone.position.copy(position);
