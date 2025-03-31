@@ -21,7 +21,7 @@ async function init() {
 
   // Setup Three.js scene
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color("#87CEEB");
+  scene.background = dawnSkyColor;
   const camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
@@ -177,9 +177,13 @@ async function init() {
   const midColor = new THREE.Color(0xffffff); // white
   const endColor = new THREE.Color(0xff0000); // sunset red
 
-  // Define sky colors: start (dawn/dusk redish) and noon (blue)
-  const dawnSkyColor = new THREE.Color(0xff4500); // redish
-  const noonSkyColor = new THREE.Color(0x87ceeb); // blue
+  // Replace the original sky colours with a sunrise and night setting.
+  const dawnSkyColor = new THREE.Color(0xff4500); // Sunrise state: warm reddish-orange
+  const noonSkyColor = new THREE.Color(0x87ceeb);   // Midday: clear blue
+  const nightSkyColor = new THREE.Color(0x000022);  // Night: deep, dark blue
+
+  // Optionally, define a night sun color:
+  const nightSunColor = new THREE.Color(0x222244);  // A dim, cool tone for the sun at night
 
   // Create the sun with its initial parameters
   const sun = new THREE.DirectionalLight(startColor, 2.5);
@@ -1636,47 +1640,46 @@ async function init() {
       }
     }
 
-    // Animate sun position and color over the round duration
-    const elapsedRound = (performance.now() - roundStartTime) / 1000;
-    const t = Math.min(elapsedRound / roundDuration, 1); // normalized time (0 to 1)
+    // New day–night cycle update:
+    const elapsedRound = (performance.now() - roundStartTime) / 1000; // seconds elapsed since round start
 
-    if (t <= 0.5) {
-      // First half of the round: from start to mid (noon)
-      const factor = t / 0.5;
-      sun.position.lerpVectors(startPos, midPos, factor);
-      sun.color.copy(startColor.clone().lerp(midColor, factor));
+    if (elapsedRound <= roundDuration - 20) {
+      // From round start until (roundDuration - 20) seconds: transition from sunrise to noon.
+      const t = elapsedRound / (roundDuration - 20);  // normalized progression (0 to 1)
+      
+      // Lerp sun position from start (sunrise) to mid (noon) and sun colour from startColor to midColor.
+      sun.position.lerpVectors(startPos, midPos, t);
+      sun.color.copy(startColor.clone().lerp(midColor, t));
+      
+      // Transition scene background from dawn (sunrise) to noon sky.
+      scene.background = dawnSkyColor.clone().lerp(noonSkyColor, t);
+      
+      // Maintain sun intensity until soon before round end.
+      sun.intensity = 2.5;
+      sunSphere.visible = true;
     } else {
-      // Second half of the round: from mid to end (sunset)
-      const factor = (t - 0.5) / 0.5;
-      sun.position.lerpVectors(midPos, endPos, factor);
-      sun.color.copy(midColor.clone().lerp(endColor, factor));
+      // In the final 20 seconds of the round: transition towards nightfall.
+      const t = (elapsedRound - (roundDuration - 20)) / 20;  // normalized (0 at 100s to 1 at 120s)
+      
+      // Continue sun position transition: from noon (midPos) to end (sunset) if desired.
+      sun.position.lerpVectors(midPos, endPos, t);
+      
+      // Fade sun colour from midColor towards the defined night sun color.
+      sun.color.copy(midColor.clone().lerp(nightSunColor, t));
+      
+      // Transition scene background from noon to night.
+      scene.background = noonSkyColor.clone().lerp(nightSkyColor, t);
+      
+      // Fade sun intensity to zero at full night.
+      sun.intensity = 2.5 * (1 - t);
+      
+      // Optionally, hide the visible sun sphere as night deepens.
+      sunSphere.visible = t < 0.5;
     }
 
     // Update the visible sun sphere position and color to match the directional light
     sunSphere.position.copy(sun.position);
     sunSphere.material.color.copy(sun.color);
-
-    // Gradual day-night cycle: Extend sunrise/sunset to 30 seconds at boundaries.
-    if (elapsedRound < 30) {
-      // Sunrise: interpolate from black to dawnSkyColor.
-      const factor = elapsedRound / 30;
-      scene.background = new THREE.Color(0x000000).lerp(dawnSkyColor, factor);
-      sun.intensity = factor * 2.5;
-      sunSphere.visible = factor > 0.2;
-    } else if (elapsedRound > roundDuration - 30) {
-      // Sunset: interpolate from dawnSkyColor to black.
-      const factor = (roundDuration - elapsedRound) / 30;
-      scene.background = dawnSkyColor
-        .clone()
-        .lerp(new THREE.Color(0x000000), 1 - factor);
-      sun.intensity = factor * 2.5;
-      sunSphere.visible = factor > 0.2;
-    } else {
-      // Daytime: keep a steady noon sky and full sun intensity.
-      scene.background = noonSkyColor;
-      sun.intensity = 2.5;
-      sunSphere.visible = true;
-    }
 
     // Ramp metronome volume: quiet/peaceful at round start, louder/more aggressive at the end.
     const metStartVol = -30; // very quiet at start (in dB)
