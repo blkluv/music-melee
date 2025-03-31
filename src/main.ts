@@ -63,6 +63,7 @@ async function init() {
         TONE.getContext().lookAhead = 0.01; // 10ms lookahead
         console.log("Tone.js audio context resumed with low latency settings");
       }
+      // Audio context resumed on first click; verify this works on your target devices.
 
       // Fade out the overlay once the user interacts
       const overlay = document.getElementById("startOverlay");
@@ -70,8 +71,10 @@ async function init() {
         overlay.classList.add("fade-out");
         setTimeout(() => {
           overlay.remove();
-          // Force pointer lock for first-person view immediately after fade-out.
-          controls.lock();
+          // Only request pointer lock if not on a mobile device.
+          if (!(window as any).isMobile) {
+            controls.lock();
+          }
         }, 1000); // match the duration in CSS (1 second)
       }
 
@@ -1130,6 +1133,8 @@ async function init() {
   document.body.appendChild(crosshairElem);
 
   // --- Mobile Joystick Setup ---
+  // NOTE: If targeting older mobile browsers that do not support pointer events,
+  // consider adding equivalent touch event listeners for "touchstart", "touchmove", and "touchend".
   if (window.innerWidth < 768 || /Mobi/i.test(navigator.userAgent)) {
     // Mark as mobile.
     (window as any).isMobile = true;
@@ -1227,6 +1232,8 @@ async function init() {
   }
 
   // --- Global Pointer Handlers for Camera Control and Tap-to-Click ---
+  // NOTE: If targeting older mobile browsers that do not support pointer events,
+  // consider adding equivalent touch event listeners for "touchstart", "touchmove", and "touchend".
   // Only add these on mobile devices
   if ((window as any).isMobile) {
     let lastCameraPointer = { x: 0, y: 0 };
