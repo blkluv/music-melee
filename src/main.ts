@@ -416,20 +416,33 @@ async function init() {
   backgroundSynth.volume.value = -18; // start quietly
   backgroundSynth.connect(globalLimiter);
 
-  // Define a simple chord progression in C Lydian.
-  // Chord 1: Cmaj7(#11) and Chord 2: Gmaj7 (both using F# for the lydian flavor)
-  const backgroundChords = [
-    { time: "0:0:0", chord: ["C4", "E4", "G4", "F#4"] },
-    { time: "2:0:0", chord: ["G3", "B3", "D4", "F#4"] }
+  // Define two chord progressions for dynamic background music.
+
+  // Early progression: a more exploratory, jazz-inspired sequence in C Lydian.
+  const earlyProgression = [
+    { time: "0:0:0", chord: ["C4", "E4", "G4", "B4"] },
+    { time: "1:0:0", chord: ["A3", "C4", "E4", "G4"] },
+    { time: "2:0:0", chord: ["D4", "F#4", "A4", "C5"] },
+    { time: "3:0:0", chord: ["G3", "B3", "D4", "F#4"] }
   ];
 
-  // Create a Tone.Part that plays each chord for 1 measure.
-  // The part will loop every 4 measures.
+  // Late progression: an even more exotic, jazz-inflected set of chords.
+  const lateProgression = [
+    { time: "0:0:0", chord: ["C4", "Eb4", "G4", "Bb4"] },
+    { time: "1:0:0", chord: ["F4", "Ab4", "C5", "Eb5"] },
+    { time: "2:0:0", chord: ["Bb3", "D4", "F4", "A4"] },
+    { time: "3:0:0", chord: ["E4", "G#4", "B4", "D5"] }
+  ];
+
+  // Create a Tone.Part using the early progression and loop every 4 measures.
   const backgroundPart = new TONE.Part((time, value) => {
     backgroundSynth.triggerAttackRelease(value.chord, "1m", time);
-  }, backgroundChords);
+  }, earlyProgression);
   backgroundPart.loop = true;
   backgroundPart.loopEnd = "4m";
+
+  // Lower the starting volume for backgroundSynth.
+  backgroundSynth.volume.value = -24;
 
   // --- End new background music setup ---
   
@@ -1666,6 +1679,14 @@ async function init() {
     
     // Start the background music part in sync with the game round.
     backgroundPart.start("+0.1");
+
+    // After 60 seconds, transition from earlyProgression to lateProgression.
+    transport.schedule((time) => {
+      backgroundPart.clear(); // Remove all early progression events.
+      lateProgression.forEach((event) => {
+        backgroundPart.add(event.time, event);
+      });
+    }, "+60");
 
     // Optionally, ramp up the background synth volume until round end (e.g., from -18 dB to -12 dB)
     backgroundSynth.volume.rampTo(-12, roundDuration);
