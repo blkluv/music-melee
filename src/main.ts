@@ -1495,6 +1495,7 @@ async function init() {
     div.style.color = "lime";  // use an accent color for perfect timing
     div.style.fontSize = "20px";
     div.style.fontWeight = "bold";
+    div.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
     div.style.pointerEvents = "none";
     div.style.opacity = "1";
     document.body.appendChild(div);
@@ -1530,6 +1531,7 @@ async function init() {
     div.style.color = noteColor || "#ffcc00";
     div.style.fontSize = "22px";
     div.style.fontWeight = "bold";
+    div.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
     div.style.pointerEvents = "none";
     div.style.opacity = "1";
     document.body.appendChild(div);
@@ -1569,6 +1571,7 @@ async function init() {
     div.style.color = "#00ff00";
     div.style.fontSize = "24px";
     div.style.fontWeight = "bold";
+    div.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
     div.style.pointerEvents = "none";
     div.style.opacity = "1";
     document.body.appendChild(div);
