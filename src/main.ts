@@ -63,9 +63,12 @@ async function init() {
         console.log("Tone.js audio context resumed with low latency settings");
       }
 
-      // Remove the overlay once the user interacts
+      // Fade out the overlay once the user interacts
       const overlay = document.getElementById("startOverlay");
-      if (overlay) overlay.remove();
+      if (overlay) {
+        overlay.classList.add("fade-out");
+        setTimeout(() => overlay.remove(), 1000); // match the duration in CSS (1 second)
+      }
 
       // Spawn the starting blocks now (if not already spawned)
       for (let i = 0; i < 50; i++) {
