@@ -19,6 +19,14 @@ async function init() {
   // Set up low-latency audio context configuration
   const audioContext = new AudioContext({ latencyHint: "interactive" });
   TONE.setContext(audioContext);
+  
+  // Ensure the AudioContext is resumed on the first user gesture for browsers like Firefox.
+  document.addEventListener("click", async () => {
+    if (audioContext.state === "suspended") {
+      await audioContext.resume();
+      console.log("AudioContext resumed via click gesture");
+    }
+  });
 
   // Setup Three.js scene
   const scene = new THREE.Scene();
@@ -57,6 +65,9 @@ async function init() {
   document.body.addEventListener(
     "click",
     async () => {
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
       if (TONE.getContext().state !== "running") {
         await TONE.start();
         // Reduce the lookAhead window for lower latency
