@@ -21,6 +21,8 @@ async function init() {
 
   // Setup Three.js scene
   const scene = new THREE.Scene();
+  
+  
   scene.background = dawnSkyColor;
   const camera = new THREE.PerspectiveCamera(
     75,
