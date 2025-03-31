@@ -7,29 +7,17 @@ export interface BackgroundMusic {
 }
 
 /**
- * Sets up a simple background music system that plays gentle chord pads in C Lydian.
- * @param globalLimiter (Optional) A global limiter; not used in this simplified version.
+ * Sets up a two-layer background music system that plays gentle chord pads and arpeggios in C Lydian.
+ * @param globalLimiter A global limiter to connect the music output to.
  * @returns A BackgroundMusic object with start and stop methods.
  */
 export function setupBackgroundMusic(_globalLimiter: TONE.Limiter): BackgroundMusic {
-  console.log("Setting up simple background music...");
+  console.log("Setting up two-layer background music...");
 
   // Create a master volume node for background music.
-  const musicMasterVolume = new TONE.Volume(0);
+  // Set this node very low so that its overall level is quiet relative to game sounds.
+  const musicMasterVolume = new TONE.Volume(-60);
   musicMasterVolume.connect(_globalLimiter);
-
-  // Create a gentle pad using a polyphonic synth with a slow envelope.
-  const padSynth = new TONE.PolySynth(TONE.Synth, {
-    oscillator: { type: "sine" },
-    envelope: {
-      attack: 2,
-      decay: 1,
-      sustain: 0.7,
-      release: 3,
-    },
-  });
-  padSynth.volume.value = -60;
-  padSynth.connect(musicMasterVolume);
 
   // Helper function to convert chord symbols to note arrays.
   function getChordNotes(chord: string): string[] {
@@ -47,37 +35,81 @@ export function setupBackgroundMusic(_globalLimiter: TONE.Limiter): BackgroundMu
     }
   }
 
-  // Define a static chord progression in C Lydian.
-  const chordProgression = [
-    { chord: "CM7", duration: "1m" },
-    { chord: "D7", duration: "1m" },
-    { chord: "EM7", duration: "1m" },
-    { chord: "F#m7", duration: "1m" },
+  // --- PAD LAYER ---
+  // A gentle chord pad with a slow envelope.
+  const padSynth = new TONE.PolySynth(TONE.Synth, {
+    oscillator: { type: "sine" },
+    envelope: {
+      attack: 4,
+      decay: 2,
+      sustain: 0.6,
+      release: 4,
+    },
+  }).toDestination(); // We'll re-route manually in the next line.
+  padSynth.volume.value = -10; // moderate internal level
+  padSynth.disconnect(); // remove default connection
+  padSynth.connect(musicMasterVolume);
+
+  // Define a pad chord progression (e.g. C Lydian chords).
+  const padProgression = [
+    { chord: ["C4", "E4", "G4", "B4"], duration: "2m" },
+    { chord: ["D4", "F#4", "A4", "C5"], duration: "2m" },
+    { chord: ["E4", "G#4", "B4", "D#5"], duration: "2m" },
+    { chord: ["F#3", "A3", "C#4", "E4"], duration: "2m" },
   ];
 
-  // Use a Tone.Sequence to loop through the progression.
-  const sequence = new TONE.Sequence(
+  // Create a Tone.Sequence that plays these chords in loop.
+  const padSequence = new TONE.Sequence(
     (time, noteData) => {
-      const notes = getChordNotes(noteData.chord);
-      padSynth.triggerAttackRelease(notes, noteData.duration, time);
+      padSynth.triggerAttackRelease(noteData.chord, noteData.duration, time);
     },
-    chordProgression,
-    "1m" // step interval: one measure per chord
+    padProgression,
+    "2m" // one chord per 2 measures
   );
-  sequence.loop = true;
+  padSequence.loop = true;
 
-  // Simple start/stop functions.
+  // --- ARPEGGIO LAYER ---
+  // A melodic arpeggiator using a single-voice synth.
+  const arpSynth = new TONE.Synth({
+    oscillator: { type: "triangle" },
+    envelope: {
+      attack: 0.05,
+      decay: 0.2,
+      sustain: 0.3,
+      release: 0.4,
+    },
+  });
+  arpSynth.volume.value = -8; // moderate volume before attenuation
+  arpSynth.connect(musicMasterVolume);
+
+  // Define a C Lydian scale for the arpeggio.
+  const lydianScale = ["C4", "D4", "E4", "F#4", "G4", "A4", "B4"];
+  // Create a simple arpeggio pattern that slowly cycles through the scale.
+  const arpPattern = new TONE.Sequence(
+    (time, note) => {
+      arpSynth.triggerAttackRelease(note, "8n", time);
+    },
+    // Use a slowly shifting sequence. (For instance, each measure select the next note.)
+    lydianScale,
+    "1m"
+  );
+  arpPattern.loop = true;
+
+  // --- Start/Stop API for background music ---
   function start() {
-    sequence.start(0);
+    padSequence.start(0);
+    arpPattern.start(0);
     if (TONE.Transport.state !== "started") {
       TONE.Transport.start();
     }
-    console.log("Background music started");
+    console.log("Background music (new layers) started");
   }
-
+  
   function stop() {
-    sequence.stop();
-    sequence.dispose();
+    padSequence.stop();
+    arpPattern.stop();
+    padSequence.dispose();
+    arpPattern.dispose();
     console.log("Background music stopped");
   }
 

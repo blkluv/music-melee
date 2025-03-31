@@ -844,46 +844,7 @@ async function init() {
   latencyElem.style.fontFamily = "Roboto, sans-serif";
   document.body.appendChild(latencyElem);
   
-  // Create music controls
-  const musicControlsElem = document.createElement("div");
-  musicControlsElem.id = "musicControls";
-  musicControlsElem.style.position = "absolute";
-  musicControlsElem.style.top = "160px";
-  musicControlsElem.style.right = "10px";
-  musicControlsElem.style.color = "white";
-  musicControlsElem.style.fontSize = "18px";
-  musicControlsElem.style.fontFamily = "Roboto, sans-serif";
-  
-  // Create music toggle button (simplified to just stop/start)
-  const musicToggleBtn = document.createElement("button");
-  musicToggleBtn.textContent = "🔇 Mute Music";
-  musicToggleBtn.style.background = "rgba(0, 0, 0, 0.5)";
-  musicToggleBtn.style.color = "white";
-  musicToggleBtn.style.border = "1px solid white";
-  musicToggleBtn.style.padding = "5px 10px";
-  musicToggleBtn.style.cursor = "pointer";
-  musicToggleBtn.style.borderRadius = "4px";
-  
-  let musicMuted = false;
-  let musicWasPlaying = false;
-  musicToggleBtn.addEventListener("click", () => {
-    if (musicMuted) {
-      // Restart music if it was playing before
-      if (musicWasPlaying) {
-        backgroundMusicSystem.start();
-      }
-      musicToggleBtn.textContent = "🔇 Mute Music";
-    } else {
-      // Remember if music was playing
-      musicWasPlaying = TONE.Transport.state === "started";
-      backgroundMusicSystem.stop();
-      musicToggleBtn.textContent = "🔊 Unmute Music";
-    }
-    musicMuted = !musicMuted;
-  });
-  
-  musicControlsElem.appendChild(musicToggleBtn);
-  document.body.appendChild(musicControlsElem);
+  // Music controls removed - background music now plays automatically with no UI controls
 
   // Blocks will be spawned after user interaction
 
