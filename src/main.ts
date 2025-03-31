@@ -1147,7 +1147,7 @@ async function init() {
               scene.remove(targetMesh);
               world.removeBody(blockBody);
               // Also remove from the global block mesh array and update counter:
-              const index = boxMeshArray.indexOf(targetMesh);
+              const index = boxMeshArray.indexOf(targetMesh as THREE.Mesh);
               if (index > -1) {
                 boxMeshArray.splice(index, 1);
                 updateBlockCounter();
