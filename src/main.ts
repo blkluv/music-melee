@@ -68,7 +68,11 @@ async function init() {
       const overlay = document.getElementById("startOverlay");
       if (overlay) {
         overlay.classList.add("fade-out");
-        setTimeout(() => overlay.remove(), 1000); // match the duration in CSS (1 second)
+        setTimeout(() => {
+          overlay.remove();
+          // Force pointer lock for first-person view immediately after fade-out.
+          controls.lock();
+        }, 1000); // match the duration in CSS (1 second)
       }
 
       // Spawn the starting blocks now (if not already spawned)
@@ -1767,8 +1771,8 @@ async function init() {
       // Look at the center of the arena
       camera.lookAt(new THREE.Vector3(0, 0, 0));
     } else if (controls.isLocked) {
-      // Otherwise, if pointer lock is active, follow the player's physics body.
-      camera.position.copy(playerBody.position as unknown as THREE.Vector3);
+      // When pointer lock is active, update the controls object to the player's position.
+      controls.getObject().position.copy(playerBody.position as unknown as THREE.Vector3);
     }
 
     // Basic WASD movement: calculate front and side speeds
