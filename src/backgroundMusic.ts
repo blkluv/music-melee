@@ -16,7 +16,7 @@ export function setupBackgroundMusic(_globalLimiter: TONE.Limiter): BackgroundMu
 
   // Create a master volume node for background music.
   // Set this node very low so that its overall level is quiet relative to game sounds.
-  const musicMasterVolume = new TONE.Volume(-60);
+  const musicMasterVolume = new TONE.Volume(-80);
   musicMasterVolume.connect(_globalLimiter);
 
   // Helper function to convert chord symbols to note arrays.
@@ -46,7 +46,7 @@ export function setupBackgroundMusic(_globalLimiter: TONE.Limiter): BackgroundMu
       release: 4,
     },
   }).toDestination(); // We'll re-route manually in the next line.
-  padSynth.volume.value = -10; // moderate internal level
+  padSynth.volume.value = -40; // lowered level for quiet background
   padSynth.disconnect(); // remove default connection
   padSynth.connect(musicMasterVolume);
 
@@ -79,7 +79,7 @@ export function setupBackgroundMusic(_globalLimiter: TONE.Limiter): BackgroundMu
       release: 0.4,
     },
   });
-  arpSynth.volume.value = -8; // moderate volume before attenuation
+  arpSynth.volume.value = -38; // lowered level for quiet background
   arpSynth.connect(musicMasterVolume);
 
   // Define a C Lydian scale for the arpeggio.
