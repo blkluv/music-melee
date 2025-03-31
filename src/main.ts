@@ -408,7 +408,31 @@ async function init() {
   globalGameVolume.connect(globalLimiter);
   globalLimiter.toDestination();
   
-  // Background music system disabled
+  // --- Begin new background music setup ---
+
+  const backgroundSynth = new TONE.PolySynth(TONE.Synth, {
+    oscillator: { type: "sine" },
+    envelope: { attack: 2, decay: 1, sustain: 0.7, release: 3 },
+  });
+  backgroundSynth.volume.value = -18; // start quietly
+  backgroundSynth.connect(globalLimiter);
+
+  // Define a simple chord progression in C Lydian.
+  // Chord 1: Cmaj7(#11) and Chord 2: Gmaj7 (both using F# for the lydian flavor)
+  const backgroundChords = [
+    { time: "0:0:0", chord: ["C4", "E4", "G4", "F#4"] },
+    { time: "2:0:0", chord: ["G3", "B3", "D4", "F#4"] }
+  ];
+
+  // Create a Tone.Part that plays each chord for 1 measure.
+  // The part will loop every 4 measures.
+  const backgroundPart = new TONE.Part((time, value) => {
+    backgroundSynth.triggerAttackRelease(value.chord, "1m", time);
+  }, backgroundChords);
+  backgroundPart.loop = true;
+  backgroundPart.loopEnd = "4m";
+
+  // --- End new background music setup ---
   
 
   // Pre-allocate a pool of synths for immediate use
@@ -1534,7 +1558,11 @@ async function init() {
     transport.start("+0.1");
     console.log("Transport started with offset +0.1");
     
-    // Background music disabled
+    // Start the background music part in sync with the game round.
+    backgroundPart.start("+0.1");
+
+    // Optionally, ramp up the background synth volume until round end (e.g., from -18 dB to -12 dB)
+    backgroundSynth.volume.rampTo(-12, roundDuration);
 
     // Schedule block spawning: add two blocks per measure until the round ends
     transport.scheduleRepeat(spawnBlock, "2n");
