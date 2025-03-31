@@ -1212,12 +1212,81 @@ async function init() {
     (window as any).isMobile = false;
   }
 
+  // --- Global Touch Handlers for Camera Control and Tap-to-Click ---
+  // Only add these on mobile devices
+  if ((window as any).isMobile) {
+    let lastCameraTouch = { x: 0, y: 0 };
+    let cameraTouchActive = false;
+    // Helper to check if a touch target is within the joystick container.
+    function isInJoystick(target: EventTarget | null): boolean {
+      if (!(target instanceof HTMLElement)) return false;
+      return target.id === "joystickContainer" || !!target.closest("#joystickContainer");
+    }
+
+    // When a touch starts anywhere not in the joystick, begin camera control gesture.
+    document.addEventListener("touchstart", (e: TouchEvent) => {
+      // If touch originates *inside* the joystick container, do nothing here.
+      if (isInJoystick(e.target)) return;
+      cameraTouchActive = true;
+      const touch = e.touches[0];
+      lastCameraTouch.x = touch.clientX;
+      lastCameraTouch.y = touch.clientY;
+    }, { passive: false });
+
+    // On touchmove, if a camera gesture is active, update the camera rotation.
+    document.addEventListener("touchmove", (e: TouchEvent) => {
+      if (!cameraTouchActive) return;
+      // Prevent scrolling
+      e.preventDefault();
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - lastCameraTouch.x;
+      const deltaY = touch.clientY - lastCameraTouch.y;
+      lastCameraTouch.x = touch.clientX;
+      lastCameraTouch.y = touch.clientY;
+      // Sensitivity factor (adjust as needed)
+      const sensitivity = 0.002;
+      // Rotate the yaw (horizontal rotation)
+      controls.getObject().rotation.y -= deltaX * sensitivity;
+      // For pitch control, if the controls expose a pitchObject, update its rotation.
+      if ((controls as any).pitchObject) {
+        const pitchObject = (controls as any).pitchObject;
+        pitchObject.rotation.x -= deltaY * sensitivity;
+        // Clamp pitch between -PI/2 and PI/2
+        pitchObject.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitchObject.rotation.x));
+      }
+    }, { passive: false });
+
+    // On touchend, stop the camera control gesture.
+    document.addEventListener("touchend", (e: TouchEvent) => {
+      if (!cameraTouchActive) return;
+      cameraTouchActive = false;
+      // If the touch ended nearly at the same location (i.e. it's a tap), simulate a click.
+      if (e.changedTouches.length > 0) {
+        const touch = e.changedTouches[0];
+        // Create a synthetic click event at the touch location.
+        const simulatedClick = new MouseEvent("click", {
+          bubbles: true,
+          cancelable: true,
+          clientX: touch.clientX,
+          clientY: touch.clientY
+        });
+        document.elementFromPoint(touch.clientX, touch.clientY)?.dispatchEvent(simulatedClick);
+      }
+    }, { passive: false });
+  }
+
   // Initialize raycaster for block click detection
   const raycaster = new THREE.Raycaster();
 
   // Add Stats.js for performance monitoring
   const stats = new Stats();
   document.body.appendChild(stats.dom);
+
+  // Scale down the FPS meter on smaller screens
+  if (window.innerWidth < 768) {
+    stats.dom.style.transform = "scale(0.7)";
+    stats.dom.style.transformOrigin = "top left";
+  }
 
   // Add event listener for click tests
   renderer.domElement.addEventListener("mouseup", (event) => {
