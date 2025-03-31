@@ -29,7 +29,7 @@ async function init() {
   const nightSunColor = new THREE.Color(0x222244);  // A dim, cool tone for the sun at night
   
   scene.background = dawnSkyColor;
-  const ambientLight = new THREE.AmbientLight(dawnSkyColor, 0.1);
+  const ambientLight = new THREE.AmbientLight(dawnSkyColor, 0.3);
   scene.add(ambientLight);
   const camera = new THREE.PerspectiveCamera(
     75,
