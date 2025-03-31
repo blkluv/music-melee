@@ -29,6 +29,8 @@ async function init() {
   const nightSunColor = new THREE.Color(0x222244);  // A dim, cool tone for the sun at night
   
   scene.background = dawnSkyColor;
+  const ambientLight = new THREE.AmbientLight(dawnSkyColor, 0.1);
+  scene.add(ambientLight);
   const camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
@@ -1654,6 +1656,7 @@ async function init() {
       
       // Transition scene background from dawn (sunrise) to noon sky.
       scene.background = dawnSkyColor.clone().lerp(noonSkyColor, t);
+      ambientLight.color.copy(scene.background);
       
       // Maintain sun intensity until soon before round end.
       sun.intensity = 2.5;
@@ -1670,6 +1673,7 @@ async function init() {
       
       // Transition scene background from noon to night.
       scene.background = noonSkyColor.clone().lerp(nightSkyColor, t);
+      ambientLight.color.copy(scene.background);
       
       // Fade sun intensity to zero at full night.
       sun.intensity = 2.5 * (1 - t);
