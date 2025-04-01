@@ -69,15 +69,30 @@ async function init() {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Optional: for a softer shadow look
   document.body.appendChild(renderer.domElement);
 
+  // Create joystick container for mobile
+  const joystickContainer = document.createElement("div");
+  joystickContainer.id = "joystickContainer";
+  joystickContainer.style.position = "fixed";
+  joystickContainer.style.bottom = "50px";
+  joystickContainer.style.left = "50px";
+  joystickContainer.style.width = "150px";
+  joystickContainer.style.height = "150px";
+  joystickContainer.style.zIndex = "100";
+  joystickContainer.style.background = "rgba(0, 0, 0, 0.1)";
+  document.body.appendChild(joystickContainer);
+
   // NEW: Mobile Support for Movement and Camera Control
   if ((window as any).isMobile) {
+    console.log("isMobile:", (window as any).isMobile);
+    
     // --- Initialize the virtual joystick using nipplejs ---
     (window as any).mobileMovement = { x: 0, y: 0 };  // normalized vector for movement
     const joystick = nipplejs.create({
-      zone: document.body, // you may provide a dedicated container if you prefer
+      zone: joystickContainer,
       mode: "static",
-      position: { left: "100px", bottom: "100px" },
-      color: "white"
+      position: { left: "75px", bottom: "75px" }, // center within the container
+      color: "white",
+      size: 100  // explicitly set size
     });
 
     // Update movement vector on joystick move events
@@ -1157,8 +1172,10 @@ async function init() {
   // Mobile detection
   if (window.innerWidth < 768 || /Mobi/i.test(navigator.userAgent)) {
     (window as any).isMobile = true;
+    console.log("Mobile device detected - enabling touch controls");
   } else {
     (window as any).isMobile = false;
+    console.log("Desktop device detected - using mouse/keyboard controls");
   }
 
   // Camera control for mobile devices is now handled directly on the renderer canvas
