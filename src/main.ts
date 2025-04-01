@@ -20,6 +20,23 @@ async function init() {
     console.log("Desktop device detected - using mouse/keyboard controls");
   }
 
+  // Create a control mode display element
+  const controlsDisplay = document.createElement("div");
+  controlsDisplay.id = "controlsDisplay";
+  controlsDisplay.style.position = "fixed";
+  controlsDisplay.style.bottom = "20px";  // Adjust position as needed
+  controlsDisplay.style.left = "20px";   // Adjust position as needed
+  controlsDisplay.style.zIndex = "1000";
+  controlsDisplay.style.padding = "10px 20px";
+  controlsDisplay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+  controlsDisplay.style.color = "white";
+  controlsDisplay.style.fontFamily = "sans-serif";
+  controlsDisplay.style.fontSize = "14px";
+  controlsDisplay.innerText = (window as any).isMobile
+    ? "Mobile Controls Enabled"
+    : "Desktop Controls Enabled";
+  document.body.appendChild(controlsDisplay);
+
   // Declare variables at the top level of init() function
   let roundStartTime: number = 0;
   let roundDuration: number = 120; // in seconds (2 minutes)
@@ -140,8 +157,8 @@ async function init() {
       }
     };
 
-    // Make joystick container more visible but less distracting
-    joystickContainer.style.background = "rgba(255, 255, 255, 0.15)"; // Subtle white background
+    // Remove the extra visible background for the joystick container
+    joystickContainer.style.background = "none";
     
     // Add a simple touch event listener to verify the container is receiving events
     joystickContainer.addEventListener("touchstart", () => {
