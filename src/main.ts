@@ -20,11 +20,10 @@ async function init() {
   let deviceControls: DeviceOrientationControls | undefined;
   let requestDeviceOrientation: () => Promise<void>;
 
-
   // Set up low-latency audio context configuration
   const audioContext = new AudioContext({ latencyHint: "interactive" });
   TONE.setContext(audioContext);
-  
+
   // Ensure the AudioContext is resumed on the first user gesture for browsers like Firefox.
   document.addEventListener("click", async () => {
     if (audioContext.state === "suspended") {
@@ -35,13 +34,13 @@ async function init() {
 
   // Setup Three.js scene
   const scene = new THREE.Scene();
-  
+
   // Define sky and sun colors
   const dawnSkyColor = new THREE.Color(0xff4500); // Sunrise state: warm reddish-orange
-  const noonSkyColor = new THREE.Color(0x87ceeb);   // Midday: clear blue
-  const nightSkyColor = new THREE.Color(0x000022);  // Night: deep, dark blue
-  const nightSunColor = new THREE.Color(0x222244);  // A dim, cool tone for the sun at night
-  
+  const noonSkyColor = new THREE.Color(0x87ceeb); // Midday: clear blue
+  const nightSkyColor = new THREE.Color(0x000022); // Night: deep, dark blue
+  const nightSunColor = new THREE.Color(0x222244); // A dim, cool tone for the sun at night
+
   scene.background = dawnSkyColor;
   const ambientLight = new THREE.AmbientLight(dawnSkyColor, 0.3);
   scene.add(ambientLight);
@@ -51,7 +50,7 @@ async function init() {
     0.1,
     1000,
   );
-  
+
   if ((window as any).isMobile) {
     camera.rotation.order = "YXZ";
   }
@@ -85,7 +84,7 @@ async function init() {
   // NEW: Mobile Support for Movement and Camera Control
   if ((window as any).isMobile) {
     console.log("isMobile:", (window as any).isMobile);
-    
+
     // Assign implementation to the requestDeviceOrientation function
     requestDeviceOrientation = async (): Promise<void> => {
       if (
@@ -93,7 +92,9 @@ async function init() {
         typeof (DeviceOrientationEvent as any).requestPermission === "function"
       ) {
         try {
-          const response = await (DeviceOrientationEvent as any).requestPermission();
+          const response = await (
+            DeviceOrientationEvent as any
+          ).requestPermission();
           if (response === "granted") {
             console.log("Device orientation permission granted.");
             deviceControls = new DeviceOrientationControls(camera);
@@ -101,22 +102,25 @@ async function init() {
             console.error("Device orientation permission denied.");
           }
         } catch (error) {
-          console.error("Error requesting device orientation permission:", error);
+          console.error(
+            "Error requesting device orientation permission:",
+            error,
+          );
         }
       } else {
         // For other devices/browsers not requiring permission:
         deviceControls = new DeviceOrientationControls(camera);
       }
     };
-    
+
     // --- Initialize the virtual joystick using nipplejs ---
-    (window as any).mobileMovement = { x: 0, y: 0 };  // normalized vector for movement
+    (window as any).mobileMovement = { x: 0, y: 0 }; // normalized vector for movement
     const joystick = nipplejs.create({
       zone: joystickContainer,
       mode: "static",
       position: { left: "75px", bottom: "75px" }, // center within the container
       color: "white",
-      size: 100  // explicitly set size
+      size: 100, // explicitly set size
     });
 
     // Update movement vector on joystick move events
@@ -141,9 +145,9 @@ async function init() {
       () => {
         requestDeviceOrientation();
       },
-      { once: true }
+      { once: true },
     );
-    
+
     // Add tap handler to simulate clicks
     renderer.domElement.addEventListener(
       "touchend",
@@ -158,7 +162,7 @@ async function init() {
         });
         renderer.domElement.dispatchEvent(simulatedClick);
       },
-      { passive: false }
+      { passive: false },
     );
   }
 
@@ -196,7 +200,7 @@ async function init() {
         startRound();
       }, 5000);
     },
-    { once: true }
+    { once: true },
   );
 
   // Also add a touchend listener for mobile (in case 'click' is not reliably fired):
@@ -210,7 +214,9 @@ async function init() {
         if (TONE.getContext().state !== "running") {
           await TONE.start();
           TONE.getContext().lookAhead = 0.01;
-          console.log("Tone.js audio context resumed with low latency settings (touchend)");
+          console.log(
+            "Tone.js audio context resumed with low latency settings (touchend)",
+          );
         }
         const overlay = document.getElementById("startOverlay");
         if (overlay) {
@@ -229,7 +235,7 @@ async function init() {
           startRound();
         }, 5000);
       },
-      { once: true }
+      { once: true },
     );
   }
 
@@ -269,10 +275,10 @@ async function init() {
   // Wall parameters
   const wallThickness = 1;
   const wallHeight = 20;
-  const wallMaterial = new THREE.MeshStandardMaterial({ 
+  const wallMaterial = new THREE.MeshStandardMaterial({
     color: 0x999999,
     roughness: 0.7,
-    metalness: 0.2
+    metalness: 0.2,
   });
   const halfArena = arenaSize / 2;
 
@@ -346,7 +352,6 @@ async function init() {
   const midColor = new THREE.Color(0xffffff); // white
   const endColor = new THREE.Color(0xff0000); // sunset red
 
-
   // Create the sun with its initial parameters
   const sun = new THREE.DirectionalLight(startColor, 2.5);
   sun.position.copy(startPos);
@@ -390,7 +395,9 @@ async function init() {
       // Flash the block white
       const originalColor = mesh.userData.originalColor;
       // Store the original emissive intensity.
-      const originalEmissiveIntensity = (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity;
+      const originalEmissiveIntensity = (
+        mesh.material as THREE.MeshStandardMaterial
+      ).emissiveIntensity;
       // Flash: Override color and emissive properties to white and boost flash intensity.
       (mesh.material as THREE.MeshStandardMaterial).color.set(0xffffff);
       // Calculate timing error
@@ -404,8 +411,12 @@ async function init() {
       (mesh.material as THREE.MeshStandardMaterial).emissive.set(0xffffff);
       setTimeout(() => {
         // Restore original color and a subtler emissive glow.
-        (mesh.material as THREE.MeshStandardMaterial).color.setHex(originalColor);
-        (mesh.material as THREE.MeshStandardMaterial).emissive.setHex(originalColor);
+        (mesh.material as THREE.MeshStandardMaterial).color.setHex(
+          originalColor,
+        );
+        (mesh.material as THREE.MeshStandardMaterial).emissive.setHex(
+          originalColor,
+        );
         (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.4;
       }, 150);
 
@@ -435,9 +446,19 @@ async function init() {
         const timingErrorMs = computeTimingError();
         if (timingErrorMs < 30) {
           // For perfect hit, trigger note at slightly higher volume
-          otherBody.assignedSynth.triggerAttackRelease(note, "8n", undefined, 1.2);
+          otherBody.assignedSynth.triggerAttackRelease(
+            note,
+            "8n",
+            undefined,
+            1.2,
+          );
         } else {
-          otherBody.assignedSynth.triggerAttackRelease(note, "8n", undefined, 1);
+          otherBody.assignedSynth.triggerAttackRelease(
+            note,
+            "8n",
+            undefined,
+            1,
+          );
         }
 
         // Measure actual audio start time for latency calculation
@@ -491,7 +512,7 @@ async function init() {
     0x6f42c1, // Vivid Purple primary (#6F42C1)
     0xa280ff, // Vivid Purple variation (#A280FF)
     0xfd7e14, // Vibrant Orange primary (#FD7E14)
-    0xffb266  // Vibrant Orange variation (#FFB266)
+    0xffb266, // Vibrant Orange variation (#FFB266)
   ];
 
   // Define a mapping from each of the 12 colour indices to a note.
@@ -573,7 +594,7 @@ async function init() {
   const globalGameVolume = new TONE.Volume(0);
   globalGameVolume.connect(globalLimiter);
   globalLimiter.toDestination();
-  
+
   // --- Begin new background music setup ---
 
   const backgroundSynth = new TONE.PolySynth(TONE.Synth, {
@@ -590,19 +611,19 @@ async function init() {
     { time: "0:0:0", chord: ["C4", "E4", "G4", "B4"] },
     { time: "1:0:0", chord: ["A3", "C4", "E4", "G4"] },
     { time: "2:0:0", chord: ["D4", "F#4", "A4", "C5"] },
-    { time: "3:0:0", chord: ["G3", "B3", "D4", "F#4"] }
+    { time: "3:0:0", chord: ["G3", "B3", "D4", "F#4"] },
   ];
 
   // Late progression: more variety – keeping it subtle and jazzy.
   const lateProgression = [
     { time: "0:0:0", chord: ["C4", "E4", "G4", "Bb4"] }, // C7
     { time: "1:0:0", chord: ["E4", "G4", "B4", "D5"] },
-    { time: "2:0:0", chord: ["A3", "C4", "E4", "G4"] },    // Am7
-    { time: "3:0:0", chord: ["D4", "F4", "A4", "C5"] },    // Dm7
-    { time: "4:0:0", chord: ["G3", "B3", "D4", "F4"] },     // G7
+    { time: "2:0:0", chord: ["A3", "C4", "E4", "G4"] }, // Am7
+    { time: "3:0:0", chord: ["D4", "F4", "A4", "C5"] }, // Dm7
+    { time: "4:0:0", chord: ["G3", "B3", "D4", "F4"] }, // G7
     { time: "5:0:0", chord: ["F4", "A4", "C5", "E5"] },
-    { time: "6:0:0", chord: ["Bb3", "D4", "F4", "Ab4"] },   // adds a subtle tension
-    { time: "7:0:0", chord: ["C4", "E4", "G4", "Bb4"] }     // resolves back
+    { time: "6:0:0", chord: ["Bb3", "D4", "F4", "Ab4"] }, // adds a subtle tension
+    { time: "7:0:0", chord: ["C4", "E4", "G4", "Bb4"] }, // resolves back
   ];
 
   // Create a Tone.Part using the early progression and loop every 4 measures.
@@ -616,7 +637,7 @@ async function init() {
   backgroundSynth.volume.value = -32;
 
   // --- End new background music setup ---
-  
+
   // --- Begin chillhop lofi percussion setup ---
   const lofiKick = new TONE.MembraneSynth({
     volume: -8,
@@ -636,7 +657,7 @@ async function init() {
     lofiKick.triggerAttackRelease("C2", "8n", time + randomDelay, 1);
   }, "2n");
   // --- End chillhop lofi percussion setup ---
-  
+
   // --- Begin explosion sound setup ---
   const explosionSynth = new TONE.MembraneSynth({
     volume: -6, // louder output
@@ -723,7 +744,13 @@ async function init() {
     panner3D: TONE.Panner3D;
   } {
     // Get available synth from pool
-    let boxSynth: TONE.Synth | TONE.MetalSynth | TONE.FMSynth | TONE.AMSynth | TONE.PluckSynth | undefined;
+    let boxSynth:
+      | TONE.Synth
+      | TONE.MetalSynth
+      | TONE.FMSynth
+      | TONE.AMSynth
+      | TONE.PluckSynth
+      | undefined;
     let synthIndex = -1;
 
     if (chosenType === "Synth") {
@@ -845,9 +872,11 @@ async function init() {
       if (impactVelocity < 2) return;
 
       const originalColor = mesh.userData.originalColor;
-      ((mesh.material as THREE.MeshStandardMaterial).color).set(0xffffff);
+      (mesh.material as THREE.MeshStandardMaterial).color.set(0xffffff);
       setTimeout(() => {
-        ((mesh.material as THREE.MeshStandardMaterial).color).setHex(originalColor);
+        (mesh.material as THREE.MeshStandardMaterial).color.setHex(
+          originalColor,
+        );
       }, 150);
 
       (boxBody as any).assignedVolume.volume.value = computeCollisionVolume(
@@ -891,13 +920,13 @@ async function init() {
             score += pointsEarned;
             comboMultiplier++;
             if (comboMultiplier > maxCombo) maxCombo = comboMultiplier;
-            
+
             // For very perfect timing (error < 30ms), show floating "Perfect!"
             if (timingErrorMs < 30) {
               spawnFloatingText("Perfect!", mesh.position);
               triggerCameraShake();
             }
-            
+
             spawnParticlesAt(mesh.position, mesh.userData.originalColor);
           } else {
             // Off-key: penalize and reset combo multiplier
@@ -921,7 +950,7 @@ async function init() {
         measuredLatency = lastAudioStartTime - lastCollisionTime;
 
         // latencyElem removed - no longer displaying JS latency
-        
+
         updateRhythmUI(note); // Only updated if the collision involves the player
       }
     });
@@ -1019,19 +1048,18 @@ async function init() {
   scoreElem.id = "scoreDisplay";
   scoreElem.innerText = "Score: 0";
   document.body.appendChild(scoreElem);
-  
+
   // Create combo multiplier display
   const comboElem = document.createElement("div");
   comboElem.id = "comboDisplay";
   comboElem.innerText = "Combo: 1";
   document.body.appendChild(comboElem);
 
-  
   // Global scoring variables
   let comboMultiplier = 1; // increases on each in-key hit
-  let maxCombo = 0;        // track the highest combo reached
-  const baseScore = 10;    // base points earned per hit (will be multiplied by the combo)
-  
+  let maxCombo = 0; // track the highest combo reached
+  const baseScore = 10; // base points earned per hit (will be multiplied by the combo)
+
   // Music controls removed - background music now plays automatically with no UI controls
 
   // Blocks will be spawned after user interaction
@@ -1165,7 +1193,10 @@ async function init() {
       const downRaycaster = new THREE.Raycaster();
       const origin = playerBody.position.clone();
       // Set ray downward (0, -1, 0)
-      downRaycaster.set(new THREE.Vector3(origin.x, origin.y, origin.z), new THREE.Vector3(0, -1, 0));
+      downRaycaster.set(
+        new THREE.Vector3(origin.x, origin.y, origin.z),
+        new THREE.Vector3(0, -1, 0),
+      );
 
       // Include the ground mesh and all block meshes in the raycast
       const intersectObjects = [groundMesh, ...boxMeshArray];
@@ -1253,16 +1284,30 @@ async function init() {
         // Flash the block white (store original color first).
         const originalColor = targetMesh.userData.originalColor;
         // Store the original emissive intensity.
-        const originalEmissiveIntensity = ((targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity;
+        const originalEmissiveIntensity = (
+          (targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial
+        ).emissiveIntensity;
         // Flash: Override color and emissive properties to white.
-        ((targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial).color.set(0xffffff);
-        ((targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial).emissive.set(0xffffff);
-        ((targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity = 2;
+        (
+          (targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial
+        ).color.set(0xffffff);
+        (
+          (targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial
+        ).emissive.set(0xffffff);
+        (
+          (targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial
+        ).emissiveIntensity = 2;
         setTimeout(() => {
           // Restore the original color and glow settings.
-          ((targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial).color.setHex(originalColor);
-          ((targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial).emissive.setHex(originalColor);
-          ((targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity = 0.4;
+          (
+            (targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial
+          ).color.setHex(originalColor);
+          (
+            (targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial
+          ).emissive.setHex(originalColor);
+          (
+            (targetMesh as THREE.Mesh).material as THREE.MeshStandardMaterial
+          ).emissiveIntensity = 0.4;
         }, 150);
 
         // Play the block sound with a "big impact" (simulate high impact velocity).
@@ -1272,7 +1317,7 @@ async function init() {
 
         // Compute timing error before using it
         const timingErrorMs = computeTimingError();
-        
+
         // Immediate triggering with no scheduling delay
         if (timingErrorMs < 30) {
           // For perfect hit, trigger note at slightly higher volume
@@ -1280,14 +1325,14 @@ async function init() {
             note,
             "8n",
             undefined,
-            1.2
+            1.2,
           );
         } else {
           (blockBody as any).assignedSynth.triggerAttackRelease(
             note,
             "8n",
             undefined,
-            1
+            1,
           );
         }
 
@@ -1301,7 +1346,7 @@ async function init() {
           } else if (timingErrorMs < 60) {
             bonusMultiplier = 1.2; // nearly perfect timing: 20% bonus
           }
-              
+
           // Define the allowed note letters for the current key (C Lydian)
           const lydianNotes = ["C", "D", "E", "F#", "G", "A", "B"];
           // Expect the tone to be in a format like "C4" (letter plus octave)
@@ -1312,9 +1357,11 @@ async function init() {
             const noteLetter = noteMatch[1];
             const octave = noteMatch[2];
             // Always show the note popup, regardless of key.
-            const blockColorHex = '#' + targetMesh.userData.originalColor.toString(16).padStart(6, '0');
+            const blockColorHex =
+              "#" +
+              targetMesh.userData.originalColor.toString(16).padStart(6, "0");
             spawnNotePopup(noteLetter, targetMesh.position, blockColorHex);
-            
+
             // Compute the impulse vector from the player to the block.
             const impulseDir = new CANNON.Vec3(
               targetMesh.position.x - playerBody.position.x,
@@ -1325,28 +1372,38 @@ async function init() {
 
             if (lydianNotes.includes(noteLetter)) {
               // In-key: Award points and adjust combo.
-              const pointsEarned = baseScore * comboMultiplier * bonusMultiplier;
+              const pointsEarned =
+                baseScore * comboMultiplier * bonusMultiplier;
               score += pointsEarned;
               comboMultiplier++;
               if (comboMultiplier > maxCombo) maxCombo = comboMultiplier;
-              
+
               // For very perfect timing, display feedback
               if (timingErrorMs < 30) {
                 spawnFloatingText("Perfect!", targetMesh.position);
                 triggerCameraShake();
               }
-              
+
               // Only show the multiplier popup if the bonus multiplier is above 1.
               if (bonusMultiplier > 1) {
                 spawnMultiplierPopup(bonusMultiplier, targetMesh.position);
               }
-              
+
               // Trigger explosion sound
-              explosionSynth.triggerAttackRelease((blockBody as any).assignedTone, "8n", undefined, 1.5);
-              
+              explosionSynth.triggerAttackRelease(
+                (blockBody as any).assignedTone,
+                "8n",
+                undefined,
+                1.5,
+              );
+
               // Trigger explosion effect at the block's position with triple the particles
-              spawnParticlesAt(targetMesh.position, targetMesh.userData.originalColor, 3);
-              
+              spawnParticlesAt(
+                targetMesh.position,
+                targetMesh.userData.originalColor,
+                3,
+              );
+
               // Remove the block from the scene and physics world
               scene.remove(targetMesh);
               world.removeBody(blockBody);
@@ -1356,13 +1413,13 @@ async function init() {
                 boxMeshArray.splice(index, 1);
                 updateBlockCounter();
               }
-              
+
               console.log("Block exploded and removed.");
             } else {
               // Off-key: Subtract a point and reset combo.
               score = score - baseScore < 0 ? 0 : score - baseScore;
               comboMultiplier = 1;
-                  
+
               // Apply only a mild push.
               const mildForce = 5; // Small force
               impulseDir.scale(mildForce, impulseDir);
@@ -1424,7 +1481,7 @@ async function init() {
     const diff = Math.min(mod, eighthNoteLength - mod);
     return diff * 1000; // return difference in milliseconds
   }
-  
+
   // Helper function to compute timing accuracy and update UI
   function updateRhythmUI(note: string) {
     // Get the current BPM from the cached transport.
@@ -1455,7 +1512,7 @@ async function init() {
     timingAccuracyElem.innerText = `Timing: ${diffMs} ms (${accuracyText})`;
     lastNoteElem.innerText = `Last Note: ${note}`;
   }
-  
+
   function updateComboDisplay() {
     comboElem.innerText = `Combo: ${comboMultiplier}`;
     // Immediately show the combo text
@@ -1463,19 +1520,19 @@ async function init() {
     // Animate scale-up (and specify a transition that covers both transform and opacity)
     comboElem.style.transition = "transform 0.2s ease, opacity 1s ease";
     comboElem.style.transform = "scale(1.5)";
-    
+
     // Clear any existing fade-out timeout so that rapid updates reset the timer
     clearTimeout(comboFadeTimeout);
     comboFadeTimeout = setTimeout(() => {
       comboElem.style.opacity = "0";
     }, 3000);
-    
+
     // Reset scale after the brief enlargement
-    setTimeout(() => { 
-      comboElem.style.transform = "scale(1)"; 
+    setTimeout(() => {
+      comboElem.style.transform = "scale(1)";
     }, 200);
   }
-  
+
   function triggerCameraShake() {
     const originalPos = camera.position.clone();
     let shakeTime = 0;
@@ -1485,7 +1542,7 @@ async function init() {
         const offset = new THREE.Vector3(
           (Math.random() - 0.5) * 0.1,
           (Math.random() - 0.5) * 0.1,
-          (Math.random() - 0.5) * 0.1
+          (Math.random() - 0.5) * 0.1,
         );
         camera.position.add(offset);
         shakeTime += 16;
@@ -1515,7 +1572,7 @@ async function init() {
     const start = performance.now();
     function animateText(now: number) {
       const elapsed = now - start;
-      div.style.transform = `translateY(${ - (elapsed / duration) * 30 }px)`;
+      div.style.transform = `translateY(${-(elapsed / duration) * 30}px)`;
       div.style.opacity = `${1 - elapsed / duration}`;
       if (elapsed < duration) {
         requestAnimationFrame(animateText);
@@ -1525,8 +1582,12 @@ async function init() {
     }
     requestAnimationFrame(animateText);
   }
-  
-  function spawnNotePopup(note: string, position: THREE.Vector3, noteColor?: string) {
+
+  function spawnNotePopup(
+    note: string,
+    position: THREE.Vector3,
+    noteColor?: string,
+  ) {
     const div = document.createElement("div");
     div.className = "note-popup";
     div.innerText = note;
@@ -1545,7 +1606,7 @@ async function init() {
     // Force the note popup to fly to the right:
     const angle = Math.random() * 30; // angle in degrees moving rightward
     const xOffset = 50 + Math.random() * 50; // always positive (rightward)
-    const yOffset = -50 - Math.random() * 50;  // upward motion
+    const yOffset = -50 - Math.random() * 50; // upward motion
 
     const duration = 1500;
     const start = performance.now();
@@ -1563,7 +1624,10 @@ async function init() {
     requestAnimationFrame(animate);
   }
 
-  function spawnMultiplierPopup(multiplier: number, /* position parameter unused */ _pos?: THREE.Vector3) {
+  function spawnMultiplierPopup(
+    multiplier: number,
+    /* position parameter unused */ _pos?: THREE.Vector3,
+  ) {
     const div = document.createElement("div");
     div.className = "multiplier-popup";
     div.innerText = `×${multiplier.toFixed(1)}`;
@@ -1571,12 +1635,12 @@ async function init() {
 
     // Position the multiplier popup fixed above the score display.
     div.style.left = "50%";
-    div.style.bottom = "60px";  // Adjust this value as needed for proper spacing
+    div.style.bottom = "60px"; // Adjust this value as needed for proper spacing
     div.style.transform = "translateX(-50%)";
 
     // Generate a slight random offset and rotation for a subtle animation effect.
     const angle = (Math.random() - 0.5) * 20; // small rotation variation
-    const xOffset = (Math.random() - 0.5) * 20; 
+    const xOffset = (Math.random() - 0.5) * 20;
     const yOffset = -10 - Math.random() * 10;
 
     const duration = 1500;
@@ -1595,22 +1659,26 @@ async function init() {
     }
     requestAnimationFrame(animate);
   }
-  
-  function spawnParticlesAt(position: THREE.Vector3, color: number, countMultiplier?: number) {
+
+  function spawnParticlesAt(
+    position: THREE.Vector3,
+    color: number,
+    countMultiplier?: number,
+  ) {
     // Use 8 as the base particle count; multiply if countMultiplier is provided.
     const particleCount = countMultiplier ? 8 * countMultiplier : 8;
-    
+
     // Create a small particle geometry and material to simulate a burst.
     const particleGeo = new THREE.SphereGeometry(0.1, 8, 8);
-    const particleMat = new THREE.MeshBasicMaterial({ 
+    const particleMat = new THREE.MeshBasicMaterial({
       color,
       transparent: true,
-      opacity: 1
+      opacity: 1,
     });
     const particle = new THREE.Mesh(particleGeo, particleMat);
     particle.position.copy(position);
     scene.add(particle);
-    
+
     // Use 'particleCount' in the loop:
     for (let i = 0; i < particleCount; i++) {
       const angle = (i / particleCount) * Math.PI * 2;
@@ -1618,18 +1686,18 @@ async function init() {
       const clone = particle.clone();
       clone.position.copy(position);
       scene.add(clone);
-      
+
       // Simple animation without TWEEN
       const direction = new THREE.Vector3(
-        Math.cos(angle), 
+        Math.cos(angle),
         0.5, // slight upward movement
-        Math.sin(angle)
+        Math.sin(angle),
       );
-      
+
       // Store animation data on the particle
       (clone as any).velocity = direction.multiplyScalar(speed);
       (clone as any).life = 1.0;
-      (clone as any).update = function(delta: number) {
+      (clone as any).update = function (delta: number) {
         this.position.add(this.velocity);
         this.life -= delta * 2;
         (this.material as THREE.MeshBasicMaterial).opacity = this.life;
@@ -1639,15 +1707,15 @@ async function init() {
           scene.remove(this);
         }
       };
-      
+
       // Add to a global array for animation
       particlesToAnimate.push(clone);
     }
-    
+
     // Remove the original template particle
     scene.remove(particle);
   }
-  
+
   // Array to track particles for animation
   const particlesToAnimate: THREE.Mesh[] = [];
 
@@ -1670,7 +1738,7 @@ async function init() {
     const startOverlayElem = document.getElementById("startOverlay");
     if (startOverlayElem) {
       // Update orbit angle (adjust speed as desired)
-      orbitAngle += dt * 0.2;  // dt is the timestep in seconds (e.g., 0.016 for ~60fps)
+      orbitAngle += dt * 0.2; // dt is the timestep in seconds (e.g., 0.016 for ~60fps)
 
       // Set the orbit parameters: radius and height (tweak these values as needed)
       const orbitRadius = 40;
@@ -1693,7 +1761,9 @@ async function init() {
       }
     } else if (controls && controls.isLocked) {
       // Non-mobile: update via PointerLockControls.
-      controls.getObject().position.copy(playerBody.position as unknown as THREE.Vector3);
+      controls
+        .getObject()
+        .position.copy(playerBody.position as unknown as THREE.Vector3);
     }
 
     // Basic WASD movement: calculate front and side speeds
@@ -1758,18 +1828,18 @@ async function init() {
 
     // Update BPM display
     bpmElem.innerText = `BPM: ${transport.bpm.value.toFixed(0)}`;
-    
+
     // Calculate beat factor for ambient pulsing
     const currentBPM = transport.bpm.value;
     const eighthNoteLength = 60 / currentBPM / 2;
     const currentTransportTime = transport.seconds;
     const mod = currentTransportTime % eighthNoteLength;
     const beatFactor = mod / eighthNoteLength;
-    
+
     // Ambient pulsing: vary sun intensity slightly with beat (using a sine wave)
     const pulseIntensity = 2.5 + 0.3 * Math.sin(beatFactor * Math.PI * 2);
     sun.intensity = pulseIntensity;
-    
+
     // Update particles
     for (let i = particlesToAnimate.length - 1; i >= 0; i--) {
       const particle = particlesToAnimate[i];
@@ -1778,7 +1848,7 @@ async function init() {
         particlesToAnimate.splice(i, 1);
         continue;
       }
-      
+
       (particle as any).update(dt);
       if ((particle as any).life <= 0) {
         particlesToAnimate.splice(i, 1);
@@ -1791,36 +1861,36 @@ async function init() {
 
     if (elapsedRound <= roundDuration - 20) {
       // From round start until (roundDuration - 20) seconds: transition from sunrise to noon.
-      t = elapsedRound / (roundDuration - 20);  // normalized progression (0 to 1)
-      
+      t = elapsedRound / (roundDuration - 20); // normalized progression (0 to 1)
+
       // Lerp sun position from start (sunrise) to mid (noon) and sun colour from startColor to midColor.
       sun.position.lerpVectors(startPos, midPos, t);
       sun.color.copy(startColor.clone().lerp(midColor, t));
-      
+
       // Transition scene background from dawn (sunrise) to noon sky.
       scene.background = dawnSkyColor.clone().lerp(noonSkyColor, t);
       ambientLight.color.copy(scene.background);
-      
+
       // Maintain sun intensity until soon before round end.
       sun.intensity = 2.5;
       sunSphere.visible = true;
     } else {
       // In the final 20 seconds of the round: transition towards nightfall.
-      t = (elapsedRound - (roundDuration - 20)) / 20;  // normalized (0 at 100s to 1 at 120s)
-      
+      t = (elapsedRound - (roundDuration - 20)) / 20; // normalized (0 at 100s to 1 at 120s)
+
       // Continue sun position transition: from noon (midPos) to end (sunset) if desired.
       sun.position.lerpVectors(midPos, endPos, t);
-      
+
       // Fade sun colour from midColor towards the defined night sun color.
       sun.color.copy(midColor.clone().lerp(nightSunColor, t));
-      
+
       // Transition scene background from noon to night.
       scene.background = noonSkyColor.clone().lerp(nightSkyColor, t);
       ambientLight.color.copy(scene.background);
-      
+
       // Fade sun intensity to zero at full night.
       sun.intensity = 2.5 * (1 - t);
-      
+
       // Optionally, hide the visible sun sphere as night deepens.
       sunSphere.visible = t < 0.5;
     }
@@ -1847,7 +1917,7 @@ async function init() {
     // --- NEW: Force player spawn on the ground ---
     playerBody.position.set(0, 1, 0);
     playerBody.velocity.set(0, 0, 0);
-    
+
     // No need to reset mobile camera rotation - DeviceOrientationControls handles it
     // -------------------------------------------
 
@@ -1858,7 +1928,7 @@ async function init() {
     // Start the Transport with a slight offset
     transport.start("+0.1");
     console.log("Transport started with offset +0.1");
-    
+
     // Start the background music part in sync with the game round.
     backgroundPart.start("+0.1");
 
@@ -1869,7 +1939,7 @@ async function init() {
 
     // Schedule block spawning: add two blocks per measure until the round ends
     transport.scheduleRepeat(spawnBlock, "2n");
-    
+
     // Border flash removed for cleaner UI
 
     // Debug transport ticking
@@ -1885,21 +1955,21 @@ async function init() {
       const minutes = Math.floor(remaining / 60);
       const seconds = Math.floor(remaining % 60);
       roundTimerElem.innerText = `${minutes}:${seconds.toString().padStart(2, "0")}`;
-      
+
       // Round progress (no longer used for music intensity)
       const progress = elapsed / roundDuration;
-    
+
       // Gradually increase the chillhop beat's volume from -8 dB to 0 dB as the round progresses.
-      lofiKick.volume.value = -8 + (8 * t);
-      
+      lofiKick.volume.value = -8 + 8 * t;
+
       if (remaining <= 0) {
         clearInterval(roundTimerInterval);
         // Stop the round and perform cleanup:
         TONE.getTransport().stop();
-        TONE.getTransport().cancel();  // Cancel all pending scheduled events.
-        
+        TONE.getTransport().cancel(); // Cancel all pending scheduled events.
+
         console.log("Round ended.");
-        
+
         // Display summary overlay
         const summaryOverlay = document.createElement("div");
         summaryOverlay.id = "summaryOverlay";
@@ -1912,11 +1982,13 @@ async function init() {
             Vibecoded with love by <a href="https://gianluca.ai">Gianluca</a> for <a href="https://jam.pieter.com" target="_blank">Vibe Jam 2025</a>
           </p>`;
         document.body.appendChild(summaryOverlay);
-        
-        document.getElementById("playAgainBtn")!.addEventListener("click", () => {
-          // Option 1: Reload the page to restart the game:
-          window.location.reload();
-        });
+
+        document
+          .getElementById("playAgainBtn")!
+          .addEventListener("click", () => {
+            // Option 1: Reload the page to restart the game:
+            window.location.reload();
+          });
       }
     }, 100);
   }
@@ -1926,11 +1998,12 @@ async function init() {
   if (loadingElem) {
     loadingElem.remove();
   }
-  
+
   // Add credit footer
   const creditElem = document.createElement("div");
   creditElem.id = "creditFooter";
-  creditElem.innerHTML = 'Vibecoded with love by <a href="https://gianluca.ai" target="_blank">Gianluca</a> using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet. <a href="https://jam.pieter.com/">Vibe Jam 2025</a>';
+  creditElem.innerHTML =
+    'Vibecoded with love by <a href="https://gianluca.ai" target="_blank">Gianluca</a> using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet. <a href="https://jam.pieter.com/">Vibe Jam 2025</a>';
   document.body.appendChild(creditElem);
 
   // Handle window resize

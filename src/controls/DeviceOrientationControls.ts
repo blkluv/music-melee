@@ -11,14 +11,18 @@ export class DeviceOrientationControls {
   quatL: THREE.Quaternion;
   quatR: THREE.Quaternion;
 
-  private _onDeviceOrientationChangeEvent: (event: DeviceOrientationEvent) => void;
+  private _onDeviceOrientationChangeEvent: (
+    event: DeviceOrientationEvent,
+  ) => void;
   private _onScreenOrientationChangeEvent: () => void;
 
   constructor(camera: THREE.Camera) {
     this.camera = camera;
     this.enabled = true;
     this.deviceOrientation = null;
-    this.screenOrientation = window.orientation ? Number(window.orientation) : 0;
+    this.screenOrientation = window.orientation
+      ? Number(window.orientation)
+      : 0;
 
     this.euler = new THREE.Euler();
     this.quaternion = new THREE.Quaternion();
@@ -31,21 +35,39 @@ export class DeviceOrientationControls {
       this.deviceOrientation = event;
     };
     this._onScreenOrientationChangeEvent = () => {
-      this.screenOrientation = window.orientation ? Number(window.orientation) : 0;
+      this.screenOrientation = window.orientation
+        ? Number(window.orientation)
+        : 0;
     };
 
     this.connect();
   }
 
   connect() {
-    window.addEventListener("deviceorientation", this._onDeviceOrientationChangeEvent, false);
-    window.addEventListener("orientationchange", this._onScreenOrientationChangeEvent, false);
+    window.addEventListener(
+      "deviceorientation",
+      this._onDeviceOrientationChangeEvent,
+      false,
+    );
+    window.addEventListener(
+      "orientationchange",
+      this._onScreenOrientationChangeEvent,
+      false,
+    );
     this.enabled = true;
   }
 
   disconnect() {
-    window.removeEventListener("deviceorientation", this._onDeviceOrientationChangeEvent, false);
-    window.removeEventListener("orientationchange", this._onScreenOrientationChangeEvent, false);
+    window.removeEventListener(
+      "deviceorientation",
+      this._onDeviceOrientationChangeEvent,
+      false,
+    );
+    window.removeEventListener(
+      "orientationchange",
+      this._onScreenOrientationChangeEvent,
+      false,
+    );
     this.enabled = false;
   }
 
@@ -66,7 +88,12 @@ export class DeviceOrientationControls {
       // Apply the quaternion that rotates the camera -90 degrees around the X-axis.
       this.quaternion.multiply(this.quatL);
       // Adjust for screen orientation.
-      this.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -orient));
+      this.quaternion.multiply(
+        new THREE.Quaternion().setFromAxisAngle(
+          new THREE.Vector3(0, 0, 1),
+          -orient,
+        ),
+      );
 
       this.camera.quaternion.copy(this.quaternion);
     }

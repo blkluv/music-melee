@@ -26,7 +26,7 @@ canvas {
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.85);
   color: #fff;
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: "Roboto", Arial, sans-serif;
   font-size: 24px;
   display: flex;
   flex-direction: column;
@@ -64,21 +64,27 @@ canvas {
   right: 10px;
   padding: 4px 8px;
   font-size: 12px;
-  font-family: 'Roboto', sans-serif;
-  background: #FFFFFF;
-  color: #FFFFFF;
+  font-family: "Roboto", sans-serif;
+  background: #ffffff;
+  color: #ffffff;
   text-decoration: none;
   border: 1px solid #000;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  transition: transform 0.3s, box-shadow 0.3s;
-  text-shadow: -0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition:
+    transform 0.3s,
+    box-shadow 0.3s;
+  text-shadow:
+    -0.5px -0.5px 0 #000,
+    0.5px -0.5px 0 #000,
+    -0.5px 0.5px 0 #000,
+    0.5px 0.5px 0 #000;
   z-index: 10000; /* Ensure it stays on top of overlays */
 }
 
 #vibeJamLink:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Game UI Elements */
@@ -90,8 +96,12 @@ canvas {
 #scoreDisplay,
 #comboDisplay {
   position: absolute;
-  color: #FFFFFF;
-  text-shadow: -0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000;
+  color: #ffffff;
+  text-shadow:
+    -0.5px -0.5px 0 #000,
+    0.5px -0.5px 0 #000,
+    -0.5px 0.5px 0 #000,
+    0.5px 0.5px 0 #000;
   font-family: Roboto, sans-serif;
   max-width: 90%;
   white-space: normal;
@@ -159,8 +169,12 @@ canvas {
   left: 0;
   right: 0;
   text-align: center;
-  color: #FFFFFF;
-  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  color: #ffffff;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
   font-size: 12px;
   font-family: Roboto, sans-serif;
 }
@@ -186,7 +200,7 @@ canvas {
   position: absolute;
   width: 60px;
   height: 60px;
-  background: #007BFF;
+  background: #007bff;
   border-radius: 50%;
   left: 30px;
   top: 30px;
@@ -222,7 +236,7 @@ canvas {
   padding: 10px 20px;
   font-size: 18px;
   cursor: pointer;
-  background: #007BFF;
+  background: #007bff;
   color: white;
   border: none;
   border-radius: 5px;
@@ -239,7 +253,11 @@ canvas {
   color: lime;
   font-size: 20px;
   font-weight: bold;
-  text-shadow: -0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000;
+  text-shadow:
+    -0.5px -0.5px 0 #000,
+    0.5px -0.5px 0 #000,
+    -0.5px 0.5px 0 #000,
+    0.5px 0.5px 0 #000;
   pointer-events: none;
   opacity: 1;
 }
@@ -249,7 +267,11 @@ canvas {
   color: #ffcc00;
   font-size: 22px;
   font-weight: bold;
-  text-shadow: -0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000;
+  text-shadow:
+    -0.5px -0.5px 0 #000,
+    0.5px -0.5px 0 #000,
+    -0.5px 0.5px 0 #000,
+    0.5px 0.5px 0 #000;
   pointer-events: none;
   opacity: 1;
 }
@@ -259,7 +281,11 @@ canvas {
   color: #00ff00;
   font-size: 24px;
   font-weight: bold;
-  text-shadow: -0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000;
+  text-shadow:
+    -0.5px -0.5px 0 #000,
+    0.5px -0.5px 0 #000,
+    -0.5px 0.5px 0 #000,
+    0.5px 0.5px 0 #000;
   pointer-events: none;
   opacity: 1;
 }
@@ -275,8 +301,12 @@ canvas {
   #scoreDisplay,
   #comboDisplay {
     font-size: 16px !important;
-    color: #FFFFFF !important;
-    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    color: #ffffff !important;
+    text-shadow:
+      -1px -1px 0 #000,
+      1px -1px 0 #000,
+      -1px 1px 0 #000,
+      1px 1px 0 #000;
   }
 
   /* Adjust start overlay for mobile screens */

@@ -6,8 +6,10 @@ export default defineConfig({
   root: resolve(__dirname, "src"), // assumes your client code is under /src
   resolve: {
     alias: {
-      "three/examples/jsm": fileURLToPath(new URL("node_modules/three/examples/jsm", import.meta.url))
-    }
+      "three/examples/jsm": fileURLToPath(
+        new URL("node_modules/three/examples/jsm", import.meta.url),
+      ),
+    },
   },
   server: {
     open: false,
