@@ -164,8 +164,8 @@ async function init() {
       if (data && data.distance) {
         // Calculate normalized vector; adjust maxDistance as needed.
         const maxDistance = 75; // pixels
-        // Invert X axis to match expected movement direction
-        (window as any).mobileMovement.x = -data.vector.x;
+        // Use direct mapping without inversion
+        (window as any).mobileMovement.x = data.vector.x;
         (window as any).mobileMovement.y = data.vector.y;
       }
     });
