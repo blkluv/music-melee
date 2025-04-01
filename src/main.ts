@@ -1882,6 +1882,7 @@ async function init() {
     const div = document.createElement("div");
     div.className = "note-popup";
     div.innerText = note;
+    div.style.fontSize = "48px";
     if (noteColor) {
       div.style.color = noteColor;
     }
