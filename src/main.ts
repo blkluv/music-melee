@@ -322,42 +322,60 @@ async function init() {
 
     document.body.appendChild(permissionBtn);
 
-    // Add tap handler to simulate clicks with debugging
-    renderer.domElement.addEventListener(
-      "touchend",
-      (e: TouchEvent) => {
-        console.log("touchend fired on renderer.domElement");
-        // Prevent default to avoid any browser handling that might interfere
-        e.preventDefault();
+    // Variables to record pointer down details
+    let tapStartX = 0, tapStartY = 0, tapStartTime = 0;
 
-        // Process all taps, even if they're on the joystick container
-        const touch = e.changedTouches[0];
+    /**
+     * On pointerdown, store the location and time.
+     */
+    renderer.domElement.addEventListener("pointerdown", (e: PointerEvent) => {
+      // Only consider touch pointers (optional check)
+      if (e.pointerType === "touch") {
+        tapStartX = e.clientX;
+        tapStartY = e.clientY;
+        tapStartTime = performance.now();
+        console.log("Pointer down at:", tapStartX, tapStartY);
+      }
+    }, { passive: true });
 
-        console.log("Touch position:", touch.clientX, touch.clientY);
+    /**
+     * On pointerup, check if the pointer moved only a little and the duration was short.
+     * If so, fire a simulated click event.
+     */
+    renderer.domElement.addEventListener("pointerup", (e: PointerEvent) => {
+      if (e.pointerType === "touch") {
+        const tapEndTime = performance.now();
+        const dt = tapEndTime - tapStartTime;
+        const dx = e.clientX - tapStartX;
+        const dy = e.clientY - tapStartY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
 
-        // Add a small delay to ensure it's processed as a tap, not part of a gesture
-        setTimeout(() => {
+        console.log("Pointer up. Distance:", distance.toFixed(2), "Duration:", dt.toFixed(2));
+
+        // Thresholds: movement less than 10px and duration less than 300ms are considered a tap.
+        if (distance < 10 && dt < 300) {
+          console.log("Tap detected. Dispatching simulated click.");
+          
+          // Dispatch a simulated click event
           const simulatedClick = new MouseEvent("click", {
             bubbles: true,
             cancelable: true,
-            clientX: touch.clientX,
-            clientY: touch.clientY,
+            clientX: e.clientX,
+            clientY: e.clientY,
           });
-          console.log("Dispatching simulated click");
           renderer.domElement.dispatchEvent(simulatedClick);
 
           // Also dispatch a mouseup event which is needed for raycasting
           const simulatedMouseUp = new MouseEvent("mouseup", {
             bubbles: true,
             cancelable: true,
-            clientX: touch.clientX,
-            clientY: touch.clientY,
+            clientX: e.clientX,
+            clientY: e.clientY,
           });
           renderer.domElement.dispatchEvent(simulatedMouseUp);
-        }, 10);
-      },
-      { passive: false },
-    );
+        }
+      }
+    }, { passive: true });
   }
 
   // Setup Tone.js – resume audio context on first user interaction
