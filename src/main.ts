@@ -14,6 +14,7 @@ async function init() {
   let roundDuration: number = 120; // in seconds (2 minutes)
   let comboFadeTimeout: ReturnType<typeof setTimeout>;
   let orbitAngle = 0;
+  let mobilePoV = false;
 
 
   // Set up low-latency audio context configuration
@@ -88,6 +89,8 @@ async function init() {
 
     renderer.domElement.addEventListener("pointermove", (e: PointerEvent) => {
       if (!cameraControlActive || e.pointerId !== cameraControlPointerId) return;
+      // Optionally, if mobilePoV is active, skip camera rotation:
+      if ((window as any).isMobile && mobilePoV) return;
       // Prevent default scrolling or other browser gestures
       e.preventDefault();
       
@@ -138,37 +141,67 @@ async function init() {
       }
       if (TONE.getContext().state !== "running") {
         await TONE.start();
-        // Reduce the lookAhead window for lower latency
         TONE.getContext().lookAhead = 0.01; // 10ms lookahead
         console.log("Tone.js audio context resumed with low latency settings");
       }
-      // Audio context resumed on first click; verify this works on your target devices.
-
-      // Fade out the overlay once the user interacts
       const overlay = document.getElementById("startOverlay");
       if (overlay) {
         overlay.classList.add("fade-out");
         setTimeout(() => {
           overlay.remove();
-          // Only request pointer lock if not on a mobile device.
+          // For non-mobile devices, use PointerLockControls.
           if (!(window as any).isMobile) {
             controls.lock();
+          } else {
+            // On mobile: set flag and tilt the camera up for PoV.
+            mobilePoV = true;
+            camera.rotation.x = -0.1745;
           }
-        }, 1000); // match the duration in CSS (1 second)
+        }, 1000); // match the CSS fade-out duration
       }
-
-      // Spawn the starting blocks now (if not already spawned)
+      // Spawn initial blocks behind the overlay:
       for (let i = 0; i < 50; i++) {
         spawnBlock();
       }
-
-      // Wait 5 seconds, then begin the round
       setTimeout(() => {
         startRound();
       }, 5000);
     },
-    { once: true },
+    { once: true }
   );
+
+  // Also add a touchend listener for mobile (in case 'click' is not reliably fired):
+  if ((window as any).isMobile) {
+    document.body.addEventListener(
+      "touchend",
+      async () => {
+        if (audioContext.state === "suspended") {
+          await audioContext.resume();
+        }
+        if (TONE.getContext().state !== "running") {
+          await TONE.start();
+          TONE.getContext().lookAhead = 0.01;
+          console.log("Tone.js audio context resumed with low latency settings (touchend)");
+        }
+        const overlay = document.getElementById("startOverlay");
+        if (overlay) {
+          overlay.classList.add("fade-out");
+          setTimeout(() => {
+            overlay.remove();
+            mobilePoV = true;
+            camera.rotation.x = -0.1745;
+          }, 1000);
+        }
+        for (let i = 0; i < 50; i++) {
+          spawnBlock();
+        }
+        setTimeout(() => {
+          startRound();
+        }, 5000);
+      },
+      { once: true }
+    );
+  }
 
   // Setup physics
   const world = new CANNON.World({
@@ -1803,8 +1836,11 @@ async function init() {
 
       // Look at the center of the arena
       camera.lookAt(new THREE.Vector3(0, 0, 0));
+    } else if ((window as any).isMobile && mobilePoV) {
+      // On mobile, when PoV is active, place the camera at the player's position.
+      camera.position.copy(playerBody.position as unknown as THREE.Vector3);
     } else if (controls.isLocked) {
-      // When pointer lock is active, update the controls object to the player's position.
+      // Otherwise, when pointer lock is enabled, update via controls.
       controls.getObject().position.copy(playerBody.position as unknown as THREE.Vector3);
     }
 
