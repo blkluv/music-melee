@@ -206,9 +206,9 @@ async function init() {
           if (!(window as any).isMobile) {
             controls!.lock();
           } else {
-            // On mobile: set flag and tilt the camera up for PoV.
+            // On mobile: set flag and reset the PoV camera rotation completely.
             mobilePoV = true;
-            camera.rotation.x = -0.1745;
+            camera.rotation.set(-0.1745, 0, 0);
           }
         }, 1000); // match the CSS fade-out duration
       }
@@ -242,7 +242,7 @@ async function init() {
           setTimeout(() => {
             overlay.remove();
             mobilePoV = true;
-            camera.rotation.x = -0.1745;
+            camera.rotation.set(-0.1745, 0, 0);
           }, 1000);
         }
         for (let i = 0; i < 50; i++) {
@@ -1956,6 +1956,11 @@ async function init() {
     // --- NEW: Force player spawn on the ground ---
     playerBody.position.set(0, 1, 0);
     playerBody.velocity.set(0, 0, 0);
+    
+    // Reset mobile camera rotation if needed
+    if ((window as any).isMobile && mobilePoV) {
+      camera.rotation.set(-0.1745, 0, 0);
+    }
     // -------------------------------------------
 
     // Set initial tempo and ramp BPM to 180 over the round duration
