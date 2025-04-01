@@ -111,8 +111,37 @@ async function init() {
       (window as any).mobileMovement.y = 0;
     });
 
-    // --- Initialize DeviceOrientationControls for mobile camera rotation ---
-    deviceControls = new DeviceOrientationControls(camera);
+    // --- Request Device Orientation Permission on iOS ---
+    async function requestDeviceOrientation() {
+      if (
+        typeof DeviceOrientationEvent !== "undefined" &&
+        typeof (DeviceOrientationEvent as any).requestPermission === "function"
+      ) {
+        try {
+          const response = await (DeviceOrientationEvent as any).requestPermission();
+          if (response === "granted") {
+            console.log("Device orientation permission granted.");
+            deviceControls = new DeviceOrientationControls(camera);
+          } else {
+            console.error("Device orientation permission denied.");
+          }
+        } catch (error) {
+          console.error("Error requesting device orientation permission:", error);
+        }
+      } else {
+        // For other devices/browsers not requiring permission:
+        deviceControls = new DeviceOrientationControls(camera);
+      }
+    }
+
+    // Attach permission request to a user gesture
+    document.body.addEventListener(
+      "click",
+      () => {
+        requestDeviceOrientation();
+      },
+      { once: true }
+    );
     
     // Add tap handler to simulate clicks
     renderer.domElement.addEventListener(
@@ -188,6 +217,10 @@ async function init() {
           setTimeout(() => {
             overlay.remove();
             mobilePoV = true;
+            // Request device orientation permission when overlay is removed
+            if (typeof (DeviceOrientationEvent as any).requestPermission === "function") {
+              requestDeviceOrientation();
+            }
           }, 1000);
         }
         for (let i = 0; i < 50; i++) {
