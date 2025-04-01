@@ -1,7 +1,7 @@
 // Music Melee - Main Entry Point
 import * as THREE from "three";
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
-import { DeviceOrientationControls } from "three/examples/jsm/controls/DeviceOrientationControls.js";
+import { DeviceOrientationControls } from "three/examples/jsm/controls/DeviceOrientationControls";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import * as TONE from "tone";
 import * as CANNON from "cannon-es";
@@ -17,6 +17,7 @@ async function init() {
   let comboFadeTimeout: ReturnType<typeof setTimeout>;
   let orbitAngle = 0;
   let mobilePoV = false;
+  let deviceControls: DeviceOrientationControls | undefined;
 
 
   // Set up low-latency audio context configuration
@@ -96,7 +97,7 @@ async function init() {
     });
 
     // --- Initialize DeviceOrientationControls for mobile camera rotation ---
-    const deviceControls = new DeviceOrientationControls(camera);
+    deviceControls = new DeviceOrientationControls(camera);
     
     // Add tap handler to simulate clicks
     renderer.domElement.addEventListener(
@@ -1638,7 +1639,9 @@ async function init() {
       const playerPos = playerBody.position as unknown as THREE.Vector3;
       camera.position.set(playerPos.x, playerPos.y + 1.6, playerPos.z);
       // Update device orientation controls
-      deviceControls.update();
+      if (deviceControls) {
+        deviceControls.update();
+      }
     } else if (controls && controls.isLocked) {
       // Non-mobile: update via PointerLockControls.
       controls.getObject().position.copy(playerBody.position as unknown as THREE.Vector3);
