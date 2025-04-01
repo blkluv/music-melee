@@ -81,7 +81,8 @@ export class DeviceOrientationControls {
       const orient = THREE.MathUtils.degToRad(this.screenOrientation);
 
       // Set Euler angles in YXZ order.
-      this.euler.set(beta, alpha, -gamma, "YXZ");
+      const SENSITIVITY = 5;
+      this.euler.set(SENSITIVITY * beta, SENSITIVITY * alpha, SENSITIVITY * -gamma, "YXZ");
 
       // Convert Euler to quaternion.
       this.quaternion.setFromEuler(this.euler);

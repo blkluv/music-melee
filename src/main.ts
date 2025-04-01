@@ -2086,9 +2086,9 @@ async function init() {
     if ((window as any).mobileMovement) {
       const mm = (window as any).mobileMovement;
       // Apply a multiplier to make mobile movement more responsive
-      const mobileSensitivity = 2.0; // Increased from 1.5 for better responsiveness
-      moveX += mm.x * mobileSensitivity;
-      moveZ += mm.y * mobileSensitivity; // No longer inverting Y axis
+      const mobileSensitivity = 2.0;
+      moveX += -mm.x * mobileSensitivity;
+      moveZ += mm.y * mobileSensitivity;
 
       // Debug joystick movement if values are non-zero
       if (mm.x !== 0 || mm.y !== 0) {
