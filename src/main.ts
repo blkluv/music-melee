@@ -265,30 +265,45 @@ async function init() {
     // Update movement vector on joystick move events
     joystick.on("move", (evt, data) => {
       if (data && data.distance) {
-        // Use window.orientation in degrees; default to 0 if undefined.
-        const angleDeg = window.orientation || 0;
-        const angleRad = angleDeg * (Math.PI / 180);
-
-        // Rotate the raw joystick vector by the negative of the screen angle
-        // so that the output is in a common reference frame.
+        // Get raw joystick values
         const rawX = data.vector.x;
         const rawY = data.vector.y;
-        const transformedX =
-          rawX * Math.cos(-angleRad) - rawY * Math.sin(-angleRad);
-        const transformedY =
-          rawX * Math.sin(-angleRad) + rawY * Math.cos(-angleRad);
-
-        // Set the global mobile movement vector
-        (window as any).mobileMovement.x = transformedX;
-        (window as any).mobileMovement.y = transformedY;
+        
+        // Determine if we are in portrait mode
+        const isPortrait = window.innerHeight > window.innerWidth;
+        
+        // Get an orientation angle in radians
+        // (window.orientation is typically 0 in portrait, 90 or -90 in landscape)
+        const orientationAngle = (typeof window.orientation === "number" ? window.orientation : 0) * Math.PI / 180;
+        
+        let correctedJoystickX: number, correctedJoystickY: number;
+        
+        if (isPortrait) {
+          // In portrait mode, invert the horizontal axis only
+          correctedJoystickX = -rawX;
+          correctedJoystickY = rawY;
+        } else {
+          // In landscape, rotate the joystick vector by the orientation angle
+          // This counteracts the physical rotation of the device
+          const cos = Math.cos(orientationAngle);
+          const sin = Math.sin(orientationAngle);
+          correctedJoystickX = rawX * cos - rawY * sin;
+          correctedJoystickY = rawX * sin + rawY * cos;
+        }
+        
+        // Set the global mobile movement vector using the corrected values
+        (window as any).mobileMovement.x = correctedJoystickX;
+        (window as any).mobileMovement.y = correctedJoystickY;
 
         console.log(
           "Joystick raw vector:",
           rawX.toFixed(2),
           rawY.toFixed(2),
-          "→ transformed:",
-          transformedX.toFixed(2),
-          transformedY.toFixed(2),
+          "→ corrected:",
+          correctedJoystickX.toFixed(2),
+          correctedJoystickY.toFixed(2),
+          "portrait mode:",
+          isPortrait
         );
       }
     });
