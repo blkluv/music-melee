@@ -99,16 +99,21 @@ async function init() {
       const deltaX = currentTouch.x - lastTouchPos.x;
       const deltaY = currentTouch.y - lastTouchPos.y;
       lastTouchPos = currentTouch; // update for next move
-      // Adjust sensitivity as needed
       const sensitivity = 0.002;
-      // Update camera rotation using the PointerLockControls object.
-      // We use controls.getObject() (which is the camera container)
-      controls.getObject().rotation.y -= deltaX * sensitivity;
-      if ((controls as any).pitchObject) {
-        const pitchObj = (controls as any).pitchObject;
-        pitchObj.rotation.x -= deltaY * sensitivity;
-        // Clamp the pitch rotation between -PI/2 and PI/2
-        pitchObj.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, pitchObj.rotation.x));
+      if ((window as any).isMobile) {
+        // On mobile, update the camera's rotation directly
+        camera.rotation.y -= deltaX * sensitivity;
+        camera.rotation.x -= deltaY * sensitivity;
+        // Clamp the camera's pitch rotation
+        camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+      } else {
+        // Non-mobile: use the PointerLockControls object
+        controls.getObject().rotation.y -= deltaX * sensitivity;
+        if ((controls as any).pitchObject) {
+          const pitchObj = (controls as any).pitchObject;
+          pitchObj.rotation.x -= deltaY * sensitivity;
+          pitchObj.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitchObj.rotation.x));
+        }
       }
     }, { passive: false });
 
