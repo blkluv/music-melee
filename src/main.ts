@@ -1347,8 +1347,10 @@ async function init() {
   // Create combo multiplier display
   const comboElem = document.createElement("div");
   comboElem.id = "comboDisplay";
-  comboElem.innerText = "Combo: 1";
+  comboElem.innerText = "";
+  comboElem.style.display = "none";
   document.body.appendChild(comboElem);
+  updateComboDisplay();
 
   // Global scoring variables
   let comboMultiplier = 1; // increases on each in-key hit
