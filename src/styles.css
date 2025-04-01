@@ -318,6 +318,19 @@ canvas {
   opacity: 1;
 }
 
+/* Make the start instructions, block counts, controls and other UI (that are in white) smaller */
+#startOverlay,
+#blockCounter,
+#controlsDisplay,
+#timingAccuracy,
+#lastNote,
+#comboDisplay,
+.floating-text,
+.note-popup,
+.multiplier-popup {
+  font-size: 12px; /* Adjust as needed */
+}
+
 /* Media Queries for Mobile */
 @media (max-width: 768px) {
   /* Ensure all UI elements with IDs retain a legible size with white text and black outline */
