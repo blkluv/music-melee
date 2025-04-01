@@ -10,7 +10,7 @@ import nipplejs from "nipplejs";
 // Initialize the game
 async function init() {
   console.log("Music Melee initializing...");
-  
+
   // Mobile detection: set isMobile early
   if (window.innerWidth < 768 || /Mobi/i.test(navigator.userAgent)) {
     (window as any).isMobile = true;
@@ -41,6 +41,11 @@ async function init() {
         <ul style="text-align: left">
           <li>Use the on-screen joystick to move.</li>
           <li>Swipe or tilt your device to aim, and tap to hit blocks.</li>
+        <li>
+          Hit blocks that are in-key (notes C, D, E, F#, G, A, B) for bonus
+          points.
+        </li>
+        <li>Stay on beat – perfect timing increases your combo and score!</li>
           <li><strong>Turn your sound on!</strong> Audio is essential for gameplay.</li>
         </ul>
         <p><strong>Tap to begin</strong></p>
@@ -67,7 +72,12 @@ async function init() {
         </h2>
         <ul style="text-align: left">
           <li>Use <strong>WASD</strong> to move.</li>
-          <li>Use your mouse (or click) to hit blocks.</li>
+          <li>Use your mouse to aim. Click to hit blocks.</li>
+        <li>
+          Hit blocks that are in-key (notes C, D, E, F#, G, A, B) for bonus
+          points.
+        </li>
+        <li>Stay on beat – perfect timing increases your combo and score!</li>
           <li><strong>Turn your sound on!</strong> Audio is essential for full gameplay.</li>
         </ul>
         <p><strong>Click to begin</strong></p>
@@ -179,7 +189,7 @@ async function init() {
     // Assign implementation to the requestDeviceOrientation function
     requestDeviceOrientation = async (): Promise<void> => {
       console.log("Attempting to request device orientation permission...");
-      
+
       if (
         typeof DeviceOrientationEvent !== "undefined" &&
         typeof (DeviceOrientationEvent as any).requestPermission === "function"
@@ -219,12 +229,12 @@ async function init() {
 
     // Remove the extra visible background for the joystick container
     joystickContainer.style.background = "none";
-    
+
     // Add a simple touch event listener to verify the container is receiving events
     joystickContainer.addEventListener("touchstart", () => {
       console.log("Joystick container touched directly");
     });
-    
+
     // --- Initialize the virtual joystick using nipplejs ---
     console.log("Creating joystick with nipplejs");
     (window as any).mobileMovement = { x: 0, y: 0 }; // normalized vector for movement
@@ -266,7 +276,7 @@ async function init() {
       },
       { once: true },
     );
-    
+
     // Add a visible button for requesting permissions (more reliable than body click)
     const permissionBtn = document.createElement("button");
     permissionBtn.innerText = "Enable Motion Controls";
@@ -280,13 +290,13 @@ async function init() {
     permissionBtn.style.border = "none";
     permissionBtn.style.borderRadius = "4px";
     permissionBtn.style.fontSize = "16px";
-    
+
     permissionBtn.addEventListener("click", () => {
       console.log("Permission button clicked");
       requestDeviceOrientation();
       permissionBtn.style.display = "none";
     });
-    
+
     document.body.appendChild(permissionBtn);
 
     // Add tap handler to simulate clicks with debugging
@@ -296,7 +306,7 @@ async function init() {
         console.log("touchend fired on renderer.domElement");
         // Prevent default to avoid any browser handling that might interfere
         e.preventDefault();
-        
+
         // Only process taps if they're not on the joystick container
         const touch = e.changedTouches[0];
         const touchElement = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -304,9 +314,9 @@ async function init() {
           console.log("Touch was on joystick - ignoring for click simulation");
           return;
         }
-        
+
         console.log("Touch position:", touch.clientX, touch.clientY);
-        
+
         // Add a small delay to ensure it's processed as a tap, not part of a gesture
         setTimeout(() => {
           const simulatedClick = new MouseEvent("click", {
@@ -317,7 +327,7 @@ async function init() {
           });
           console.log("Dispatching simulated click");
           renderer.domElement.dispatchEvent(simulatedClick);
-          
+
           // Also dispatch a mouseup event which is needed for raycasting
           const simulatedMouseUp = new MouseEvent("mouseup", {
             bubbles: true,
@@ -375,7 +385,7 @@ async function init() {
       "touchend",
       async (e) => {
         console.log("touchend fired on document.body");
-        
+
         // Try to resume audio context
         try {
           if (audioContext.state === "suspended") {
@@ -392,7 +402,7 @@ async function init() {
         } catch (error) {
           console.error("Error resuming audio:", error);
         }
-        
+
         const overlay = document.getElementById("startOverlay");
         if (overlay) {
           console.log("Removing start overlay");
@@ -405,12 +415,12 @@ async function init() {
             requestDeviceOrientation();
           }, 1000);
         }
-        
+
         console.log("Spawning initial blocks");
         for (let i = 0; i < 50; i++) {
           spawnBlock();
         }
-        
+
         console.log("Scheduling round start");
         setTimeout(() => {
           startRound();
@@ -915,11 +925,11 @@ async function init() {
   // Helper function to create the audio chain for a given synth type.
   function buildSynthChain(chosenType: string): {
     synth:
-      | TONE.Synth
-      | TONE.MetalSynth
-      | TONE.PluckSynth
-      | TONE.FMSynth
-      | TONE.AMSynth;
+    | TONE.Synth
+    | TONE.MetalSynth
+    | TONE.PluckSynth
+    | TONE.FMSynth
+    | TONE.AMSynth;
     bassFilter: TONE.Filter;
     spatialVolume: TONE.Volume;
     panner3D: TONE.Panner3D;
@@ -992,15 +1002,15 @@ async function init() {
       pannerIndex >= 0
         ? pannerPool[pannerIndex]
         : new TONE.Panner3D({
-            panningModel: "HRTF",
-            distanceModel: "inverse",
-            refDistance: 1,
-            maxDistance: 50,
-            rolloffFactor: 0.3,
-            coneInnerAngle: 360,
-            coneOuterAngle: 0,
-            coneOuterGain: 0,
-          });
+          panningModel: "HRTF",
+          distanceModel: "inverse",
+          refDistance: 1,
+          maxDistance: 50,
+          rolloffFactor: 0.3,
+          coneInnerAngle: 360,
+          coneOuterAngle: 0,
+          coneOuterGain: 0,
+        });
     const spatialVolume =
       volumeIndex >= 0 ? volumePool[volumeIndex] : new TONE.Volume(-12);
 
@@ -1871,7 +1881,7 @@ async function init() {
       // Store animation data on the particle
       (clone as any).velocity = direction.multiplyScalar(speed);
       (clone as any).life = 1.0;
-      (clone as any).update = function (delta: number) {
+      (clone as any).update = function(delta: number) {
         this.position.add(this.velocity);
         this.life -= delta * 2;
         (this.material as THREE.MeshBasicMaterial).opacity = this.life;
@@ -1929,7 +1939,7 @@ async function init() {
       // On mobile, position the camera at the player's head height.
       const playerPos = playerBody.position as unknown as THREE.Vector3;
       camera.position.set(playerPos.x, playerPos.y + 1.6, playerPos.z);
-      
+
       // Update device orientation controls with error handling
       if (deviceControls) {
         try {
@@ -1980,7 +1990,7 @@ async function init() {
       const mobileSensitivity = 2.0; // Increased from 1.5 for better responsiveness
       moveX += mm.x * mobileSensitivity;
       moveZ += mm.y * mobileSensitivity; // No longer inverting Y axis
-      
+
       // Debug joystick movement if values are non-zero
       if (mm.x !== 0 || mm.y !== 0) {
         console.log("Mobile movement applied:", mm.x, mm.y);
