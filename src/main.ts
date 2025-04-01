@@ -20,6 +20,66 @@ async function init() {
     console.log("Desktop device detected - using mouse/keyboard controls");
   }
 
+  // Update start overlay instructions dynamically based on device type
+  const startOverlay = document.getElementById("startOverlay");
+  if (startOverlay) {
+    if ((window as any).isMobile) {
+      startOverlay.innerHTML = `
+        <h2 id="mainTitle">
+          <span style="color: #007bff">M</span>
+          <span style="color: #66bfff">u</span>
+          <span style="color: #dc3545">s</span>
+          <span style="color: #ff6b75">i</span>
+          <span style="color: #28a745">c</span>
+          <span> </span>
+          <span style="color: #6fcf97">M</span>
+          <span style="color: #ffc107">e</span>
+          <span style="color: #ffd966">l</span>
+          <span style="color: #6f42c1">e</span>
+          <span style="color: #a280ff">e</span>
+        </h2>
+        <ul style="text-align: left">
+          <li>Use the on-screen joystick to move.</li>
+          <li>Swipe or tilt your device to aim, and tap to hit blocks.</li>
+          <li><strong>Turn your sound on!</strong> Audio is essential for gameplay.</li>
+        </ul>
+        <p><strong>Tap to begin</strong></p>
+        <p>
+          Vibecoded with love by <a href="https://gianluca.ai" target="_blank" style="color: #a0a0ff; text-decoration: none">Gianluca</a>
+          using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet.
+        </p>
+        <a id="vibeJamLink" href="https://jam.pieter.com" target="_blank">🕹️ Vibe Jam 2025</a>
+      `;
+    } else {
+      startOverlay.innerHTML = `
+        <h2 id="mainTitle">
+          <span style="color: #007bff">M</span>
+          <span style="color: #66bfff">u</span>
+          <span style="color: #dc3545">s</span>
+          <span style="color: #ff6b75">i</span>
+          <span style="color: #28a745">c</span>
+          <span> </span>
+          <span style="color: #6fcf97">M</span>
+          <span style="color: #ffc107">e</span>
+          <span style="color: #ffd966">l</span>
+          <span style="color: #6f42c1">e</span>
+          <span style="color: #a280ff">e</span>
+        </h2>
+        <ul style="text-align: left">
+          <li>Use <strong>WASD</strong> to move.</li>
+          <li>Use your mouse (or click) to hit blocks.</li>
+          <li><strong>Turn your sound on!</strong> Audio is essential for full gameplay.</li>
+        </ul>
+        <p><strong>Click to begin</strong></p>
+        <p>
+          Vibecoded with love by <a href="https://gianluca.ai" target="_blank" style="color: #a0a0ff; text-decoration: none">Gianluca</a>
+          using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet.
+        </p>
+        <a id="vibeJamLink" href="https://jam.pieter.com" target="_blank">🕹️ Vibe Jam 2025</a>
+      `;
+    }
+  }
+
   // Create a control mode display element
   const controlsDisplay = document.createElement("div");
   controlsDisplay.id = "controlsDisplay";
