@@ -1,5 +1,20 @@
 # Music Melee
 
+For the [Vibe Jam 2025](https://jam.pieter.com/). 
+
+Vibecoded with love by [Gianluca](https://gianluca.ai) using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet
+
+Play now: [Music Melee](https://music-melee.vercel.app/) (best on desktop)
+
+---
+
+![SCR-20250401-ejex](https://github.com/user-attachments/assets/feecf200-64dd-4f40-bb8a-413ab4f9eeb1)
+
+![SCR-20250401-ejqh](https://github.com/user-attachments/assets/b9e582ed-56a4-40fd-8150-1b576913e3d1)
+
+
+---
+
 The game is called Music Melee (a working title) and involves fast and responsive parkour-like gameplay as players bounce around the environment and melee blocks. As the name suggests, the twist is that everything in the game creates dynamic sounds (mapped out in stereo 3D) and the more chaotic the battles get, the more sonically interesting it becomes. Players can get powerups for musically-interesting behaviour like achieving certain harmonies or matching the rhythm of the arena (which is procedurally generated at the start of the match). Matches are 2 minutes long and then the arena resets.
 
 ## Roadmap
