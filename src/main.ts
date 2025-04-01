@@ -269,38 +269,36 @@ async function init() {
         const rawX = data.vector.x;
         const rawY = data.vector.y;
         
-        //
-        // // Compute device orientation angle in radians;
-        // // Negate the angle to counteract the device's current rotation
-        // const deviceAngleRad = -(
-        //   ((typeof window.orientation === "number" ? window.orientation : 0) *
-        //     Math.PI) /
-        //   180
-        // );
-        //
-        // // Rotate the joystick vector using standard 2D rotation
-        // const cos = Math.cos(deviceAngleRad);
-        // const sin = Math.sin(deviceAngleRad);
-        // const correctedJoystickX = rawX * cos - rawY * sin;
-        // const correctedJoystickY = rawX * sin + rawY * cos;
-        //
-        // // Store the corrected joystick values globally for movement calculation.
-        // (window as any).mobileMovement.x = correctedJoystickX;
-        // (window as any).mobileMovement.y = correctedJoystickY;
-        //
-        // console.log(
-        //   "Joystick raw vector:",
-        //   rawX.toFixed(2),
-        //   rawY.toFixed(2),
-        //   "→ corrected:",
-        //   correctedJoystickX.toFixed(2),
-        //   correctedJoystickY.toFixed(2),
-        //   "device angle (rad):",
-        //   deviceAngleRad.toFixed(2),
-        //
-        // );
-        (window as any).mobileMovement.x = rawX;
-        (window as any).mobileMovement.y = rawY;
+
+        // Compute device orientation angle in radians;
+        // Negate the angle to counteract the device's current rotation
+        const deviceAngleRad = -(
+          ((typeof window.orientation === "number" ? window.orientation : 0) *
+            Math.PI) /
+          180
+        );
+
+        // Rotate the joystick vector using standard 2D rotation
+        const cos = Math.cos(deviceAngleRad);
+        const sin = Math.sin(deviceAngleRad);
+        const correctedJoystickX = rawX * cos - rawY * sin;
+        const correctedJoystickY = rawX * sin + rawY * cos;
+
+        // Store the corrected joystick values globally for movement calculation.
+        (window as any).mobileMovement.x = correctedJoystickX;
+        (window as any).mobileMovement.y = correctedJoystickY;
+
+        console.log(
+          "Joystick raw vector:",
+          rawX.toFixed(2),
+          rawY.toFixed(2),
+          "→ corrected:",
+          correctedJoystickX.toFixed(2),
+          correctedJoystickY.toFixed(2),
+          "device angle (rad):",
+          deviceAngleRad.toFixed(2),
+
+        );
       }
     });
 
