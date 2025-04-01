@@ -82,12 +82,13 @@ async function init() {
   const joystickContainer = document.createElement("div");
   joystickContainer.id = "joystickContainer";
   joystickContainer.style.position = "fixed";
-  joystickContainer.style.bottom = "50px";
-  joystickContainer.style.left = "50px";
-  joystickContainer.style.width = "150px";
-  joystickContainer.style.height = "150px";
+  joystickContainer.style.bottom = "80px"; // Moved higher up from the bottom
+  joystickContainer.style.left = "80px"; // Moved further from the left edge
+  joystickContainer.style.width = "180px"; // Increased size
+  joystickContainer.style.height = "180px"; // Increased size
   joystickContainer.style.zIndex = "100";
   joystickContainer.style.background = "rgba(0, 0, 0, 0.1)";
+  joystickContainer.style.borderRadius = "50%"; // Make it circular
   document.body.appendChild(joystickContainer);
 
   // NEW: Mobile Support for Movement and Camera Control
@@ -135,8 +136,8 @@ async function init() {
       }
     };
 
-    // Make joystick container more visible for debugging
-    joystickContainer.style.background = "rgba(255, 0, 0, 0.3)"; // Bright red background for visibility
+    // Make joystick container more visible but less distracting
+    joystickContainer.style.background = "rgba(255, 255, 255, 0.15)"; // Subtle white background
     
     // Add a simple touch event listener to verify the container is receiving events
     joystickContainer.addEventListener("touchstart", () => {
@@ -149,9 +150,11 @@ async function init() {
     const joystick = nipplejs.create({
       zone: joystickContainer,
       mode: "static",
-      position: { left: "75px", bottom: "75px" }, // center within the container
+      position: { left: "90px", bottom: "90px" }, // center within the larger container
       color: "white",
-      size: 100, // explicitly set size
+      size: 120, // increased size for better control
+      dynamicPage: true, // better handling of dynamic page elements
+      fadeTime: 100, // faster fade time for better responsiveness
     });
     console.log("Joystick created:", joystick);
 
@@ -161,7 +164,8 @@ async function init() {
       if (data && data.distance) {
         // Calculate normalized vector; adjust maxDistance as needed.
         const maxDistance = 75; // pixels
-        (window as any).mobileMovement.x = data.vector.x;
+        // Invert X axis to match expected movement direction
+        (window as any).mobileMovement.x = -data.vector.x;
         (window as any).mobileMovement.y = data.vector.y;
       }
     });
@@ -213,18 +217,36 @@ async function init() {
         // Prevent default to avoid any browser handling that might interfere
         e.preventDefault();
         
-        // Fire a click event from the first touch point
+        // Only process taps if they're not on the joystick container
         const touch = e.changedTouches[0];
+        const touchElement = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (touchElement && touchElement.closest('#joystickContainer')) {
+          console.log("Touch was on joystick - ignoring for click simulation");
+          return;
+        }
+        
         console.log("Touch position:", touch.clientX, touch.clientY);
         
-        const simulatedClick = new MouseEvent("click", {
-          bubbles: true,
-          cancelable: true,
-          clientX: touch.clientX,
-          clientY: touch.clientY,
-        });
-        console.log("Dispatching simulated click");
-        renderer.domElement.dispatchEvent(simulatedClick);
+        // Add a small delay to ensure it's processed as a tap, not part of a gesture
+        setTimeout(() => {
+          const simulatedClick = new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            clientX: touch.clientX,
+            clientY: touch.clientY,
+          });
+          console.log("Dispatching simulated click");
+          renderer.domElement.dispatchEvent(simulatedClick);
+          
+          // Also dispatch a mouseup event which is needed for raycasting
+          const simulatedMouseUp = new MouseEvent("mouseup", {
+            bubbles: true,
+            cancelable: true,
+            clientX: touch.clientX,
+            clientY: touch.clientY,
+          });
+          renderer.domElement.dispatchEvent(simulatedMouseUp);
+        }, 10);
       },
       { passive: false },
     );
@@ -1875,9 +1897,9 @@ async function init() {
     if ((window as any).mobileMovement) {
       const mm = (window as any).mobileMovement;
       // Apply a multiplier to make mobile movement more responsive
-      const mobileSensitivity = 1.5;
+      const mobileSensitivity = 2.0; // Increased from 1.5 for better responsiveness
       moveX += mm.x * mobileSensitivity;
-      moveZ += -mm.y * mobileSensitivity; // invert Y so upward swipe equals forward movement
+      moveZ += mm.y * mobileSensitivity; // No longer inverting Y axis
       
       // Debug joystick movement if values are non-zero
       if (mm.x !== 0 || mm.y !== 0) {

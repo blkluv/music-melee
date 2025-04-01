@@ -95,7 +95,10 @@ export class DeviceOrientationControls {
         ),
       );
 
-      this.camera.quaternion.copy(this.quaternion);
+      // Apply a damping factor to make movements smoother
+      // Use a small value (0.1) for more responsive but still smooth movement
+      const dampingFactor = 0.1;
+      this.camera.quaternion.slerp(this.quaternion, dampingFactor);
     }
     return true;
   }
