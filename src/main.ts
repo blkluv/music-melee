@@ -47,6 +47,10 @@ async function init() {
     0.1,
     1000,
   );
+  
+  if ((window as any).isMobile) {
+    camera.rotation.order = "YXZ";
+  }
 
   // Add an AudioListener to the camera for 3D audio
   const audioListener = new THREE.AudioListener();
@@ -215,12 +219,15 @@ async function init() {
     gravity: new CANNON.Vec3(0, -20, 0),
   });
 
-  // Initialize PointerLockControls for first-person navigation
-  const controls = new PointerLockControls(camera, renderer.domElement);
-  // Optionally, trigger pointer lock on a user gesture (e.g., a click)
-  renderer.domElement.addEventListener("click", () => {
-    controls.lock();
-  });
+  let controls: PointerLockControls | null = null;
+  if (!(window as any).isMobile) {
+    // Only create PointerLockControls on non-mobile devices.
+    controls = new PointerLockControls(camera, renderer.domElement);
+    // Trigger pointer lock on a user gesture.
+    renderer.domElement.addEventListener("click", () => {
+      controls!.lock();
+    });
+  }
 
   camera.position.z = 5;
 
@@ -1844,10 +1851,10 @@ async function init() {
       // Look at the center of the arena
       camera.lookAt(new THREE.Vector3(0, 0, 0));
     } else if ((window as any).isMobile && mobilePoV) {
-      // On mobile, when PoV is active, place the camera at the player's position.
+      // On mobile, update the camera position directly.
       camera.position.copy(playerBody.position as unknown as THREE.Vector3);
-    } else if (controls.isLocked) {
-      // Otherwise, when pointer lock is enabled, update via controls.
+    } else if (controls && controls.isLocked) {
+      // Non-mobile: update via PointerLockControls.
       controls.getObject().position.copy(playerBody.position as unknown as THREE.Vector3);
     }
 
