@@ -204,7 +204,7 @@ async function init() {
           overlay.remove();
           // For non-mobile devices, use PointerLockControls.
           if (!(window as any).isMobile) {
-            controls.lock();
+            controls!.lock();
           } else {
             // On mobile: set flag and tilt the camera up for PoV.
             mobilePoV = true;
@@ -1325,7 +1325,7 @@ async function init() {
   // Add event listener for click tests
   renderer.domElement.addEventListener("mouseup", (event) => {
     // Only proceed if pointer is locked
-    if (!controls.isLocked) return;
+    if (!controls || !controls.isLocked) return;
 
     // Cast a ray from the center of the screen.
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
