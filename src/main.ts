@@ -1531,8 +1531,8 @@ async function init() {
 
   // Add event listener for click tests
   renderer.domElement.addEventListener("mouseup", (event) => {
-    // Only proceed if pointer is locked
-    if (!controls || !controls.isLocked) return;
+    // Allow click hit action if PointerLock is active OR if mobile mode with mobilePoV enabled.
+    if (!((controls && controls.isLocked) || ((window as any).isMobile && mobilePoV))) return;
 
     // Cast a ray from the center of the screen.
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
