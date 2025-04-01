@@ -1,9 +1,11 @@
 // Music Melee - Main Entry Point
 import * as THREE from "three";
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
+import { DeviceOrientationControls } from "three/examples/jsm/controls/DeviceOrientationControls.js";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import * as TONE from "tone";
 import * as CANNON from "cannon-es";
+import nipplejs from "nipplejs";
 
 // Initialize the game
 async function init() {
@@ -68,104 +70,50 @@ async function init() {
 
   // NEW: Mobile Support for Movement and Camera Control
   if ((window as any).isMobile) {
-    // --- JOYSTICK FOR PLAYER MOVEMENT ---
-    const joystickContainer = document.createElement("div");
-    joystickContainer.id = "joystickContainer";
-    document.body.appendChild(joystickContainer);
+    // --- Initialize the virtual joystick using nipplejs ---
+    (window as any).mobileMovement = { x: 0, y: 0 };  // normalized vector for movement
+    const joystick = nipplejs.create({
+      zone: document.body, // you may provide a dedicated container if you prefer
+      mode: "static",
+      position: { left: "100px", bottom: "100px" },
+      color: "white"
+    });
 
-    const joystickKnob = document.createElement("div");
-    joystickKnob.id = "joystickKnob";
-    joystickContainer.appendChild(joystickKnob);
-
-    let joystickActive = false;
-    let joystickOrigin = { x: 0, y: 0 };
-    // The normalized movement vector updates: values between -1 and 1.
-    (window as any).mobileMovement = { x: 0, y: 0 };
-
-    joystickContainer.addEventListener("pointerdown", (e: PointerEvent) => {
-      if (e.pointerType !== "touch") return;
-      joystickActive = true;
-      joystickOrigin = { x: e.clientX, y: e.clientY };
-      joystickKnob.style.transition = "";
-      (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    }, { passive: false });
-
-    joystickContainer.addEventListener("pointermove", (e: PointerEvent) => {
-      if (!joystickActive) return;
-      const rect = joystickContainer.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      let dx = e.clientX - centerX;
-      let dy = e.clientY - centerY;
-      const maxDist = rect.width / 2 - joystickKnob.offsetWidth / 2;
-      const dist = Math.hypot(dx, dy);
-      if (dist > maxDist) {
-        const ratio = maxDist / dist;
-        dx *= ratio;
-        dy *= ratio;
+    // Update movement vector on joystick move events
+    joystick.on("move", (evt, data) => {
+      if (data && data.distance) {
+        // Calculate normalized vector; adjust maxDistance as needed.
+        const maxDistance = 75; // pixels
+        (window as any).mobileMovement.x = data.vector.x;
+        (window as any).mobileMovement.y = data.vector.y;
       }
-      joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
-      // Update the normalized movement (for lateral and forward/backward movement)
-      (window as any).mobileMovement.x = dx / maxDist;
-      (window as any).mobileMovement.y = dy / maxDist;
-    }, { passive: false });
+    });
 
-    joystickContainer.addEventListener("pointerup", (e: PointerEvent) => {
-      if (!joystickActive) return;
-      joystickActive = false;
-      joystickKnob.style.transition = "transform 0.3s ease";
-      joystickKnob.style.transform = "translate(0, 0)";
+    // Reset movement when joystick is released
+    joystick.on("end", () => {
       (window as any).mobileMovement.x = 0;
       (window as any).mobileMovement.y = 0;
-      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-    }, { passive: false });
+    });
 
-    // --- SWIPE SUPPORT FOR CAMERA CONTROL & TAP DETECTION ---
-    let swipeActive = false;
-    let swipeStart = { x: 0, y: 0 };
-    let swipeThreshold = 10; // pixels threshold to distinguish a swipe from a tap
-    let swipeLast = { x: 0, y: 0 };
-
-    renderer.domElement.addEventListener("pointerdown", (e: PointerEvent) => {
-      if (e.pointerType !== "touch") return;
-      // If the touch starts within the joystick container, do not process as a camera gesture.
-      if ((e.target as HTMLElement).closest("#joystickContainer")) return;
-      swipeActive = true;
-      swipeStart = { x: e.clientX, y: e.clientY };
-      swipeLast = { x: e.clientX, y: e.clientY };
-      (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    }, { passive: false });
-
-    renderer.domElement.addEventListener("pointermove", (e: PointerEvent) => {
-      if (!swipeActive) return;
-      const dx = e.clientX - swipeLast.x;
-      const dy = e.clientY - swipeLast.y;
-      swipeLast = { x: e.clientX, y: e.clientY };
-      // Update camera rotation based on swipe movement (adjust sensitivity as desired)
-      const sensitivity = 0.005;
-      camera.rotation.y -= dx * sensitivity;
-      camera.rotation.x -= dy * sensitivity;
-      // Clamp vertical rotation between -PI/2 and PI/2.
-      camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
-    }, { passive: false });
-
-    renderer.domElement.addEventListener("pointerup", (e: PointerEvent) => {
-      if (!swipeActive) return;
-      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-      // If the total distance moved is under the threshold, treat as a tap.
-      const totalDx = e.clientX - swipeStart.x;
-      const totalDy = e.clientY - swipeStart.y;
-      if (Math.hypot(totalDx, totalDy) < swipeThreshold) {
-        const clickEvent = new MouseEvent("click", {
+    // --- Initialize DeviceOrientationControls for mobile camera rotation ---
+    const deviceControls = new DeviceOrientationControls(camera);
+    
+    // Add tap handler to simulate clicks
+    renderer.domElement.addEventListener(
+      "touchend",
+      (e: TouchEvent) => {
+        // Fire a click event from the first touch point
+        const touch = e.changedTouches[0];
+        const simulatedClick = new MouseEvent("click", {
           bubbles: true,
           cancelable: true,
-          clientX: e.clientX,
-          clientY: e.clientY,
+          clientX: touch.clientX,
+          clientY: touch.clientY,
         });
-        document.elementFromPoint(e.clientX, e.clientY)?.dispatchEvent(clickEvent);
-      }
-      swipeActive = false;
-    }, { passive: false });
+        renderer.domElement.dispatchEvent(simulatedClick);
+      },
+      { passive: false }
+    );
   }
 
   // Setup Tone.js – resume audio context on first user interaction
@@ -189,9 +137,8 @@ async function init() {
           if (!(window as any).isMobile) {
             controls!.lock();
           } else {
-            // On mobile: set flag and reset the PoV camera rotation completely.
+            // On mobile: set flag for mobile PoV
             mobilePoV = true;
-            camera.rotation.set(-0.1745, 0, 0);
           }
         }, 1000); // match the CSS fade-out duration
       }
@@ -225,7 +172,6 @@ async function init() {
           setTimeout(() => {
             overlay.remove();
             mobilePoV = true;
-            camera.rotation.set(-0.1745, 0, 0);
           }, 1000);
         }
         for (let i = 0; i < 50; i++) {
@@ -1691,6 +1637,8 @@ async function init() {
       // On mobile, position the camera at the player's head height.
       const playerPos = playerBody.position as unknown as THREE.Vector3;
       camera.position.set(playerPos.x, playerPos.y + 1.6, playerPos.z);
+      // Update device orientation controls
+      deviceControls.update();
     } else if (controls && controls.isLocked) {
       // Non-mobile: update via PointerLockControls.
       controls.getObject().position.copy(playerBody.position as unknown as THREE.Vector3);
@@ -1848,10 +1796,7 @@ async function init() {
     playerBody.position.set(0, 1, 0);
     playerBody.velocity.set(0, 0, 0);
     
-    // Reset mobile camera rotation if needed
-    if ((window as any).isMobile && mobilePoV) {
-      camera.rotation.set(-0.1745, 0, 0);
-    }
+    // No need to reset mobile camera rotation - DeviceOrientationControls handles it
     // -------------------------------------------
 
     // Set initial tempo and ramp BPM to 180 over the round duration
