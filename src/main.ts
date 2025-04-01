@@ -160,13 +160,13 @@ async function init() {
 
     // Update movement vector on joystick move events
     joystick.on("move", (evt, data) => {
-      console.log("Joystick move event:", data.vector.x, data.vector.y);
+      // console.log("Joystick move event:", data.vector.x, data.vector.y);
       if (data && data.distance) {
         // Calculate normalized vector; adjust maxDistance as needed.
         const maxDistance = 75; // pixels
         // Use direct mapping without inversion
-        (window as any).mobileMovement.x = data.vector.x;
-        (window as any).mobileMovement.y = data.vector.y;
+        (window as any).mobileMovement.x = -data.vector.y;
+        (window as any).mobileMovement.y = -data.vector.x;
       }
     });
 
