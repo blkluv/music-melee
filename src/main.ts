@@ -94,8 +94,8 @@ async function init() {
   const controlsDisplay = document.createElement("div");
   controlsDisplay.id = "controlsDisplay";
   controlsDisplay.style.position = "fixed";
-  controlsDisplay.style.bottom = "20px";  // Adjust position as needed
-  controlsDisplay.style.left = "20px";   // Adjust position as needed
+  controlsDisplay.style.bottom = "20px"; // Adjust position as needed
+  controlsDisplay.style.left = "20px"; // Adjust position as needed
   controlsDisplay.style.zIndex = "1000";
   controlsDisplay.style.padding = "10px 20px";
   controlsDisplay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
@@ -194,7 +194,9 @@ async function init() {
         typeof DeviceOrientationEvent !== "undefined" &&
         typeof (DeviceOrientationEvent as any).requestPermission === "function"
       ) {
-        console.log("iOS 13+ device detected, requesting permission explicitly");
+        console.log(
+          "iOS 13+ device detected, requesting permission explicitly",
+        );
         try {
           const response = await (
             DeviceOrientationEvent as any
@@ -217,10 +219,14 @@ async function init() {
         }
       } else {
         // For other devices/browsers not requiring permission:
-        console.log("Non-iOS device or older iOS, initializing controls directly");
+        console.log(
+          "Non-iOS device or older iOS, initializing controls directly",
+        );
         try {
           deviceControls = new DeviceOrientationControls(camera);
-          console.log("DeviceOrientationControls initialized without permission request");
+          console.log(
+            "DeviceOrientationControls initialized without permission request",
+          );
         } catch (error) {
           console.error("Error initializing device controls:", error);
         }
@@ -309,8 +315,11 @@ async function init() {
 
         // Only process taps if they're not on the joystick container
         const touch = e.changedTouches[0];
-        const touchElement = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (touchElement && touchElement.closest('#joystickContainer')) {
+        const touchElement = document.elementFromPoint(
+          touch.clientX,
+          touch.clientY,
+        );
+        if (touchElement && touchElement.closest("#joystickContainer")) {
           console.log("Touch was on joystick - ignoring for click simulation");
           return;
         }
@@ -925,11 +934,11 @@ async function init() {
   // Helper function to create the audio chain for a given synth type.
   function buildSynthChain(chosenType: string): {
     synth:
-    | TONE.Synth
-    | TONE.MetalSynth
-    | TONE.PluckSynth
-    | TONE.FMSynth
-    | TONE.AMSynth;
+      | TONE.Synth
+      | TONE.MetalSynth
+      | TONE.PluckSynth
+      | TONE.FMSynth
+      | TONE.AMSynth;
     bassFilter: TONE.Filter;
     spatialVolume: TONE.Volume;
     panner3D: TONE.Panner3D;
@@ -1002,15 +1011,15 @@ async function init() {
       pannerIndex >= 0
         ? pannerPool[pannerIndex]
         : new TONE.Panner3D({
-          panningModel: "HRTF",
-          distanceModel: "inverse",
-          refDistance: 1,
-          maxDistance: 50,
-          rolloffFactor: 0.3,
-          coneInnerAngle: 360,
-          coneOuterAngle: 0,
-          coneOuterGain: 0,
-        });
+            panningModel: "HRTF",
+            distanceModel: "inverse",
+            refDistance: 1,
+            maxDistance: 50,
+            rolloffFactor: 0.3,
+            coneInnerAngle: 360,
+            coneOuterAngle: 0,
+            coneOuterGain: 0,
+          });
     const spatialVolume =
       volumeIndex >= 0 ? volumePool[volumeIndex] : new TONE.Volume(-12);
 
@@ -1881,7 +1890,7 @@ async function init() {
       // Store animation data on the particle
       (clone as any).velocity = direction.multiplyScalar(speed);
       (clone as any).life = 1.0;
-      (clone as any).update = function(delta: number) {
+      (clone as any).update = function (delta: number) {
         this.position.add(this.velocity);
         this.life -= delta * 2;
         (this.material as THREE.MeshBasicMaterial).opacity = this.life;
@@ -1954,7 +1963,9 @@ async function init() {
         }
       } else {
         // If deviceControls is undefined but we're in mobile mode, try to initialize it
-        console.log("Device controls not initialized but in mobile mode, attempting to initialize");
+        console.log(
+          "Device controls not initialized but in mobile mode, attempting to initialize",
+        );
         requestDeviceOrientation();
       }
     } else if (controls && controls.isLocked) {
