@@ -101,7 +101,7 @@ async function init() {
   controlsDisplay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
   controlsDisplay.style.color = "white";
   controlsDisplay.style.fontFamily = "sans-serif";
-  controlsDisplay.style.fontSize = "14px";
+  controlsDisplay.style.fontSize = "12px";
   controlsDisplay.innerText = (window as any).isMobile
     ? "Mobile Controls Enabled"
     : "Desktop Controls Enabled";
@@ -1802,23 +1802,24 @@ async function init() {
   }
 
   function updateComboDisplay() {
-    comboElem.innerText = `Combo: ${comboMultiplier}`;
-    // Immediately show the combo text
-    comboElem.style.opacity = "1";
-    // Animate scale-up (and specify a transition that covers both transform and opacity)
-    comboElem.style.transition = "transform 0.2s ease, opacity 1s ease";
-    comboElem.style.transform = "scale(1.5)";
-
-    // Clear any existing fade-out timeout so that rapid updates reset the timer
-    clearTimeout(comboFadeTimeout);
-    comboFadeTimeout = setTimeout(() => {
-      comboElem.style.opacity = "0";
-    }, 3000);
-
-    // Reset scale after the brief enlargement
-    setTimeout(() => {
-      comboElem.style.transform = "scale(1)";
-    }, 200);
+    if (comboMultiplier >= 2) {
+      comboElem.textContent = `Combo: ${comboMultiplier}`;
+      comboElem.style.display = "block";
+      // Make the combo text larger:
+      comboElem.style.fontSize = "32px";
+      comboElem.style.opacity = "1";
+      comboElem.style.transition = "transform 0.2s ease, opacity 1s ease";
+      comboElem.style.transform = "scale(1.5)";
+      clearTimeout(comboFadeTimeout);
+      comboFadeTimeout = setTimeout(() => {
+        comboElem.style.opacity = "0";
+      }, 3000);
+      setTimeout(() => {
+        comboElem.style.transform = "scale(1)";
+      }, 200);
+    } else {
+      comboElem.style.display = "none";
+    }
   }
 
   function triggerCameraShake() {
@@ -1919,6 +1920,7 @@ async function init() {
     const div = document.createElement("div");
     div.className = "multiplier-popup";
     div.innerText = `×${multiplier.toFixed(1)}`;
+    div.style.fontSize = "32px"; // Make multiplier text larger
     document.body.appendChild(div);
 
     // Position the multiplier popup fixed above the score display.
