@@ -20,10 +20,10 @@ The game is called Music Melee (a working title) and involves fast and responsiv
 - [x] UI fixes and cleanup
 - [x] Lighting, ambient illumination, and sky colour changes should be more gradual and elegant.
 - [x] Block colours should be more easily distinguished. Dissonant blocks on opposite ends of colour spectrum.
+- [x] Mobile support and tap controls
 
 **Upcoming:**
 
-- [ ] Mobile support and tap controls
 - [ ] Leaderboard / score sharing option
 - [ ] BONUS: levels' player portal: https://gist.github.com/levelsio/ffdbfe356b421b97a31664ded4bc961d
 
