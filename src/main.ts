@@ -68,6 +68,7 @@ async function init() {
     let cameraControlActive = false;
     let cameraControlPointerId: number | null = null;
     let cameraControlStart = { x: 0, y: 0 };
+    let lastTouchPos = { x: 0, y: 0 };
 
     // Attach pointer events to the renderer canvas
     renderer.domElement.addEventListener("pointerdown", (e: PointerEvent) => {
@@ -82,6 +83,7 @@ async function init() {
       cameraControlActive = true;
       cameraControlPointerId = e.pointerId;
       cameraControlStart = { x: e.clientX, y: e.clientY };
+      lastTouchPos = { x: e.clientX, y: e.clientY };
 
       // Capture the pointer so that subsequent moves are always received
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
@@ -89,14 +91,14 @@ async function init() {
 
     renderer.domElement.addEventListener("pointermove", (e: PointerEvent) => {
       if (!cameraControlActive || e.pointerId !== cameraControlPointerId) return;
-      // Optionally, if mobilePoV is active, skip camera rotation:
-      if ((window as any).isMobile && mobilePoV) return;
       // Prevent default scrolling or other browser gestures
       e.preventDefault();
       
-      // Calculate delta from previous move
-      const deltaX = e.movementX;
-      const deltaY = e.movementY;
+      // Calculate delta from previous touch position
+      const currentTouch = { x: e.clientX, y: e.clientY };
+      const deltaX = currentTouch.x - lastTouchPos.x;
+      const deltaY = currentTouch.y - lastTouchPos.y;
+      lastTouchPos = currentTouch; // update for next move
       // Adjust sensitivity as needed
       const sensitivity = 0.002;
       // Update camera rotation using the PointerLockControls object.
