@@ -1,0 +1,308 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: #000;
+}
+
+canvas {
+  display: block;
+}
+
+#loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-family: Arial, sans-serif;
+  font-size: 24px;
+}
+
+#startOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  font-family: 'Roboto', Arial, sans-serif;
+  font-size: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  text-align: center;
+  padding: 20px;
+}
+
+#startOverlay h2 {
+  color: #ffcc00;
+  margin-bottom: 20px;
+}
+
+#startOverlay p {
+  margin: 10px 0;
+  line-height: 1.5;
+}
+
+#startOverlay p:last-child {
+  margin-top: 30px;
+  font-size: 20px;
+  color: #aaaaaa;
+}
+
+#startOverlay.fade-out {
+  opacity: 0;
+  transition: opacity 1s ease-out;
+}
+
+#vibeJamLink {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-family: 'Roboto', sans-serif;
+  background: #FFFFFF;
+  color: #FFFFFF;
+  text-decoration: none;
+  border: 1px solid #000;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  transition: transform 0.3s, box-shadow 0.3s;
+  text-shadow: -0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000;
+  z-index: 10000; /* Ensure it stays on top of overlays */
+}
+
+#vibeJamLink:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Game UI Elements */
+#blockCounter,
+#bpmDisplay,
+#timingAccuracy,
+#lastNote,
+#roundTimer,
+#scoreDisplay,
+#comboDisplay {
+  position: absolute;
+  color: #FFFFFF;
+  text-shadow: -0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000;
+  font-family: Roboto, sans-serif;
+  max-width: 90%;
+  white-space: normal;
+}
+
+#blockCounter {
+  top: 10px;
+  right: 10px;
+  font-size: 18px;
+}
+
+#bpmDisplay {
+  top: 40px;
+  right: 10px;
+  font-size: 18px;
+}
+
+#timingAccuracy {
+  top: 70px;
+  right: 10px;
+  font-size: 18px;
+}
+
+#lastNote {
+  top: 100px;
+  right: 10px;
+  font-size: 18px;
+}
+
+#roundTimer {
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+}
+
+#scoreDisplay {
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+}
+
+#comboDisplay {
+  top: 160px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+}
+
+#crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid white;
+  border-radius: 50%;
+}
+
+#creditFooter {
+  position: absolute;
+  bottom: 5px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #FFFFFF;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  font-size: 12px;
+  font-family: Roboto, sans-serif;
+}
+
+#creditFooter a {
+  color: #a0a0ff;
+  text-decoration: none;
+}
+
+/* Mobile Joystick */
+#joystickContainer {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 120px;
+  height: 120px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  touch-action: none;
+}
+
+#joystickKnob {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background: #007BFF;
+  border-radius: 50%;
+  left: 30px;
+  top: 30px;
+  touch-action: none;
+}
+
+/* Summary Overlay */
+#summaryOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: Roboto, sans-serif;
+}
+
+#summaryOverlay h1 {
+  margin-bottom: 20px;
+}
+
+#summaryOverlay p {
+  margin: 5px 0;
+}
+
+#playAgainBtn {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 18px;
+  cursor: pointer;
+  background: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+#playAgainBtn:hover {
+  background: #0056b3;
+}
+
+/* Floating elements */
+.floating-text {
+  position: absolute;
+  color: lime;
+  font-size: 20px;
+  font-weight: bold;
+  text-shadow: -0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000;
+  pointer-events: none;
+  opacity: 1;
+}
+
+.note-popup {
+  position: absolute;
+  color: #ffcc00;
+  font-size: 22px;
+  font-weight: bold;
+  text-shadow: -0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000;
+  pointer-events: none;
+  opacity: 1;
+}
+
+.multiplier-popup {
+  position: absolute;
+  color: #00ff00;
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: -0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000;
+  pointer-events: none;
+  opacity: 1;
+}
+
+/* Media Queries for Mobile */
+@media (max-width: 768px) {
+  /* Ensure all UI elements with IDs retain a legible size with white text and black outline */
+  #blockCounter,
+  #bpmDisplay,
+  #timingAccuracy,
+  #lastNote,
+  #roundTimer,
+  #scoreDisplay,
+  #comboDisplay {
+    font-size: 16px !important;
+    color: #FFFFFF !important;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  }
+
+  /* Adjust start overlay for mobile screens */
+  #startOverlay {
+    font-size: 20px !important;
+    padding: 10px;
+  }
+
+  /* Resize the canvas if necessary */
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Adjust mobile joystick dimensions */
+  #joystickContainer {
+    width: 80px !important;
+    height: 80px !important;
+    bottom: 10px !important;
+    left: 10px !important;
+  }
+
+  #joystickKnob {
+    width: 40px !important;
+    height: 40px !important;
+    left: 20px !important;
+    top: 20px !important;
+  }
+}

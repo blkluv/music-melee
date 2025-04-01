@@ -71,26 +71,10 @@ async function init() {
     // --- JOYSTICK FOR PLAYER MOVEMENT ---
     const joystickContainer = document.createElement("div");
     joystickContainer.id = "joystickContainer";
-    joystickContainer.style.position = "absolute";
-    joystickContainer.style.bottom = "20px";
-    joystickContainer.style.left = "20px";
-    joystickContainer.style.width = "120px";
-    joystickContainer.style.height = "120px";
-    joystickContainer.style.background = "rgba(0, 0, 0, 0.5)";
-    joystickContainer.style.borderRadius = "50%";
-    joystickContainer.style.touchAction = "none";
     document.body.appendChild(joystickContainer);
 
     const joystickKnob = document.createElement("div");
     joystickKnob.id = "joystickKnob";
-    joystickKnob.style.position = "absolute";
-    joystickKnob.style.width = "60px";
-    joystickKnob.style.height = "60px";
-    joystickKnob.style.background = "#007BFF";
-    joystickKnob.style.borderRadius = "50%";
-    joystickKnob.style.left = "30px";
-    joystickKnob.style.top = "30px";
-    joystickKnob.style.touchAction = "none";
     joystickContainer.appendChild(joystickKnob);
 
     let joystickActive = false;
@@ -1004,60 +988,24 @@ async function init() {
   // Create a global array to store box meshes
   const boxMeshArray: THREE.Mesh[] = [];
 
-  // Create and style a block counter element
+  // Create UI elements with IDs (styles are in CSS)
   const blockCounterElem = document.createElement("div");
   blockCounterElem.id = "blockCounter";
-  blockCounterElem.style.position = "absolute";
-  blockCounterElem.style.top = "10px";
-  blockCounterElem.style.right = "10px"; // Changed from left to right
-  blockCounterElem.style.color = "#FFFFFF";
-  blockCounterElem.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
-  blockCounterElem.style.fontSize = "18px";
-  blockCounterElem.style.fontFamily = "Roboto, sans-serif"; // New font-family
-  blockCounterElem.style.maxWidth = "90%";
-  blockCounterElem.style.whiteSpace = "normal";
   document.body.appendChild(blockCounterElem);
 
-  // Create BPM display element below the block counter
+  // Create BPM display element
   const bpmElem = document.createElement("div");
   bpmElem.id = "bpmDisplay";
-  bpmElem.style.position = "absolute";
-  bpmElem.style.top = "40px";
-  bpmElem.style.right = "10px";
-  bpmElem.style.color = "#FFFFFF";
-  bpmElem.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
-  bpmElem.style.fontSize = "18px";
-  bpmElem.style.fontFamily = "Roboto, sans-serif";
-  bpmElem.style.maxWidth = "90%";
-  bpmElem.style.whiteSpace = "normal";
   document.body.appendChild(bpmElem);
 
-  // Create new UI element for timing accuracy (difference to nearest measure in ms)
+  // Create UI element for timing accuracy
   const timingAccuracyElem = document.createElement("div");
   timingAccuracyElem.id = "timingAccuracy";
-  timingAccuracyElem.style.position = "absolute";
-  timingAccuracyElem.style.top = "70px";
-  timingAccuracyElem.style.right = "10px";
-  timingAccuracyElem.style.color = "#FFFFFF";
-  timingAccuracyElem.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
-  timingAccuracyElem.style.fontSize = "18px";
-  timingAccuracyElem.style.fontFamily = "Roboto, sans-serif";
-  timingAccuracyElem.style.maxWidth = "90%";
-  timingAccuracyElem.style.whiteSpace = "normal";
   document.body.appendChild(timingAccuracyElem);
 
-  // Create new UI element for last triggered note
+  // Create UI element for last triggered note
   const lastNoteElem = document.createElement("div");
   lastNoteElem.id = "lastNote";
-  lastNoteElem.style.position = "absolute";
-  lastNoteElem.style.top = "100px";
-  lastNoteElem.style.right = "10px";
-  lastNoteElem.style.color = "#FFFFFF";
-  lastNoteElem.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
-  lastNoteElem.style.fontSize = "18px";
-  lastNoteElem.style.fontFamily = "Roboto, sans-serif";
-  lastNoteElem.style.maxWidth = "90%";
-  lastNoteElem.style.whiteSpace = "normal";
   document.body.appendChild(lastNoteElem);
 
   // Function to update the counter text
@@ -1066,53 +1014,21 @@ async function init() {
   }
   updateBlockCounter();
 
-  // Create a round timer element at the top center of the screen
+  // Create a round timer element
   const roundTimerElem = document.createElement("div");
   roundTimerElem.id = "roundTimer";
-  roundTimerElem.style.position = "absolute";
-  roundTimerElem.style.top = "10px";
-  roundTimerElem.style.left = "50%";
-  roundTimerElem.style.transform = "translateX(-50%)";
-  roundTimerElem.style.color = "#FFFFFF";
-  roundTimerElem.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
-  roundTimerElem.style.fontSize = "24px";
-  roundTimerElem.style.fontFamily = "Roboto, sans-serif";
-  roundTimerElem.style.maxWidth = "90%";
-  roundTimerElem.style.whiteSpace = "normal";
   document.body.appendChild(roundTimerElem);
 
-  // Create a new score display element in the bottom center.
+  // Create a score display element
   let score = 0; // Global score variable
   const scoreElem = document.createElement("div");
   scoreElem.id = "scoreDisplay";
-  scoreElem.style.position = "absolute";
-  scoreElem.style.bottom = "40px"; // Lifted up to avoid overlapping the credit/footer text.
-  scoreElem.style.left = "50%";
-  scoreElem.style.transform = "translateX(-50%)";
-  scoreElem.style.color = "#FFFFFF";
-  scoreElem.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
-  scoreElem.style.fontSize = "18px";
-  scoreElem.style.fontFamily = "Roboto, sans-serif";
-  scoreElem.style.maxWidth = "90%";  // Ensure text wraps if too long.
-  scoreElem.style.whiteSpace = "normal"; // Allow wrapping.
   scoreElem.innerText = "Score: 0";
   document.body.appendChild(scoreElem);
-
-  // Latency display removed
   
-  // New combo multiplier display
+  // Create combo multiplier display
   const comboElem = document.createElement("div");
   comboElem.id = "comboDisplay";
-  comboElem.style.position = "absolute";
-  comboElem.style.top = "160px";
-  comboElem.style.left = "50%";
-  comboElem.style.transform = "translateX(-50%)";
-  comboElem.style.color = "#FFFFFF";
-  comboElem.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
-  comboElem.style.fontSize = "24px";
-  comboElem.style.fontFamily = "Roboto, sans-serif";
-  comboElem.style.maxWidth = "90%";
-  comboElem.style.whiteSpace = "normal";
   comboElem.innerText = "Combo: 1";
   document.body.appendChild(comboElem);
 
@@ -1289,14 +1205,6 @@ async function init() {
   // Create crosshair element
   const crosshairElem = document.createElement("div");
   crosshairElem.id = "crosshair";
-  crosshairElem.style.position = "absolute";
-  crosshairElem.style.top = "50%";
-  crosshairElem.style.left = "50%";
-  crosshairElem.style.transform = "translate(-50%, -50%)";
-  crosshairElem.style.width = "20px";
-  crosshairElem.style.height = "20px";
-  crosshairElem.style.border = "2px solid white";
-  crosshairElem.style.borderRadius = "50%";
   document.body.appendChild(crosshairElem);
 
   // Mobile detection
@@ -1595,14 +1503,8 @@ async function init() {
 
   function spawnFloatingText(text: string, position: THREE.Vector3) {
     const div = document.createElement("div");
+    div.className = "floating-text";
     div.innerText = text;
-    div.style.position = "absolute";
-    div.style.color = "lime";  // use an accent color for perfect timing
-    div.style.fontSize = "20px";
-    div.style.fontWeight = "bold";
-    div.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
-    div.style.pointerEvents = "none";
-    div.style.opacity = "1";
     document.body.appendChild(div);
 
     // Convert world position to screen coordinates
@@ -1630,15 +1532,11 @@ async function init() {
   
   function spawnNotePopup(note: string, position: THREE.Vector3, noteColor?: string) {
     const div = document.createElement("div");
+    div.className = "note-popup";
     div.innerText = note;
-    div.style.position = "absolute";
-    // Use the provided noteColor (converted from block's original color) or default to yellow.
-    div.style.color = noteColor || "#ffcc00";
-    div.style.fontSize = "22px";
-    div.style.fontWeight = "bold";
-    div.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
-    div.style.pointerEvents = "none";
-    div.style.opacity = "1";
+    if (noteColor) {
+      div.style.color = noteColor;
+    }
     document.body.appendChild(div);
 
     // Convert the world position to screen coordinates.
@@ -1671,14 +1569,8 @@ async function init() {
 
   function spawnMultiplierPopup(multiplier: number, /* position parameter unused */ _pos?: THREE.Vector3) {
     const div = document.createElement("div");
+    div.className = "multiplier-popup";
     div.innerText = `×${multiplier.toFixed(1)}`;
-    div.style.position = "absolute";
-    div.style.color = "#00ff00";
-    div.style.fontSize = "24px";
-    div.style.fontWeight = "bold";
-    div.style.textShadow = "-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000";
-    div.style.pointerEvents = "none";
-    div.style.opacity = "1";
     document.body.appendChild(div);
 
     // Position the multiplier popup fixed above the score display.
@@ -2014,25 +1906,13 @@ async function init() {
         // Display summary overlay
         const summaryOverlay = document.createElement("div");
         summaryOverlay.id = "summaryOverlay";
-        summaryOverlay.style.position = "absolute";
-        summaryOverlay.style.top = "0";
-        summaryOverlay.style.left = "0";
-        summaryOverlay.style.right = "0";
-        summaryOverlay.style.bottom = "0";
-        summaryOverlay.style.background = "rgba(0, 0, 0, 0.8)";
-        summaryOverlay.style.color = "white";
-        summaryOverlay.style.display = "flex";
-        summaryOverlay.style.flexDirection = "column";
-        summaryOverlay.style.alignItems = "center";
-        summaryOverlay.style.justifyContent = "center";
-        summaryOverlay.style.fontFamily = "Roboto, sans-serif";
         summaryOverlay.innerHTML = `<h1>Round Over!</h1>
           <p>Final Score: ${score}</p>
           <p>Max Combo: ${maxCombo}</p>
-          <button id="playAgainBtn" style="margin-top:20px; padding:10px 20px; font-size:18px; cursor:pointer;">Play Again</button>
-          <p style="margin-top:10px;">Great job – click below to try again</p>
-          <p style="font-size:24px; color:#ffcc00; margin-top:20px;">
-            Vibecoded with love by <a href="https://gianluca.ai">Gianluca</a> for <a href="https://jam.pieter.com" target="_blank" style="color:#a0a0ff; text-decoration:underline;">Vibe Jam 2025</a>
+          <button id="playAgainBtn">Play Again</button>
+          <p>Great job – click below to try again</p>
+          <p>
+            Vibecoded with love by <a href="https://gianluca.ai">Gianluca</a> for <a href="https://jam.pieter.com" target="_blank">Vibe Jam 2025</a>
           </p>`;
         document.body.appendChild(summaryOverlay);
         
@@ -2053,16 +1933,7 @@ async function init() {
   // Add credit footer
   const creditElem = document.createElement("div");
   creditElem.id = "creditFooter";
-  creditElem.style.position = "absolute";
-  creditElem.style.bottom = "5px";
-  creditElem.style.left = "0";
-  creditElem.style.right = "0";
-  creditElem.style.textAlign = "center";
-  creditElem.style.color = "#FFFFFF";
-  creditElem.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000";
-  creditElem.style.fontSize = "12px";
-  creditElem.style.fontFamily = "Roboto, sans-serif";
-  creditElem.innerHTML = 'Vibecoded with love by <a href="https://gianluca.ai" target="_blank" style="color: #a0a0ff; text-decoration: none;">Gianluca</a> using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet. <a href="https://jam.pieter.com/" style="color: #a0a0ff; text-decoration: none;" >Vibe Jam 2025</a>';
+  creditElem.innerHTML = 'Vibecoded with love by <a href="https://gianluca.ai" target="_blank">Gianluca</a> using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet. <a href="https://jam.pieter.com/">Vibe Jam 2025</a>';
   document.body.appendChild(creditElem);
 
   // Handle window resize
