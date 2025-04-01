@@ -18,6 +18,7 @@ async function init() {
   let orbitAngle = 0;
   let mobilePoV = false;
   let deviceControls: DeviceOrientationControls | undefined;
+  let requestDeviceOrientation: () => Promise<void>;
 
 
   // Set up low-latency audio context configuration
@@ -85,8 +86,8 @@ async function init() {
   if ((window as any).isMobile) {
     console.log("isMobile:", (window as any).isMobile);
     
-    // Define requestDeviceOrientation function first
-    const requestDeviceOrientation = async (): Promise<void> => {
+    // Assign implementation to the requestDeviceOrientation function
+    requestDeviceOrientation = async (): Promise<void> => {
       if (
         typeof DeviceOrientationEvent !== "undefined" &&
         typeof (DeviceOrientationEvent as any).requestPermission === "function"
