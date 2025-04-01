@@ -257,13 +257,30 @@ async function init() {
 
     // Update movement vector on joystick move events
     joystick.on("move", (evt, data) => {
-      // console.log("Joystick move event:", data.vector.x, data.vector.y);
       if (data && data.distance) {
-        // Calculate normalized vector; adjust maxDistance as needed.
-        const maxDistance = 75; // pixels
-        // Use direct mapping without inversion
-        (window as any).mobileMovement.x = data.vector.y;
-        (window as any).mobileMovement.y = data.vector.x;
+        // Use window.orientation in degrees; default to 0 if undefined.
+        const angleDeg = window.orientation || 0;
+        const angleRad = angleDeg * (Math.PI / 180);
+
+        // Rotate the raw joystick vector by the negative of the screen angle
+        // so that the output is in a common reference frame.
+        const rawX = data.vector.x;
+        const rawY = data.vector.y;
+        const transformedX = rawX * Math.cos(-angleRad) - rawY * Math.sin(-angleRad);
+        const transformedY = rawX * Math.sin(-angleRad) + rawY * Math.cos(-angleRad);
+        
+        // Set the global mobile movement vector
+        (window as any).mobileMovement.x = transformedX;
+        (window as any).mobileMovement.y = transformedY;
+
+        console.log(
+          "Joystick raw vector:",
+          rawX.toFixed(2),
+          rawY.toFixed(2),
+          "→ transformed:",
+          transformedX.toFixed(2),
+          transformedY.toFixed(2),
+        );
       }
     });
 
@@ -313,16 +330,8 @@ async function init() {
         // Prevent default to avoid any browser handling that might interfere
         e.preventDefault();
 
-        // Only process taps if they're not on the joystick container
+        // Process all taps, even if they're on the joystick container
         const touch = e.changedTouches[0];
-        const touchElement = document.elementFromPoint(
-          touch.clientX,
-          touch.clientY,
-        );
-        if (touchElement && touchElement.closest("#joystickContainer")) {
-          console.log("Touch was on joystick - ignoring for click simulation");
-          return;
-        }
 
         console.log("Touch position:", touch.clientX, touch.clientY);
 
