@@ -269,32 +269,20 @@ async function init() {
         const rawX = data.vector.x;
         const rawY = data.vector.y;
         
-        // Determine if we are in portrait mode
-        const isPortrait = window.innerHeight > window.innerWidth;
+        // Compute device orientation angle in radians;
+        // Negate the angle to counteract the device's current rotation
+        const deviceAngleRad = -((typeof window.orientation === "number" ? window.orientation : 0) * Math.PI / 180);
         
-        // Get an orientation angle in radians
-        // (window.orientation is typically 0 in portrait, 90 or -90 in landscape)
-        const orientationAngle = (typeof window.orientation === "number" ? window.orientation : 0) * Math.PI / 180;
+        // Rotate the joystick vector using standard 2D rotation
+        const cos = Math.cos(deviceAngleRad);
+        const sin = Math.sin(deviceAngleRad);
+        const correctedJoystickX = rawX * cos - rawY * sin;
+        const correctedJoystickY = rawX * sin + rawY * cos;
         
-        let correctedJoystickX: number, correctedJoystickY: number;
-        
-        if (isPortrait) {
-          // In portrait mode, invert the horizontal axis only
-          correctedJoystickX = -rawX;
-          correctedJoystickY = rawY;
-        } else {
-          // In landscape, rotate the joystick vector by the orientation angle
-          // This counteracts the physical rotation of the device
-          const cos = Math.cos(orientationAngle);
-          const sin = Math.sin(orientationAngle);
-          correctedJoystickX = rawX * cos - rawY * sin;
-          correctedJoystickY = rawX * sin + rawY * cos;
-        }
-        
-        // Set the global mobile movement vector using the corrected values
+        // Store the corrected joystick values globally for movement calculation.
         (window as any).mobileMovement.x = correctedJoystickX;
         (window as any).mobileMovement.y = correctedJoystickY;
-
+        
         console.log(
           "Joystick raw vector:",
           rawX.toFixed(2),
@@ -302,8 +290,8 @@ async function init() {
           "→ corrected:",
           correctedJoystickX.toFixed(2),
           correctedJoystickY.toFixed(2),
-          "portrait mode:",
-          isPortrait
+          "device angle (rad):",
+          deviceAngleRad.toFixed(2)
         );
       }
     });
