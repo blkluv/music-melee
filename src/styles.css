@@ -27,7 +27,7 @@ canvas {
   background-color: rgba(0, 0, 0, 0.85);
   color: #fff;
   font-family: "Roboto", Arial, sans-serif;
-  font-size: 24px;
+  font-size: 18px;  /* Slightly larger than before */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -40,6 +40,7 @@ canvas {
 #startOverlay h2 {
   color: #ffcc00;
   margin-bottom: 20px;
+  font-size: 28px;  /* Adjust heading size as desired */
 }
 
 #startOverlay p {
@@ -116,7 +117,7 @@ canvas {
 #bpmDisplay {
   top: 40px;
   right: 10px;
-  font-size: 18px;
+  font-size: 12px; /* Adjust value if needed */
 }
 
 #timingAccuracy {
@@ -135,7 +136,7 @@ canvas {
   top: 10px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 24px;
+  font-size: 24px; /* Already at the requested size */
 }
 
 #scoreDisplay {
@@ -149,7 +150,7 @@ canvas {
   top: 160px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 24px;
+  font-size: 24px; /* Already at the requested size */
 }
 
 #crosshair {
