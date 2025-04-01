@@ -91,6 +91,10 @@ async function init() {
   joystickContainer.style.borderRadius = "50%"; // Make it circular
   document.body.appendChild(joystickContainer);
 
+  if (!(window as any).isMobile) {
+    joystickContainer.style.display = "none";
+  }
+
   // NEW: Mobile Support for Movement and Camera Control
   if ((window as any).isMobile) {
     console.log("isMobile:", (window as any).isMobile);
@@ -190,9 +194,8 @@ async function init() {
     const permissionBtn = document.createElement("button");
     permissionBtn.innerText = "Enable Motion Controls";
     permissionBtn.style.position = "fixed";
-    permissionBtn.style.top = "20px";
-    permissionBtn.style.left = "50%";
-    permissionBtn.style.transform = "translateX(-50%)";
+    permissionBtn.style.bottom = "20px";
+    permissionBtn.style.right = "20px";
     permissionBtn.style.zIndex = "1000";
     permissionBtn.style.padding = "12px 20px";
     permissionBtn.style.backgroundColor = "#4CAF50";
