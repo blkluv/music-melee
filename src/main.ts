@@ -1350,7 +1350,7 @@ async function init() {
   comboElem.innerText = "";
   comboElem.style.display = "none";
   document.body.appendChild(comboElem);
-  updateComboDisplay();
+  // Removed the early call to updateComboDisplay() to avoid referencing comboMultiplier too soon.
 
   // Global scoring variables
   let comboMultiplier = 1; // increases on each in-key hit
