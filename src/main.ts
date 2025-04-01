@@ -1454,7 +1454,7 @@ async function init() {
 
   // Scale down the FPS meter on smaller screens
   if (window.innerWidth < 768) {
-    stats.dom.style.transform = "scale(0.7)";
+    stats.dom.style.transform = "scale(0.3)";
     stats.dom.style.transformOrigin = "top left";
   }
 
