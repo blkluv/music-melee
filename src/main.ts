@@ -87,33 +87,55 @@ async function init() {
 
     // Assign implementation to the requestDeviceOrientation function
     requestDeviceOrientation = async (): Promise<void> => {
+      console.log("Attempting to request device orientation permission...");
+      
       if (
         typeof DeviceOrientationEvent !== "undefined" &&
         typeof (DeviceOrientationEvent as any).requestPermission === "function"
       ) {
+        console.log("iOS 13+ device detected, requesting permission explicitly");
         try {
           const response = await (
             DeviceOrientationEvent as any
           ).requestPermission();
+          console.log("Permission response:", response);
           if (response === "granted") {
             console.log("Device orientation permission granted.");
             deviceControls = new DeviceOrientationControls(camera);
+            console.log("DeviceOrientationControls initialized");
           } else {
             console.error("Device orientation permission denied.");
+            alert("Please allow motion sensors for the full experience!");
           }
         } catch (error) {
           console.error(
             "Error requesting device orientation permission:",
             error,
           );
+          alert("Error accessing device motion: " + error);
         }
       } else {
         // For other devices/browsers not requiring permission:
-        deviceControls = new DeviceOrientationControls(camera);
+        console.log("Non-iOS device or older iOS, initializing controls directly");
+        try {
+          deviceControls = new DeviceOrientationControls(camera);
+          console.log("DeviceOrientationControls initialized without permission request");
+        } catch (error) {
+          console.error("Error initializing device controls:", error);
+        }
       }
     };
 
+    // Make joystick container more visible for debugging
+    joystickContainer.style.background = "rgba(255, 0, 0, 0.3)"; // Bright red background for visibility
+    
+    // Add a simple touch event listener to verify the container is receiving events
+    joystickContainer.addEventListener("touchstart", () => {
+      console.log("Joystick container touched directly");
+    });
+    
     // --- Initialize the virtual joystick using nipplejs ---
+    console.log("Creating joystick with nipplejs");
     (window as any).mobileMovement = { x: 0, y: 0 }; // normalized vector for movement
     const joystick = nipplejs.create({
       zone: joystickContainer,
@@ -122,9 +144,11 @@ async function init() {
       color: "white",
       size: 100, // explicitly set size
     });
+    console.log("Joystick created:", joystick);
 
     // Update movement vector on joystick move events
     joystick.on("move", (evt, data) => {
+      console.log("Joystick move event:", data.vector.x, data.vector.y);
       if (data && data.distance) {
         // Calculate normalized vector; adjust maxDistance as needed.
         const maxDistance = 75; // pixels
@@ -139,27 +163,58 @@ async function init() {
       (window as any).mobileMovement.y = 0;
     });
 
-    // Attach permission request to a user gesture
+    // Attach permission request to a user gesture with more robust handling
     document.body.addEventListener(
       "click",
       () => {
+        console.log("Body clicked, requesting device orientation");
         requestDeviceOrientation();
       },
       { once: true },
     );
+    
+    // Add a visible button for requesting permissions (more reliable than body click)
+    const permissionBtn = document.createElement("button");
+    permissionBtn.innerText = "Enable Motion Controls";
+    permissionBtn.style.position = "fixed";
+    permissionBtn.style.top = "20px";
+    permissionBtn.style.left = "50%";
+    permissionBtn.style.transform = "translateX(-50%)";
+    permissionBtn.style.zIndex = "1000";
+    permissionBtn.style.padding = "12px 20px";
+    permissionBtn.style.backgroundColor = "#4CAF50";
+    permissionBtn.style.color = "white";
+    permissionBtn.style.border = "none";
+    permissionBtn.style.borderRadius = "4px";
+    permissionBtn.style.fontSize = "16px";
+    
+    permissionBtn.addEventListener("click", () => {
+      console.log("Permission button clicked");
+      requestDeviceOrientation();
+      permissionBtn.style.display = "none";
+    });
+    
+    document.body.appendChild(permissionBtn);
 
-    // Add tap handler to simulate clicks
+    // Add tap handler to simulate clicks with debugging
     renderer.domElement.addEventListener(
       "touchend",
       (e: TouchEvent) => {
+        console.log("touchend fired on renderer.domElement");
+        // Prevent default to avoid any browser handling that might interfere
+        e.preventDefault();
+        
         // Fire a click event from the first touch point
         const touch = e.changedTouches[0];
+        console.log("Touch position:", touch.clientX, touch.clientY);
+        
         const simulatedClick = new MouseEvent("click", {
           bubbles: true,
           cancelable: true,
           clientX: touch.clientX,
           clientY: touch.clientY,
         });
+        console.log("Dispatching simulated click");
         renderer.domElement.dispatchEvent(simulatedClick);
       },
       { passive: false },
@@ -207,30 +262,45 @@ async function init() {
   if ((window as any).isMobile) {
     document.body.addEventListener(
       "touchend",
-      async () => {
-        if (audioContext.state === "suspended") {
-          await audioContext.resume();
+      async (e) => {
+        console.log("touchend fired on document.body");
+        
+        // Try to resume audio context
+        try {
+          if (audioContext.state === "suspended") {
+            await audioContext.resume();
+            console.log("AudioContext resumed via touchend");
+          }
+          if (TONE.getContext().state !== "running") {
+            await TONE.start();
+            TONE.getContext().lookAhead = 0.01;
+            console.log(
+              "Tone.js audio context resumed with low latency settings (touchend)",
+            );
+          }
+        } catch (error) {
+          console.error("Error resuming audio:", error);
         }
-        if (TONE.getContext().state !== "running") {
-          await TONE.start();
-          TONE.getContext().lookAhead = 0.01;
-          console.log(
-            "Tone.js audio context resumed with low latency settings (touchend)",
-          );
-        }
+        
         const overlay = document.getElementById("startOverlay");
         if (overlay) {
+          console.log("Removing start overlay");
           overlay.classList.add("fade-out");
           setTimeout(() => {
             overlay.remove();
             mobilePoV = true;
+            console.log("Mobile PoV enabled");
             // Request device orientation permission when overlay is removed
             requestDeviceOrientation();
           }, 1000);
         }
+        
+        console.log("Spawning initial blocks");
         for (let i = 0; i < 50; i++) {
           spawnBlock();
         }
+        
+        console.log("Scheduling round start");
         setTimeout(() => {
           startRound();
         }, 5000);
@@ -1755,9 +1825,23 @@ async function init() {
       // On mobile, position the camera at the player's head height.
       const playerPos = playerBody.position as unknown as THREE.Vector3;
       camera.position.set(playerPos.x, playerPos.y + 1.6, playerPos.z);
-      // Update device orientation controls
+      
+      // Update device orientation controls with error handling
       if (deviceControls) {
-        deviceControls.update();
+        try {
+          deviceControls.update();
+        } catch (error) {
+          console.error("Error updating device controls:", error);
+          // If we get consistent errors, we might need to reinitialize
+          if (!deviceControls.enabled) {
+            console.log("Attempting to re-enable device controls");
+            deviceControls.enabled = true;
+          }
+        }
+      } else {
+        // If deviceControls is undefined but we're in mobile mode, try to initialize it
+        console.log("Device controls not initialized but in mobile mode, attempting to initialize");
+        requestDeviceOrientation();
       }
     } else if (controls && controls.isLocked) {
       // Non-mobile: update via PointerLockControls.
@@ -1785,11 +1869,18 @@ async function init() {
     if (keys.a) moveX += 1;
     if (keys.d) moveX -= 1;
 
-    // Add joystick inputs if available (non-blocking)
+    // Add joystick inputs if available (non-blocking) with stronger movement
     if ((window as any).mobileMovement) {
       const mm = (window as any).mobileMovement;
-      moveX += mm.x;
-      moveZ += -mm.y; // invert Y so upward swipe equals forward movement
+      // Apply a multiplier to make mobile movement more responsive
+      const mobileSensitivity = 1.5;
+      moveX += mm.x * mobileSensitivity;
+      moveZ += -mm.y * mobileSensitivity; // invert Y so upward swipe equals forward movement
+      
+      // Debug joystick movement if values are non-zero
+      if (mm.x !== 0 || mm.y !== 0) {
+        console.log("Mobile movement applied:", mm.x, mm.y);
+      }
     }
 
     const velocity = new CANNON.Vec3();
