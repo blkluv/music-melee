@@ -40,7 +40,13 @@ canvas {
 #startOverlay h2 {
   color: #ffcc00;
   margin-bottom: 20px;
-  font-size: 28px;  /* Adjust heading size as desired */
+  font-size: 32px;  /* Increase heading size if needed */
+}
+
+#startOverlay,
+#startOverlay ul,
+#startOverlay p {
+  font-size: 20px; /* Increase from the previous size */
 }
 
 #startOverlay p {
