@@ -85,7 +85,7 @@ async function init() {
   if ((window as any).isMobile) {
     console.log("isMobile:", (window as any).isMobile);
     
-    // --- Request Device Orientation Permission on iOS ---
+    // Define requestDeviceOrientation function first
     const requestDeviceOrientation = async (): Promise<void> => {
       if (
         typeof DeviceOrientationEvent !== "undefined" &&
@@ -218,9 +218,7 @@ async function init() {
             overlay.remove();
             mobilePoV = true;
             // Request device orientation permission when overlay is removed
-            if (typeof (DeviceOrientationEvent as any).requestPermission === "function") {
-              requestDeviceOrientation();
-            }
+            requestDeviceOrientation();
           }, 1000);
         }
         for (let i = 0; i < 50; i++) {
