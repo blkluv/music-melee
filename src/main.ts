@@ -1797,8 +1797,9 @@ async function init() {
       // Look at the center of the arena
       camera.lookAt(new THREE.Vector3(0, 0, 0));
     } else if ((window as any).isMobile && mobilePoV) {
-      // On mobile, update the camera position directly.
-      camera.position.copy(playerBody.position as unknown as THREE.Vector3);
+      // On mobile, position the camera at the player's head height.
+      const playerPos = playerBody.position as unknown as THREE.Vector3;
+      camera.position.set(playerPos.x, playerPos.y + 1.6, playerPos.z);
     } else if (controls && controls.isLocked) {
       // Non-mobile: update via PointerLockControls.
       controls.getObject().position.copy(playerBody.position as unknown as THREE.Vector3);
