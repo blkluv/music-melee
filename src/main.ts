@@ -69,7 +69,6 @@ async function init() {
   // NEW: Mobile Support for Movement and Camera Control
   if ((window as any).isMobile) {
     // --- JOYSTICK FOR PLAYER MOVEMENT ---
-    // Create a dedicated joystick container at bottom left.
     const joystickContainer = document.createElement("div");
     joystickContainer.id = "joystickContainer";
     joystickContainer.style.position = "absolute";
@@ -96,7 +95,7 @@ async function init() {
 
     let joystickActive = false;
     let joystickOrigin = { x: 0, y: 0 };
-    // Global normalized movement vector (values from -1 to 1)
+    // The normalized movement vector updates: values between -1 and 1.
     (window as any).mobileMovement = { x: 0, y: 0 };
 
     joystickContainer.addEventListener("pointerdown", (e: PointerEvent) => {
@@ -122,7 +121,7 @@ async function init() {
         dy *= ratio;
       }
       joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
-      // Set normalized movement vector (range: -1 to 1)
+      // Update the normalized movement (for lateral and forward/backward movement)
       (window as any).mobileMovement.x = dx / maxDist;
       (window as any).mobileMovement.y = dy / maxDist;
     }, { passive: false });
