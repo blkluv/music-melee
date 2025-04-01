@@ -10,6 +10,15 @@ import nipplejs from "nipplejs";
 // Initialize the game
 async function init() {
   console.log("Music Melee initializing...");
+  
+  // Mobile detection: set isMobile early
+  if (window.innerWidth < 768 || /Mobi/i.test(navigator.userAgent)) {
+    (window as any).isMobile = true;
+    console.log("Mobile device detected - enabling touch controls");
+  } else {
+    (window as any).isMobile = false;
+    console.log("Desktop device detected - using mouse/keyboard controls");
+  }
 
   // Declare variables at the top level of init() function
   let roundStartTime: number = 0;
@@ -1302,14 +1311,7 @@ async function init() {
   crosshairElem.id = "crosshair";
   document.body.appendChild(crosshairElem);
 
-  // Mobile detection
-  if (window.innerWidth < 768 || /Mobi/i.test(navigator.userAgent)) {
-    (window as any).isMobile = true;
-    console.log("Mobile device detected - enabling touch controls");
-  } else {
-    (window as any).isMobile = false;
-    console.log("Desktop device detected - using mouse/keyboard controls");
-  }
+  // Mobile detection was moved to the top of init()
 
   // Camera control for mobile devices is now handled directly on the renderer canvas
 
