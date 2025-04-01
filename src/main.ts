@@ -266,9 +266,11 @@ async function init() {
         // so that the output is in a common reference frame.
         const rawX = data.vector.x;
         const rawY = data.vector.y;
-        const transformedX = rawX * Math.cos(-angleRad) - rawY * Math.sin(-angleRad);
-        const transformedY = rawX * Math.sin(-angleRad) + rawY * Math.cos(-angleRad);
-        
+        const transformedX =
+          rawX * Math.cos(-angleRad) - rawY * Math.sin(-angleRad);
+        const transformedY =
+          rawX * Math.sin(-angleRad) + rawY * Math.cos(-angleRad);
+
         // Set the global mobile movement vector
         (window as any).mobileMovement.x = transformedX;
         (window as any).mobileMovement.y = transformedY;
@@ -323,59 +325,74 @@ async function init() {
     document.body.appendChild(permissionBtn);
 
     // Variables to record pointer down details
-    let tapStartX = 0, tapStartY = 0, tapStartTime = 0;
+    let tapStartX = 0,
+      tapStartY = 0,
+      tapStartTime = 0;
 
     /**
      * On pointerdown, store the location and time.
      */
-    renderer.domElement.addEventListener("pointerdown", (e: PointerEvent) => {
-      // Only consider touch pointers (optional check)
-      if (e.pointerType === "touch") {
-        tapStartX = e.clientX;
-        tapStartY = e.clientY;
-        tapStartTime = performance.now();
-        console.log("Pointer down at:", tapStartX, tapStartY);
-      }
-    }, { passive: true });
+    renderer.domElement.addEventListener(
+      "pointerdown",
+      (e: PointerEvent) => {
+        // Only consider touch pointers (optional check)
+        if (e.pointerType === "touch") {
+          tapStartX = e.clientX;
+          tapStartY = e.clientY;
+          tapStartTime = performance.now();
+          console.log("Pointer down at:", tapStartX, tapStartY);
+        }
+      },
+      { passive: true },
+    );
 
     /**
      * On pointerup, check if the pointer moved only a little and the duration was short.
      * If so, fire a simulated click event.
      */
-    renderer.domElement.addEventListener("pointerup", (e: PointerEvent) => {
-      if (e.pointerType === "touch") {
-        const tapEndTime = performance.now();
-        const dt = tapEndTime - tapStartTime;
-        const dx = e.clientX - tapStartX;
-        const dy = e.clientY - tapStartY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+    renderer.domElement.addEventListener(
+      "pointerup",
+      (e: PointerEvent) => {
+        if (e.pointerType === "touch") {
+          const tapEndTime = performance.now();
+          const dt = tapEndTime - tapStartTime;
+          const dx = e.clientX - tapStartX;
+          const dy = e.clientY - tapStartY;
+          const distance = Math.sqrt(dx * dx + dy * dy);
 
-        console.log("Pointer up. Distance:", distance.toFixed(2), "Duration:", dt.toFixed(2));
+          console.log(
+            "Pointer up. Distance:",
+            distance.toFixed(2),
+            "Duration:",
+            dt.toFixed(2),
+          );
 
-        // Thresholds: movement less than 10px and duration less than 300ms are considered a tap.
-        if (distance < 10 && dt < 300) {
-          console.log("Tap detected. Dispatching simulated click.");
-          
-          // Dispatch a simulated click event
-          const simulatedClick = new MouseEvent("click", {
-            bubbles: true,
-            cancelable: true,
-            clientX: e.clientX,
-            clientY: e.clientY,
-          });
-          renderer.domElement.dispatchEvent(simulatedClick);
+          // Thresholds: movement less than 10px and duration less than 300ms are considered a tap.
+          if (distance < 10 && dt < 300) {
+            console.log("Tap detected. Dispatching simulated click.");
 
-          // Also dispatch a mouseup event which is needed for raycasting
-          const simulatedMouseUp = new MouseEvent("mouseup", {
-            bubbles: true,
-            cancelable: true,
-            clientX: e.clientX,
-            clientY: e.clientY,
-          });
-          renderer.domElement.dispatchEvent(simulatedMouseUp);
+            // Dispatch a simulated click event
+            const simulatedClick = new MouseEvent("click", {
+              bubbles: true,
+              cancelable: true,
+              clientX: e.clientX,
+              clientY: e.clientY,
+            });
+            renderer.domElement.dispatchEvent(simulatedClick);
+
+            // Also dispatch a mouseup event which is needed for raycasting
+            const simulatedMouseUp = new MouseEvent("mouseup", {
+              bubbles: true,
+              cancelable: true,
+              clientX: e.clientX,
+              clientY: e.clientY,
+            });
+            renderer.domElement.dispatchEvent(simulatedMouseUp);
+          }
         }
-      }
-    }, { passive: true });
+      },
+      { passive: true },
+    );
   }
 
   // Setup Tone.js – resume audio context on first user interaction
