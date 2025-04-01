@@ -1,7 +1,7 @@
 // Music Melee - Main Entry Point
 import * as THREE from "three";
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
-import { DeviceOrientationControls } from "three/examples/jsm/controls/DeviceOrientationControls";
+import { DeviceOrientationControls } from "three/examples/jsm/controls/DeviceOrientationControls.js";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import * as TONE from "tone";
 import * as CANNON from "cannon-es";

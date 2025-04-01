@@ -1,4 +1,4 @@
-declare module "three/examples/jsm/controls/DeviceOrientationControls" {
+declare module "three/examples/jsm/controls/DeviceOrientationControls.js" {
   import { Camera } from "three";
 
   export class DeviceOrientationControls {
