@@ -178,8 +178,15 @@ async function init() {
   joystickContainer.style.borderRadius = "50%"; // Make it circular
   document.body.appendChild(joystickContainer);
 
+  // Create mobile click button
+  const mobileClickBtn = document.createElement("div");
+  mobileClickBtn.id = "mobileClickBtn";
+  mobileClickBtn.innerText = "TAP";
+  document.body.appendChild(mobileClickBtn);
+
   if (!(window as any).isMobile) {
     joystickContainer.style.display = "none";
+    mobileClickBtn.style.display = "none";
   }
 
   // NEW: Mobile Support for Movement and Camera Control
@@ -393,6 +400,35 @@ async function init() {
       },
       { passive: true },
     );
+
+    // Add click handler for the mobile click button
+    mobileClickBtn.addEventListener("click", (e) => {
+      console.log("Mobile click button pressed");
+      
+      // Create a simulated click at the center of the screen
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      
+      const simulatedClick = new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+        clientX: centerX,
+        clientY: centerY,
+      });
+      renderer.domElement.dispatchEvent(simulatedClick);
+      
+      // Also dispatch a mouseup event which is needed for raycasting
+      const simulatedMouseUp = new MouseEvent("mouseup", {
+        bubbles: true,
+        cancelable: true,
+        clientX: centerX,
+        clientY: centerY,
+      });
+      renderer.domElement.dispatchEvent(simulatedMouseUp);
+      
+      // Prevent the original event from propagating
+      e.stopPropagation();
+    });
   }
 
   // Setup Tone.js – resume audio context on first user interaction

@@ -207,6 +207,34 @@ canvas {
   touch-action: none;
 }
 
+/* Mobile Click Button */
+#mobileClickBtn {
+  position: fixed;
+  bottom: 80px;
+  right: 80px;
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 64, 64, 0.6);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Roboto, sans-serif;
+  font-weight: bold;
+  font-size: 18px;
+  z-index: 100;
+  user-select: none;
+  touch-action: manipulation;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+#mobileClickBtn:active {
+  background: rgba(255, 0, 0, 0.8);
+  transform: scale(0.95);
+}
+
 /* Summary Overlay */
 #summaryOverlay {
   position: absolute;
@@ -334,5 +362,14 @@ canvas {
     height: 40px !important;
     left: 20px !important;
     top: 20px !important;
+  }
+  
+  /* Adjust mobile click button for smaller screens */
+  #mobileClickBtn {
+    width: 60px !important;
+    height: 60px !important;
+    bottom: 10px !important;
+    right: 10px !important;
+    font-size: 16px !important;
   }
 }
