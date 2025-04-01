@@ -82,7 +82,12 @@ export class DeviceOrientationControls {
 
       // Set Euler angles in YXZ order.
       const SENSITIVITY = 5;
-      this.euler.set(SENSITIVITY * beta, SENSITIVITY * alpha, SENSITIVITY * -gamma, "YXZ");
+      this.euler.set(
+        SENSITIVITY * beta,
+        SENSITIVITY * alpha,
+        SENSITIVITY * -gamma,
+        "YXZ",
+      );
 
       // Convert Euler to quaternion.
       this.quaternion.setFromEuler(this.euler);

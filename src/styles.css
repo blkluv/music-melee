@@ -27,7 +27,7 @@ canvas {
   background-color: rgba(0, 0, 0, 0.85);
   color: #fff;
   font-family: "Roboto", Arial, sans-serif;
-  font-size: 18px;  /* Slightly larger than before */
+  font-size: 18px; /* Slightly larger than before */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -40,7 +40,7 @@ canvas {
 #startOverlay h2 {
   color: #ffcc00;
   margin-bottom: 20px;
-  font-size: 32px;  /* Increase heading size if needed */
+  font-size: 32px; /* Increase heading size if needed */
 }
 
 #startOverlay,
@@ -383,7 +383,7 @@ canvas {
     left: 20px !important;
     top: 20px !important;
   }
-  
+
   /* Adjust mobile click button for smaller screens */
   #mobileClickBtn {
     width: 60px !important;

@@ -268,21 +268,25 @@ async function init() {
         // Get raw joystick values
         const rawX = data.vector.x;
         const rawY = data.vector.y;
-        
+
         // Compute device orientation angle in radians;
         // Negate the angle to counteract the device's current rotation
-        const deviceAngleRad = -((typeof window.orientation === "number" ? window.orientation : 0) * Math.PI / 180);
-        
+        const deviceAngleRad = -(
+          ((typeof window.orientation === "number" ? window.orientation : 0) *
+            Math.PI) /
+          180
+        );
+
         // Rotate the joystick vector using standard 2D rotation
         const cos = Math.cos(deviceAngleRad);
         const sin = Math.sin(deviceAngleRad);
         const correctedJoystickX = rawX * cos - rawY * sin;
         const correctedJoystickY = rawX * sin + rawY * cos;
-        
+
         // Store the corrected joystick values globally for movement calculation.
         (window as any).mobileMovement.x = correctedJoystickX;
         (window as any).mobileMovement.y = correctedJoystickY;
-        
+
         console.log(
           "Joystick raw vector:",
           rawX.toFixed(2),
@@ -291,7 +295,7 @@ async function init() {
           correctedJoystickX.toFixed(2),
           correctedJoystickY.toFixed(2),
           "device angle (rad):",
-          deviceAngleRad.toFixed(2)
+          deviceAngleRad.toFixed(2),
         );
       }
     });
@@ -407,11 +411,11 @@ async function init() {
     // Add click handler for the mobile click button
     mobileClickBtn.addEventListener("click", (e) => {
       console.log("Mobile click button pressed");
-      
+
       // Create a simulated click at the center of the screen
       const centerX = window.innerWidth / 2;
       const centerY = window.innerHeight / 2;
-      
+
       const simulatedClick = new MouseEvent("click", {
         bubbles: true,
         cancelable: true,
@@ -419,7 +423,7 @@ async function init() {
         clientY: centerY,
       });
       renderer.domElement.dispatchEvent(simulatedClick);
-      
+
       // Also dispatch a mouseup event which is needed for raycasting
       const simulatedMouseUp = new MouseEvent("mouseup", {
         bubbles: true,
@@ -428,7 +432,7 @@ async function init() {
         clientY: centerY,
       });
       renderer.domElement.dispatchEvent(simulatedMouseUp);
-      
+
       // Prevent the original event from propagating
       e.stopPropagation();
     });
@@ -1537,7 +1541,13 @@ async function init() {
   // Add event listener for click tests
   renderer.domElement.addEventListener("mouseup", (event) => {
     // Allow click hit action if PointerLock is active OR if mobile mode with mobilePoV enabled.
-    if (!((controls && controls.isLocked) || ((window as any).isMobile && mobilePoV))) return;
+    if (
+      !(
+        (controls && controls.isLocked) ||
+        ((window as any).isMobile && mobilePoV)
+      )
+    )
+      return;
 
     // Cast a ray from the center of the screen.
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
