@@ -30,7 +30,6 @@ I vibecoded the entire thing for [Vibe Jam 2025](https://jam.pieter.com/). I use
 - **Tone.js**: Powers dynamic, spatial audio synthesis and musical interactions.
 - **cannon-es**: Simulates the physics (collisions, forces, etc.) in a realistic manner.
 - **Vite**: Bundles and serves the client-side code with fast live-reload during development.
-- **Node.js**: Hosts the backend server for real-time multiplayer interactions via websockets.
 
 ## Roadmap
 
