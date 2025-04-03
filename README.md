@@ -4,7 +4,13 @@ For the [Vibe Jam 2025](https://jam.pieter.com/).
 
 Vibecoded with love by [Gianluca](https://gianluca.ai) using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet
 
-Play now: [Music Melee](https://music-melee.vercel.app/) (best on desktop)
+- Play now: [Music Melee](https://music-melee.vercel.app/) (best on desktop)
+- Blog post: [Music Melee: a high-speed parkour FPS for making beautiful sounds | Gianluca.ai](https://gianluca.ai/music-melee/)
+- [Thread on X](https://x.com/gianluca_truda/status/1907827373279498677
+) with gameplay video
+- [Thread on Bluesky](https://bsky.app/profile/gianlucatruda.bsky.social/post/3llwby6l6lc2m
+) with gameplay video
+- [Show HN: Music Melee – High-speed parkour FPS for making beautiful music | Hacker News](https://news.ycombinator.com/item?id=43571169)
 
 ---
 
@@ -15,7 +21,16 @@ Play now: [Music Melee](https://music-melee.vercel.app/) (best on desktop)
 
 ---
 
-The game is called Music Melee (a working title) and involves fast and responsive parkour-like gameplay as players bounce around the environment and melee blocks. As the name suggests, the twist is that everything in the game creates dynamic sounds (mapped out in stereo 3D) and the more chaotic the battles get, the more sonically interesting it becomes. Players can get powerups for musically-interesting behaviour like achieving certain harmonies or matching the rhythm of the arena (which is procedurally generated at the start of the match). Matches are 2 minutes long and then the arena resets.
+I vibecoded the entire thing for [Vibe Jam 2025](https://jam.pieter.com/). I used [Aider](https://aider.chat/) in "architect" mode from my command line -- OpenAI's o3-mini analysed the code and planned how to apply my prompt, then handed the plan to Anthropic's Claude 3.7 sonnet to execute the changes. 
+
+## Tech Stack
+
+- **TypeScript**: Provides static type-checking, enhanced code quality, and developer productivity.
+- **Three.js**: Renders advanced 3D graphics using WebGL.
+- **Tone.js**: Powers dynamic, spatial audio synthesis and musical interactions.
+- **cannon-es**: Simulates the physics (collisions, forces, etc.) in a realistic manner.
+- **Vite**: Bundles and serves the client-side code with fast live-reload during development.
+- **Node.js**: Hosts the backend server for real-time multiplayer interactions via websockets.
 
 ## Roadmap
 
@@ -42,39 +57,7 @@ The game is called Music Melee (a working title) and involves fast and responsiv
 - [ ] Leaderboard / score sharing option
 - [ ] BONUS: levels' player portal: https://gist.github.com/levelsio/ffdbfe356b421b97a31664ded4bc961d
 
-## Progress
-
-- **3D Sound & Audio Chain:**
-
-  - Implemented dynamic 3D spatial sound using Tone.js, including synthesizers routed through filters, spatial volume nodes, and Panner3D.
-  - Improved listener processing by updating both position and orientation every frame.
-  - Reduced distance falloff intensity for more consistent volume with distance.
-
-- **Block Handling & Feedback:**
-
-  - Each falling block now creates its own audio chain and flashes on collision.
-  - Fixed issues with green blocks by switching from a MetalSynth to a percussive MembraneSynth.
-  - Added a ticker block at the center of the arena that flashes and plays a click sound every 2 seconds for debugging spatial audio.
-
-- **Player Movement:**
-
-  - Adjusted player movement to be more responsive with increased horizontal speed.
-  - Reduced jump power substantially (now 50% weaker) while keeping overall movement fast.
-
-- **General Improvements:**
-  - Enhanced collision handling to trigger sounds based on impact velocity.
-  - Integrated debugging elements (block counter and Stats.js) for performance and collision feedback.
-
-## Tech Stack
-
-- **TypeScript**: Provides static type-checking, enhanced code quality, and developer productivity.
-- **Three.js**: Renders advanced 3D graphics using WebGL.
-- **Tone.js**: Powers dynamic, spatial audio synthesis and musical interactions.
-- **cannon-es**: Simulates the physics (collisions, forces, etc.) in a realistic manner.
-- **Vite**: Bundles and serves the client-side code with fast live-reload during development.
-- **Node.js**: Hosts the backend server for real-time multiplayer interactions via websockets.
-
-## Workflow & Commands
+## Usage
 
 ### Installation
 
