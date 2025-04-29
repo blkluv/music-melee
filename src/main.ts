@@ -80,10 +80,8 @@ async function init() {
         </ul>
         <p><strong>Click to begin</strong></p>
         <p>
-          Vibecoded with love by <a href="https://gianluca.ai" target="_blank" style="color: #a0a0ff; text-decoration: none">Gianluca</a>
-          using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet.
+          Powered by <a href="https://jersey.fm" target="_blank" style="color: #a0a0ff; text-decoration: none">JERSEY.FM</a>
         </p>
-        <a id="vibeJamLink" href="https://jam.pieter.com" target="_blank">🕹️ Vibe Jam 2025</a>
       `;
     }
   }
@@ -2293,7 +2291,7 @@ async function init() {
           <button id="playAgainBtn">Play Again</button>
           <p>Great job – click below to try again</p>
           <p>
-            Vibecoded with love by <a href="https://gianluca.ai">Gianluca</a> for <a href="https://jam.pieter.com" target="_blank">Vibe Jam 2025</a>
+            Powered by <a href="https://jersey.fm">JERSEY.FM</a>. Made by <a href="https://t.me/hahznft" target="_blank">Wizard of Hahz</a>
           </p>`;
         document.body.appendChild(summaryOverlay);
 
@@ -2317,7 +2315,7 @@ async function init() {
   const creditElem = document.createElement("div");
   creditElem.id = "creditFooter";
   creditElem.innerHTML =
-    'Vibecoded with love by <a href="https://gianluca.ai" target="_blank">Gianluca</a> using Aider, OpenAI o3-mini, and Claude 3.7 Sonnet. <a href="https://jam.pieter.com/">Vibe Jam 2025</a>';
+    'Powered by <a href="https://jersey.fm" target="_blank">JERSEY.FM</a>. Made by the <a href="https://t.me/hahznft">Wizard of Hahz</a>';
   document.body.appendChild(creditElem);
 
   // Handle window resize
