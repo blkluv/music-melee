@@ -56,17 +56,16 @@ async function init() {
     } else {
       startOverlay.innerHTML = `
         <h2 id="mainTitle">
-          <span style="color: #007bff">M</span>
-          <span style="color: #66bfff">u</span>
-          <span style="color: #dc3545">s</span>
-          <span style="color: #ff6b75">i</span>
-          <span style="color: #28a745">c</span>
+          <span style="color: #007bff">B</span>
+          <span style="color: #66bfff">R</span>
+          <span style="color: #dc3545">I</span>
+          <span style="color: #ff6b75">C</span>
+          <span style="color: #28a745">K</span>
           <span> </span>
-          <span style="color: #6fcf97">M</span>
-          <span style="color: #ffc107">e</span>
-          <span style="color: #ffd966">l</span>
-          <span style="color: #6f42c1">e</span>
-          <span style="color: #a280ff">e</span>
+          <span style="color: #6fcf97">C</span>
+          <span style="color: #ffc107">I</span>
+          <span style="color: #ffd966">T</span>
+          <span style="color: #6f42c1">Y</span>
         </h2>
         <ul style="text-align: left">
           <li>Use <strong>WASD</strong> to move.</li>
